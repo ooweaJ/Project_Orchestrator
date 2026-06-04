@@ -55,6 +55,6 @@ Verified on 2026-06-04:
 - `npm run build` passed.
 - `http://127.0.0.1:5173` returned Vite HTML.
 - `http://127.0.0.1:4317/api/projects` returned project JSON.
-- `http://127.0.0.1:4317/api/snapshots` returned 4 project snapshots.
+- `http://127.0.0.1:4317/api/snapshots` returned project snapshots.
 
 Browser plugin visual verification was attempted, but the browser runtime failed with a Windows sandbox spawn error. HTTP/API verification succeeded.

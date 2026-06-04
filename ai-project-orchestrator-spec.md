@@ -16,8 +16,6 @@ Example project paths:
 
 - `C:\Projects\UnrealGame`
 - `C:\Projects\WebGamePrototype`
-- `C:\Projects\PortfolioSite`
-- `D:\Projects\VRPrototype`
 
 For each project, the app scans local files and Git state, then turns that raw state into an actionable project card.
 
@@ -572,8 +570,6 @@ Use this prompt to start implementation:
 초기 등록 후보:
 - C:\Projects\UnrealGame
 - C:\Projects\WebGamePrototype
-- C:\Projects\PortfolioSite
-- D:\Projects\VRPrototype
 
 구현 후:
 - 실행 방법을 README에 적어줘.

@@ -18,25 +18,5 @@
     "importantFiles": ["AGENTS.md", "README.md", "docs/CODEX_STATUS.md", "docs/NEXT_TASKS.md", "package.json"],
     "createdAt": "2026-06-04T00:00:00.000Z",
     "updatedAt": "2026-06-04T00:00:00.000Z"
-  },
-  {
-    "id": "portfolio-site",
-    "name": "Portfolio Site",
-    "path": "C:\\Projects\\PortfolioSite",
-    "type": "portfolio",
-    "tags": ["portfolio", "web"],
-    "importantFiles": ["AGENTS.md", "README.md", "index.html", "package.json"],
-    "createdAt": "2026-06-04T00:00:00.000Z",
-    "updatedAt": "2026-06-04T00:00:00.000Z"
-  },
-  {
-    "id": "vrbeat",
-    "name": "VRBeat",
-    "path": "D:\\Projects\\VRPrototype",
-    "type": "unknown",
-    "tags": ["vr"],
-    "importantFiles": ["AGENTS.md", "README.md", "package.json"],
-    "createdAt": "2026-06-04T00:00:00.000Z",
-    "updatedAt": "2026-06-04T00:00:00.000Z"
   }
 ]

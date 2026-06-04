@@ -74,7 +74,7 @@ GET http://127.0.0.1:4317/api/projects
 GET http://127.0.0.1:4317/api/snapshots
 ```
 
-Observed snapshot summary:
+Observed snapshot summary from the initial local scan before the default candidate list was narrowed:
 
 ```text
 UE5 SoulLike     unreal     exists true  risk medium  branch main  dirty true
