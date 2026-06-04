@@ -28,20 +28,14 @@
 - Reads branch, dirty state, modified files, staged files, untracked files, latest commit, and upstream status.
 - Handles missing paths and non-Git folders safely.
 
-## Priority 1
-
 ### Improve Dashboard Interactions
 
-Goal:
+- Added project registration form in the UI.
+- Added delete action with confirmation.
+- Added prompt type selector for diagnose, commit, docs, and review.
+- Verified add/delete API flow and review prompt generation.
 
-- Add project registration form in the UI.
-- Add delete action with confirmation.
-- Add prompt type selector for diagnose, commit, docs, and review.
-
-Verification:
-
-- add and remove a project from the dashboard
-- generate different prompt kinds for the same project
+## Priority 1
 
 ### Improve Scanner Signals
 

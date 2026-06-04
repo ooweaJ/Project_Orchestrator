@@ -55,3 +55,9 @@ Each log should include:
 - File: `scripts/send-discord-report.mjs`
 - Summary: Restored the original embed shape and changed HTML delivery to a follow-up message so the file appears below the summary.
 - Verification: `npm run report:discord:dry`, `npm run report:discord`.
+
+#### Dashboard Interactions
+
+- File: `docs/ai-collaboration/2026-06-04/03-dashboard-interactions.md`
+- Summary: Added project registration, delete confirmation, and prompt type selection to the dashboard.
+- Verification: `npm run build`, add/delete API flow, review prompt generation API.

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>대시보드 상호작용 개선 보고서</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        padding: 36px 22px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.15;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 19px;
+      }
+
+      section {
+        padding: 18px;
+        border: 1px solid #d9e1d7;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.7;
+      }
+
+      code {
+        padding: 2px 5px;
+        border-radius: 5px;
+        background: #edf2ec;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: #60706a;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        margin-top: 10px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: #1f6b4d;
+        background: #dff2e5;
+        font-size: 13px;
+        font-weight: 900;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">작업 단위 보고서</p>
+        <h1>대시보드 상호작용 개선</h1>
+        <span class="status">2026-06-04 기준</span>
+      </header>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li>프로젝트 추가 폼을 대시보드에 추가했습니다.</li>
+          <li>프로젝트 삭제 확인 버튼을 카드에 추가했습니다.</li>
+          <li>Codex 프롬프트 타입 선택 UI를 추가했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li>기존 API를 활용해 프론트 상호작용만 연결했습니다.</li>
+          <li>테스트 프로젝트를 임시로 추가하고 삭제하면서 API 흐름을 확인했습니다.</li>
+          <li>테스트 중 JSON 포맷이 바뀐 부분은 원래 스타일로 정리했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li><code>npm run build</code>가 통과했습니다.</li>
+          <li>프로젝트 추가/삭제 흐름이 검증되었습니다.</li>
+          <li>review 프롬프트 생성 API가 정상 동작했습니다.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

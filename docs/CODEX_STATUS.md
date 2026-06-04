@@ -28,6 +28,13 @@ Completed MVP scaffold:
 - `GET /api/activity`.
 - Dashboard with summary metrics, project cards, detail panel, risk list, and copyable Codex prompt.
 
+Completed dashboard interaction improvements:
+
+- Project registration form in the dashboard.
+- Delete action with confirmation.
+- Prompt type selector for diagnose, commit, docs, and review.
+- Prompt generation connected to `POST /api/projects/:id/prompt`.
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -56,5 +63,7 @@ Verified on 2026-06-04:
 - `http://127.0.0.1:5173` returned Vite HTML.
 - `http://127.0.0.1:4317/api/projects` returned project JSON.
 - `http://127.0.0.1:4317/api/snapshots` returned project snapshots.
+- Project add/delete API flow was verified with a temporary local project entry.
+- Review prompt generation was verified through `POST /api/projects/:id/prompt`.
 
 Browser plugin visual verification was attempted, but the browser runtime failed with a Windows sandbox spawn error. HTTP/API verification succeeded.
