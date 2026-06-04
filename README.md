@@ -65,6 +65,33 @@ GitHub에 실제 로컬 경로가 올라가지 않도록 현재 파일에는 예
 - `POST /api/projects/:id/prompt`: Codex 프롬프트 생성
 - `GET /api/activity`: 활동 로그 조회
 
+## Discord 보고서 전송
+
+사용자용 한글 보고서는 `docs/reports/latest-status.html`에 있습니다.
+
+Discord에는 HTML 원문이 아니라 이 보고서에서 뽑은 요약 embed를 전송합니다.
+
+1. `.env.example`을 참고해서 `.env`를 만듭니다.
+
+```text
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+DISCORD_REPORT_USERNAME=AI Project Orchestrator
+```
+
+2. 전송 전에 미리보기 JSON을 확인합니다.
+
+```bash
+npm run report:discord:dry
+```
+
+3. Discord 웹훅으로 전송합니다.
+
+```bash
+npm run report:discord
+```
+
+`.env`는 Git에 올라가지 않습니다.
+
 ## 안전 규칙
 
 스캐너는 읽기 전용 Git 명령만 실행합니다.

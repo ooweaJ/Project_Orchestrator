@@ -261,15 +261,34 @@ For each meaningful work unit, report in this shape:
 
 If a bug or blocker appears during work, include what happened, how it was diagnosed, and how it was resolved. If verification could not be run, say that plainly.
 
+## Korean User Report
+
+Maintain a Korean user-facing report separately from the agent-facing Markdown documents.
+
+Default report path:
+
+- `docs/reports/latest-status.html`
+
+The report should stay short and readable for the user. Use this structure:
+
+- `어떤 작업`: what work unit was completed
+- `진행 내용`: notable issues, bugs, conflicts, or decisions during the work
+- `결과`: final outcome and verification
+- `참고 문서`: links to relevant Markdown documents
+
+Do not turn this report into a full development diary. Keep detailed records in `docs/DEV_LOG.md` and `docs/ai-collaboration/YYYY-MM-DD/*.md`.
+
 ## Discord Report Direction
 
-Future Discord reports should be short summaries, not full logs.
+Discord reports should be short summaries, not full logs.
 
 Preferred flow:
 
 - write detailed records locally in Markdown
-- generate a compact report summary
-- send Discord webhook messages as Markdown or embed JSON
-- link or reference the local report id when useful
+- update `docs/reports/latest-status.html` as the user-facing Korean summary
+- send the Korean summary to Discord with `npm run report:discord`
+- use `.env` for `DISCORD_WEBHOOK_URL`
+- keep `.env` out of Git
+- use `.env.example` to document required variables
 
-HTML reports can be generated locally later, but Discord should use Markdown/embed formatting first.
+Discord does not render arbitrary HTML as a report. Send a Markdown/embed summary derived from the HTML report instead.

@@ -37,3 +37,9 @@ Each log should include:
 - File: `docs/reports/latest-status.html`
 - Summary: Added a Korean HTML report for the user-facing summary and translated README into Korean.
 - Verification: Documentation-only change.
+
+#### Discord Report Webhook
+
+- File: `scripts/send-discord-report.mjs`
+- Summary: Added a Discord webhook sender that converts the Korean HTML report into a compact Discord embed.
+- Verification: `npm run report:discord:dry`.

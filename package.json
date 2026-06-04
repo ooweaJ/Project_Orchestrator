@@ -7,7 +7,9 @@
     "dev": "concurrently \"node server/index.mjs\" \"vite --host 127.0.0.1\"",
     "server": "node server/index.mjs",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "report:discord": "node scripts/send-discord-report.mjs",
+    "report:discord:dry": "node scripts/send-discord-report.mjs --dry-run"
   },
   "dependencies": {
     "cors": "^2.8.5",
