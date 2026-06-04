@@ -1,0 +1,396 @@
+:root {
+  color: #17211c;
+  background: #f5f7f1;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+}
+
+.appShell {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 4px 0 24px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #60706a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: 1.45rem;
+}
+
+h3 {
+  margin-bottom: 0;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primaryButton {
+  padding: 0 18px;
+  color: #fff;
+  background: #1f6b4d;
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.secondaryButton {
+  padding: 0 14px;
+  color: #1f6b4d;
+  background: #e4efe7;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.metric,
+.infoBlock,
+.statusGroup,
+.riskPanel,
+.promptPanel,
+.emptyBox,
+.emptyDetail,
+.errorBox {
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.metric {
+  min-height: 84px;
+  padding: 16px;
+}
+
+.metric span,
+.infoBlock span {
+  display: block;
+  color: #697873;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.8rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.projectList,
+.detailPanel {
+  min-width: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.sectionTitle span {
+  color: #75837e;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.projectCard {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 16px;
+  color: inherit;
+  text-align: left;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.projectCard.selected {
+  border-color: #1f6b4d;
+  box-shadow: 0 0 0 2px rgba(31, 107, 77, 0.14);
+}
+
+.cardHeader,
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardHeader h3 {
+  font-size: 1.05rem;
+}
+
+.cardHeader p {
+  margin: 5px 0 0;
+  color: #697873;
+  font-size: 0.85rem;
+}
+
+.pathLine {
+  overflow: hidden;
+  margin: 12px 0;
+  color: #53625d;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cardSignals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 9px;
+  color: #40524b;
+  border-radius: 999px;
+  background: #edf2ec;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.riskBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.riskBadge.low {
+  color: #1f6b4d;
+  background: #dff2e5;
+}
+
+.riskBadge.medium {
+  color: #7b5200;
+  background: #fff0c7;
+}
+
+.riskBadge.high {
+  color: #8b2a18;
+  background: #ffe0d6;
+}
+
+.riskBadge.blocked {
+  color: #fff;
+  background: #842029;
+}
+
+.detailPanel {
+  padding: 20px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #fdfefd;
+}
+
+.detailHeader {
+  margin-bottom: 16px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.infoBlock {
+  min-height: 80px;
+  padding: 13px;
+}
+
+.infoBlock strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 7px;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panelRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.statusGroup,
+.riskPanel,
+.promptPanel {
+  padding: 16px;
+}
+
+.statusGroup h3,
+.riskPanel h3,
+.promptPanel h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.signal,
+.docSignal,
+.riskItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 34px;
+  color: #43544f;
+  font-size: 0.9rem;
+}
+
+.docSignal {
+  justify-content: flex-start;
+}
+
+.docSignal strong {
+  margin-left: auto;
+}
+
+.riskItem {
+  justify-content: flex-start;
+  color: #694034;
+}
+
+.riskItem.calm {
+  color: #1f6b4d;
+}
+
+.promptPanel {
+  margin-top: 14px;
+}
+
+.promptPanel pre {
+  overflow: auto;
+  max-height: 290px;
+  margin: 0 0 12px;
+  padding: 14px;
+  color: #26342f;
+  border-radius: 8px;
+  background: #f2f5ef;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.emptyBox,
+.emptyDetail,
+.errorBox {
+  padding: 18px;
+}
+
+.errorBox {
+  margin-bottom: 18px;
+  color: #842029;
+  background: #fff2f0;
+}
+
+@media (max-width: 1080px) {
+  .summaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workspace,
+  .detailGrid,
+  .panelRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .appShell {
+    padding: 18px;
+  }
+
+  .topBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
