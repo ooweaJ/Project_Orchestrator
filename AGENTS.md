@@ -268,6 +268,8 @@ Maintain a Korean user-facing report separately from the agent-facing Markdown d
 Default report path:
 
 - `docs/reports/latest-status.html`
+- `docs/reports/index.html`
+- `docs/reports/YYYY-MM-DD/*.html`
 
 The report should stay short and readable for the user. Use this structure:
 
@@ -286,9 +288,12 @@ Preferred flow:
 
 - write detailed records locally in Markdown
 - update `docs/reports/latest-status.html` as the user-facing Korean summary
+- keep dated HTML reports under `docs/reports/YYYY-MM-DD/*.html` for larger work units
+- update `docs/reports/index.html` when adding dated reports
 - send the Korean summary to Discord with `npm run report:discord`
+- attach the HTML report file by default
 - use `.env` for `DISCORD_WEBHOOK_URL`
 - keep `.env` out of Git
 - use `.env.example` to document required variables
 
-Discord does not render arbitrary HTML as a report. Send a Markdown/embed summary derived from the HTML report instead.
+Discord does not render arbitrary HTML as a report. Send a Markdown/embed summary derived from the HTML report and attach the HTML file for later reading.

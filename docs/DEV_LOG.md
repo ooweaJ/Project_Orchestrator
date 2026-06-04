@@ -43,3 +43,9 @@ Each log should include:
 - File: `scripts/send-discord-report.mjs`
 - Summary: Added a Discord webhook sender that converts the Korean HTML report into a compact Discord embed.
 - Verification: `npm run report:discord:dry`.
+
+#### HTML Report Archive
+
+- File: `docs/reports/index.html`
+- Summary: Added a dated HTML report archive and changed Discord report sending to attach the HTML report file with the embed.
+- Verification: `npm run report:discord:dry`, `npm run report:discord`.

@@ -7,6 +7,7 @@ const rootDir = path.resolve(__dirname, "..");
 const envFile = path.join(rootDir, ".env");
 const reportFile = path.join(rootDir, "docs", "reports", "latest-status.html");
 const isDryRun = process.argv.includes("--dry-run");
+const shouldAttachHtml = !process.argv.includes("--no-attach");
 
 function stripTags(value) {
   return value
@@ -118,7 +119,16 @@ const report = extractReport(html);
 const payload = buildPayload(report, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
 
 if (isDryRun) {
-  console.log(JSON.stringify(payload, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        ...payload,
+        attachments: shouldAttachHtml ? ["latest-status.html"] : [],
+      },
+      null,
+      2,
+    ),
+  );
   process.exit(0);
 }
 
@@ -127,13 +137,29 @@ if (!env.DISCORD_WEBHOOK_URL) {
   process.exit(1);
 }
 
-const response = await fetch(env.DISCORD_WEBHOOK_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(payload),
-});
+let response;
+
+if (shouldAttachHtml) {
+  const formData = new FormData();
+  const reportBytes = await fs.readFile(reportFile);
+  const reportBlob = new Blob([reportBytes], { type: "text/html" });
+
+  formData.append("payload_json", JSON.stringify(payload));
+  formData.append("files[0]", reportBlob, "latest-status.html");
+
+  response = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    body: formData,
+  });
+} else {
+  response = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
 
 if (!response.ok) {
   const body = await response.text();
@@ -142,4 +168,4 @@ if (!response.ok) {
   process.exit(1);
 }
 
-console.log("Discord report sent.");
+console.log(shouldAttachHtml ? "Discord report sent with HTML attachment." : "Discord report sent.");
