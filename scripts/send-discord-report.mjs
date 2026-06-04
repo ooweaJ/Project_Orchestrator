@@ -103,10 +103,14 @@ function buildPayload(report, username) {
             value: truncate(report.result || "기록된 결과가 없습니다.", 1024),
             inline: false,
           },
+          {
+            name: "상세 보고서",
+            value: shouldAttachHtml
+              ? "`latest-status.html` 파일을 함께 첨부했습니다."
+              : "`docs/reports/latest-status.html` 기준으로 생성했습니다.",
+            inline: false,
+          },
         ],
-        footer: {
-          text: "docs/reports/latest-status.html 기준으로 생성됨",
-        },
         timestamp: new Date().toISOString(),
       },
     ],
