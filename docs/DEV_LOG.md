@@ -31,3 +31,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-04/02-static-mvp-scaffold.md`
 - Summary: Created the first runnable Vite React dashboard and Express API with local project config, read-only Git scanning, basic risk scoring, and generated Codex prompts.
 - Verification: `npm install`, `npm run build`, frontend HTTP `200 OK`, projects API `200 OK`, snapshots API `200 OK`.
+
+#### Korean User Report
+
+- File: `docs/reports/latest-status.html`
+- Summary: Added a Korean HTML report for the user-facing summary and translated README into Korean.
+- Verification: Documentation-only change.

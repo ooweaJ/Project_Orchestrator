@@ -1,38 +1,88 @@
 # AI Project Orchestrator
 
-Local-first dashboard for tracking multiple AI-assisted development projects.
+여러 개발 프로젝트를 로컬에서 한 번에 확인하고, Codex에게 다음에 시킬 작업 프롬프트를 만들어주는 대시보드입니다.
 
-The MVP reads registered project folders, scans read-only Git state, scores simple risks, and generates focused Codex prompts.
+이 프로젝트의 목적은 단순히 파일 상태를 보여주는 것이 아니라, AI를 활용한 개발 과정을 더 안전하고 체계적으로 운영하는 것입니다.
 
-## Run Locally
+## 현재 구현 상태
+
+첫 MVP가 실행 가능한 상태입니다.
+
+- Vite + React + TypeScript 프론트엔드
+- Node + Express 백엔드
+- 로컬 JSON 기반 프로젝트 목록
+- 읽기 전용 Git 상태 스캔
+- 기본 위험도 계산
+- 프로젝트별 Codex 프롬프트 생성
+- 대시보드 카드, 상세 패널, 프롬프트 복사 UI
+
+기본 등록 후보는 두 개만 둡니다.
+
+- UE5 SoulLike
+- LETHE Prototype
+
+## 실행 방법
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open:
+프론트엔드:
 
 ```text
 http://127.0.0.1:5173
 ```
 
-Backend API runs on:
+백엔드 API:
 
 ```text
 http://127.0.0.1:4317
 ```
 
-## MVP Features
+## 프로젝트 목록 설정
 
-- Register projects in `data/projects.json`.
-- Scan all registered projects with `GET /api/snapshots`.
-- Show branch, dirty state, staged/modified/untracked files, latest commit, and basic documentation signals.
-- Calculate simple risk levels.
-- Generate copyable Codex prompts for the selected project.
+프로젝트 목록은 `data/projects.json`에서 관리합니다.
 
-`data/projects.json` uses sanitized example paths. Replace them with your own local project paths before scanning real projects.
+GitHub에 실제 로컬 경로가 올라가지 않도록 현재 파일에는 예시 경로가 들어 있습니다.
 
-## Safety
+실제 스캔을 하려면 본인 PC의 경로로 바꿔서 사용하면 됩니다.
 
-The scanner only runs read-only Git commands. It does not reset, checkout, clean, delete, or push project files.
+```json
+{
+  "name": "LETHE Prototype",
+  "path": "C:\\Projects\\WebGamePrototype"
+}
+```
+
+## 주요 API
+
+- `GET /api/projects`: 등록 프로젝트 목록
+- `POST /api/projects`: 프로젝트 추가
+- `DELETE /api/projects/:id`: 프로젝트 제거
+- `GET /api/projects/:id/snapshot`: 단일 프로젝트 스캔
+- `GET /api/snapshots`: 전체 프로젝트 스캔
+- `POST /api/projects/:id/prompt`: Codex 프롬프트 생성
+- `GET /api/activity`: 활동 로그 조회
+
+## 안전 규칙
+
+스캐너는 읽기 전용 Git 명령만 실행합니다.
+
+자동으로 실행하지 않는 작업:
+
+- `git reset`
+- `git checkout`
+- `git clean`
+- 파일 삭제
+- force push
+- 프로젝트 파일 자동 수정
+
+## 참고 문서
+
+- `docs/CODEX_STATUS.md`: 현재 구현 상태
+- `docs/NEXT_TASKS.md`: 다음 작업
+- `docs/DEV_LOG.md`: 작업 단위 개발 로그
+- `docs/reports/latest-status.html`: 사용자용 한글 진행 보고서
+- `docs/AI_USAGE_PORTFOLIO.md`: AI 활용 능력 정리본
+- `docs/PROMPT_DECISION_LOG.md`: 프롬프트/의사결정 기록

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator 진행 보고서</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        padding: 36px 22px;
+      }
+
+      header {
+        margin-bottom: 22px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: #60706a;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.15;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 19px;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.65;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .metric,
+      section {
+        border: 1px solid #d9e1d7;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .metric {
+        padding: 16px;
+      }
+
+      .metric span {
+        display: block;
+        color: #60706a;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 24px;
+      }
+
+      section {
+        margin-bottom: 14px;
+        padding: 18px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.7;
+      }
+
+      a {
+        color: #1f6b4d;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        margin-top: 10px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: #1f6b4d;
+        background: #dff2e5;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .note {
+        color: #5b6a65;
+      }
+
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">사용자용 진행 보고서</p>
+        <h1>AI Project Orchestrator 진행 상태</h1>
+        <span class="status">2026-06-04 기준</span>
+      </header>
+
+      <div class="grid">
+        <div class="metric">
+          <span>현재 단계</span>
+          <strong>첫 MVP 구현</strong>
+        </div>
+        <div class="metric">
+          <span>기본 프로젝트</span>
+          <strong>2개</strong>
+        </div>
+        <div class="metric">
+          <span>검증</span>
+          <strong>Build 통과</strong>
+        </div>
+      </div>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li>AI 협업 규칙, 개발 로그, 포트폴리오 기록 구조를 만들었습니다.</li>
+          <li>로컬 프로젝트 상태를 읽는 첫 MVP 대시보드를 구현했습니다.</li>
+          <li>기본 등록 프로젝트를 UE5 SoulLike와 LETHE Prototype 두 개로 줄였습니다.</li>
+          <li>README를 한글 사용 설명서로 정리했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li>초기 푸시 과정에서 원격 브랜치와 로컬 커밋이 갈라져 충돌이 발생했습니다.</li>
+          <li>충돌 파일은 현재 MVP 버전을 기준으로 정리했습니다.</li>
+          <li>GitHub에 실제 로컬 경로가 노출되지 않도록 추적 파일에는 예시 경로만 남겼습니다.</li>
+          <li>브라우저 자동 검증은 Windows sandbox 문제로 실패했지만, HTTP/API 검증으로 대체했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li><code>npm run build</code>가 통과했습니다.</li>
+          <li><code>/api/projects</code>는 UE5 SoulLike와 LETHE Prototype 두 개만 반환합니다.</li>
+          <li>대시보드는 프로젝트 카드, 상세 패널, 위험도, Codex 프롬프트를 표시할 수 있습니다.</li>
+          <li>원격 GitHub에는 충돌 해결 커밋까지 푸시되었습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>참고 문서</h2>
+        <ul>
+          <li><a href="../AI_USAGE_PORTFOLIO.md">AI 활용 능력 정리본</a></li>
+          <li><a href="../PROMPT_DECISION_LOG.md">프롬프트/의사결정 인덱스</a></li>
+          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
+          <li><a href="../NEXT_TASKS.md">다음 작업 목록</a></li>
+          <li><a href="../DEV_LOG.md">개발 로그 인덱스</a></li>
+        </ul>
+        <p class="note">이 HTML 보고서는 너한테 보여주기 위한 요약본이고, Codex가 참조하는 상세 운영 문서는 Markdown으로 유지합니다.</p>
+      </section>
+    </main>
+  </body>
+</html>
