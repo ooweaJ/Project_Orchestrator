@@ -69,7 +69,7 @@ GitHub에 실제 로컬 경로가 올라가지 않도록 현재 파일에는 예
 
 사용자용 한글 보고서는 `docs/reports/latest-status.html`에 있습니다.
 
-Discord에는 이 보고서에서 뽑은 요약 embed와 HTML 파일 첨부를 함께 전송합니다.
+Discord에는 이 보고서에서 뽑은 요약 embed를 먼저 보내고, HTML 파일을 다음 메시지로 전송합니다.
 
 1. `.env.example`을 참고해서 `.env`를 만듭니다.
 
@@ -92,7 +92,7 @@ npm run report:discord
 
 `.env`는 Git에 올라가지 않습니다.
 
-HTML 첨부 없이 embed만 보내고 싶을 때는 직접 스크립트를 실행합니다.
+HTML 파일 메시지 없이 embed만 보내고 싶을 때는 직접 스크립트를 실행합니다.
 
 ```bash
 node scripts/send-discord-report.mjs --no-attach

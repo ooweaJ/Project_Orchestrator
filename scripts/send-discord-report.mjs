@@ -103,14 +103,10 @@ function buildPayload(report, username) {
             value: truncate(report.result || "기록된 결과가 없습니다.", 1024),
             inline: false,
           },
-          {
-            name: "상세 보고서",
-            value: shouldAttachHtml
-              ? "`latest-status.html` 파일을 함께 첨부했습니다."
-              : "`docs/reports/latest-status.html` 기준으로 생성했습니다.",
-            inline: false,
-          },
         ],
+        footer: {
+          text: "docs/reports/latest-status.html 기준으로 생성됨",
+        },
         timestamp: new Date().toISOString(),
       },
     ],
@@ -127,7 +123,7 @@ if (isDryRun) {
     JSON.stringify(
       {
         ...payload,
-        attachments: shouldAttachHtml ? ["latest-status.html"] : [],
+        followUpAttachments: shouldAttachHtml ? ["latest-status.html"] : [],
       },
       null,
       2,
@@ -141,29 +137,13 @@ if (!env.DISCORD_WEBHOOK_URL) {
   process.exit(1);
 }
 
-let response;
-
-if (shouldAttachHtml) {
-  const formData = new FormData();
-  const reportBytes = await fs.readFile(reportFile);
-  const reportBlob = new Blob([reportBytes], { type: "text/html" });
-
-  formData.append("payload_json", JSON.stringify(payload));
-  formData.append("files[0]", reportBlob, "latest-status.html");
-
-  response = await fetch(env.DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    body: formData,
-  });
-} else {
-  response = await fetch(env.DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-}
+const response = await fetch(env.DISCORD_WEBHOOK_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(payload),
+});
 
 if (!response.ok) {
   const body = await response.text();
@@ -172,4 +152,28 @@ if (!response.ok) {
   process.exit(1);
 }
 
-console.log(shouldAttachHtml ? "Discord report sent with HTML attachment." : "Discord report sent.");
+if (!shouldAttachHtml) {
+  console.log("Discord report sent.");
+  process.exit(0);
+}
+
+const formData = new FormData();
+const reportBytes = await fs.readFile(reportFile);
+const reportBlob = new Blob([reportBytes], { type: "text/html" });
+
+formData.append("payload_json", JSON.stringify({ content: "상세 HTML 보고서 파일입니다." }));
+formData.append("files[0]", reportBlob, "latest-status.html");
+
+const attachmentResponse = await fetch(env.DISCORD_WEBHOOK_URL, {
+  method: "POST",
+  body: formData,
+});
+
+if (!attachmentResponse.ok) {
+  const body = await attachmentResponse.text();
+  console.error(`Discord attachment failed: ${attachmentResponse.status} ${attachmentResponse.statusText}`);
+  console.error(body);
+  process.exit(1);
+}
+
+console.log("Discord report sent, then HTML attachment sent below it.");

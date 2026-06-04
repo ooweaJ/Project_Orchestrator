@@ -291,7 +291,7 @@ Preferred flow:
 - keep dated HTML reports under `docs/reports/YYYY-MM-DD/*.html` for larger work units
 - update `docs/reports/index.html` when adding dated reports
 - send the Korean summary to Discord with `npm run report:discord`
-- attach the HTML report file by default
+- send the Discord embed first, then send the HTML report file as a follow-up message so it appears below the summary
 - use `.env` for `DISCORD_WEBHOOK_URL`
 - keep `.env` out of Git
 - use `.env.example` to document required variables

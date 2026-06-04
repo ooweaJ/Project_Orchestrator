@@ -49,3 +49,9 @@ Each log should include:
 - File: `docs/reports/index.html`
 - Summary: Added a dated HTML report archive and changed Discord report sending to attach the HTML report file with the embed.
 - Verification: `npm run report:discord:dry`, `npm run report:discord`.
+
+#### Discord Report Ordering
+
+- File: `scripts/send-discord-report.mjs`
+- Summary: Restored the original embed shape and changed HTML delivery to a follow-up message so the file appears below the summary.
+- Verification: `npm run report:discord:dry`, `npm run report:discord`.
