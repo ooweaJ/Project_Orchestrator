@@ -279,11 +279,142 @@ h3 {
   font-size: 0.88rem;
 }
 
+.pathInputGroup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.browseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 11px;
+  color: #1f6b4d;
+  border: 1px solid #c9e8d3;
+  border-radius: 8px;
+  background: #f0fbf3;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .formHint {
   margin: 0;
   color: #60706a;
   font-size: 0.8rem;
   line-height: 1.55;
+}
+
+.folderPicker {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #c9e8d3;
+  border-radius: 8px;
+  background: #f7fcf8;
+}
+
+.folderPickerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.folderPickerHeader h3 {
+  margin: 0 0 5px;
+  font-size: 1rem;
+}
+
+.folderPickerHeader p {
+  overflow: hidden;
+  max-width: 260px;
+  margin: 0;
+  color: #53625d;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderRootRow,
+.folderToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.folderRootRow button {
+  min-height: 30px;
+  padding: 0 10px;
+  color: #40524b;
+  border: 1px solid #d9e1d7;
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.folderRootRow button.active {
+  color: #1f6b4d;
+  border-color: #addfc0;
+  background: #dff2e5;
+}
+
+.folderList {
+  display: grid;
+  gap: 6px;
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.folderRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.folderRow button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  color: #26342f;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.folderRow button:first-child {
+  justify-content: flex-start;
+}
+
+.folderRow button:last-child {
+  color: #1f6b4d;
+}
+
+.folderRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderEmpty {
+  margin: 0;
+  color: #697873;
+  font-size: 0.84rem;
 }
 
 .formRow {
@@ -695,7 +826,8 @@ h3 {
   .detailGrid,
   .panelRow,
   .fileSignalGrid,
-  .formRow {
+  .formRow,
+  .pathInputGroup {
     grid-template-columns: 1fr;
   }
 

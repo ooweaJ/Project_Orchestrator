@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clipboard,
   FileText,
+  FolderOpen,
   GitBranch,
   Plus,
   RefreshCw,
@@ -85,6 +86,16 @@ type ProjectSnapshot = {
   updatedAt: string;
 };
 
+type FolderBrowser = {
+  currentPath: string;
+  parentPath: string;
+  roots: string[];
+  folders: Array<{
+    name: string;
+    path: string;
+  }>;
+};
+
 const riskLabels: Record<RiskLevel, string> = {
   low: "정상",
   medium: "주의",
@@ -161,6 +172,9 @@ function App() {
   const [promptKind, setPromptKind] = React.useState<PromptKind>("diagnose");
   const [promptText, setPromptText] = React.useState("");
   const [portfolioMode, setPortfolioMode] = React.useState(false);
+  const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
+  const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
+  const [isFolderLoading, setIsFolderLoading] = React.useState(false);
   const [formState, setFormState] = React.useState({
     name: "",
     path: "",
@@ -205,6 +219,42 @@ function App() {
     await navigator.clipboard.writeText(prompt);
     setCopied(id);
     window.setTimeout(() => setCopied(""), 1600);
+  }
+
+  async function loadFolders(targetPath = "") {
+    setIsFolderLoading(true);
+    setError("");
+
+    try {
+      const search = targetPath ? `?path=${encodeURIComponent(targetPath)}` : "";
+      const response = await fetch(`/api/folders${search}`);
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as null | { error?: string };
+        throw new Error(body?.error ?? `폴더를 읽지 못했습니다: ${response.status}`);
+      }
+
+      setFolderBrowser((await response.json()) as FolderBrowser);
+      setIsFolderPickerOpen(true);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "알 수 없는 오류");
+    } finally {
+      setIsFolderLoading(false);
+    }
+  }
+
+  async function openFolderPicker() {
+    if (folderBrowser) {
+      setIsFolderPickerOpen((current) => !current);
+      return;
+    }
+
+    await loadFolders(formState.path.trim());
+  }
+
+  function selectFolder(folderPath: string) {
+    setFormState((current) => ({ ...current, path: folderPath }));
+    setIsFolderPickerOpen(false);
   }
 
   function displayProjectName(snapshot: ProjectSnapshot) {
@@ -425,13 +475,19 @@ function App() {
             </label>
             <label>
               폴더 경로
-              <input
-                type="text"
-                value={formState.path}
-                onChange={(event) => setFormState((current) => ({ ...current, path: event.target.value }))}
-                placeholder="C:\\Projects\\MyProject"
-                required
-              />
+              <span className="pathInputGroup">
+                <input
+                  type="text"
+                  value={formState.path}
+                  onChange={(event) => setFormState((current) => ({ ...current, path: event.target.value }))}
+                  placeholder="C:\\Projects\\MyProject"
+                  required
+                />
+                <button className="browseButton" type="button" onClick={() => void openFolderPicker()}>
+                  <FolderOpen size={15} />
+                  찾아보기
+                </button>
+              </span>
             </label>
             <div className="formRow">
               <label>
@@ -466,6 +522,65 @@ function App() {
             </button>
             <p className="formHint">`확인 필요`는 앱 오류가 아니라, 등록된 경로를 찾지 못했거나 먼저 처리할 항목이 있다는 뜻입니다.</p>
           </form>
+
+          {isFolderPickerOpen && folderBrowser ? (
+            <section className="folderPicker" aria-label="폴더 선택">
+              <div className="folderPickerHeader">
+                <div>
+                  <h3>폴더 선택</h3>
+                  <p>{folderBrowser.currentPath}</p>
+                </div>
+                <button className="secondaryButton" type="button" onClick={() => selectFolder(folderBrowser.currentPath)}>
+                  이 폴더 선택
+                </button>
+              </div>
+
+              <div className="folderRootRow">
+                {folderBrowser.roots.map((root) => (
+                  <button
+                    className={folderBrowser.currentPath === root ? "active" : ""}
+                    key={root}
+                    type="button"
+                    onClick={() => void loadFolders(root)}
+                  >
+                    {root}
+                  </button>
+                ))}
+              </div>
+
+              <div className="folderToolbar">
+                <button
+                  className="secondaryButton"
+                  type="button"
+                  onClick={() => void loadFolders(folderBrowser.parentPath)}
+                  disabled={!folderBrowser.parentPath || isFolderLoading}
+                >
+                  상위 폴더
+                </button>
+                <button className="secondaryButton" type="button" onClick={() => setIsFolderPickerOpen(false)}>
+                  닫기
+                </button>
+              </div>
+
+              <div className="folderList">
+                {folderBrowser.folders.length > 0 ? (
+                  folderBrowser.folders.map((folder) => (
+                    <div className="folderRow" key={folder.path}>
+                      <button type="button" onClick={() => void loadFolders(folder.path)} disabled={isFolderLoading}>
+                        <FolderOpen size={15} />
+                        <span>{folder.name}</span>
+                      </button>
+                      <button type="button" onClick={() => selectFolder(folder.path)}>
+                        선택
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="folderEmpty">하위 폴더가 없습니다.</p>
+                )}
+              </div>
+            </section>
+          ) : null}
 
           {snapshots.map((snapshot) => (
             <article

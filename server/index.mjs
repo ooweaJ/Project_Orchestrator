@@ -68,6 +68,55 @@ async function ensureDataFiles() {
   }
 }
 
+async function getWindowsDriveRoots() {
+  const roots = [];
+
+  for (let code = 65; code <= 90; code += 1) {
+    const drive = `${String.fromCharCode(code)}:\\`;
+    if (await pathExists(drive)) {
+      roots.push(drive);
+    }
+  }
+
+  return roots;
+}
+
+async function getFolderRoots() {
+  if (process.platform === "win32") {
+    return getWindowsDriveRoots();
+  }
+
+  return ["/"];
+}
+
+async function listFolders(targetPath) {
+  const roots = await getFolderRoots();
+  const fallbackPath = roots[0] ?? path.parse(rootDir).root;
+  const currentPath = targetPath ? path.resolve(targetPath) : fallbackPath;
+  const stats = await fs.stat(currentPath);
+
+  if (!stats.isDirectory()) {
+    throw new Error("선택한 경로가 폴더가 아닙니다.");
+  }
+
+  const entries = await fs.readdir(currentPath, { withFileTypes: true });
+  const folders = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => ({
+      name: entry.name,
+      path: path.join(currentPath, entry.name),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  const rootPath = path.parse(currentPath).root;
+
+  return {
+    currentPath,
+    parentPath: currentPath === rootPath ? "" : path.dirname(currentPath),
+    roots,
+    folders,
+  };
+}
+
 function runGit(args, cwd) {
   return new Promise((resolve) => {
     execFile("git", args, { cwd, windowsHide: true, timeout: 8000 }, (error, stdout, stderr) => {
@@ -794,6 +843,15 @@ app.get("/api/projects", async (_req, res) => {
     res.json(await readProjects());
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/folders", async (req, res) => {
+  try {
+    const requestedPath = typeof req.query.path === "string" ? req.query.path : "";
+    res.json(await listFolders(requestedPath));
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

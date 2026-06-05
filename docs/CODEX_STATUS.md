@@ -63,6 +63,13 @@ Completed dashboard localization and readability improvements:
 - Risk messages and generated prompt summaries are localized in Korean.
 - Dashboard cards, metrics, and action chips received small readability improvements.
 
+Completed project folder picker:
+
+- `GET /api/folders` returns local drive roots and child folders.
+- Project add form includes a `찾아보기` button next to the path field.
+- The folder picker can navigate roots, parent folders, and child folders.
+- Selecting a folder fills the project path input without manually typing the path.
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -108,3 +115,5 @@ Verified on 2026-06-05:
 - Dashboard localization build passed.
 - `GET /api/snapshots` returned Korean risk messages.
 - `POST /api/projects/ue5-soullike/prompt` returned a Korean prompt body.
+- `GET /api/folders` returned local drive roots and folders.
+- `GET /api/folders?path=<local-path>` returned child folders for a selected path.

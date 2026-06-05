@@ -16,6 +16,7 @@
 - 위험도와 액션 카테고리 계산
 - 프로젝트별 Codex 프롬프트 생성
 - 로컬 경로와 파일명을 숨기는 Portfolio Mode
+- 프로젝트 추가 시 로컬 폴더 찾아보기
 - 대시보드 카드, 상세 패널, 프롬프트 복사 UI
 
 기본 등록 후보는 두 개만 둡니다.
@@ -60,6 +61,7 @@ GitHub에 실제 로컬 경로가 올라가지 않도록 현재 파일에는 예
 ## 주요 API
 
 - `GET /api/projects`: 등록 프로젝트 목록
+- `GET /api/folders`: 로컬 폴더 탐색용 읽기 전용 목록
 - `POST /api/projects`: 프로젝트 추가
 - `DELETE /api/projects/:id`: 프로젝트 제거
 - `GET /api/projects/:id/snapshot`: 단일 프로젝트 스캔

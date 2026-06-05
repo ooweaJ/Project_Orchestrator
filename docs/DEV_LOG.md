@@ -81,3 +81,9 @@ Each log should include:
 - File: `src/main.tsx`
 - Summary: Localized dashboard labels, risk badges, helper text, blocked-state explanation, risk messages, and generated prompt summaries into Korean.
 - Verification: `npm run build`, frontend HTTP `200 OK`, snapshots API returned Korean risk messages, prompt API returned a Korean prompt body.
+
+#### Project Folder Picker
+
+- File: `server/index.mjs`, `src/main.tsx`, `src/styles.css`
+- Summary: Added a local folder browsing API and a dashboard folder picker so project paths can be selected instead of typed manually.
+- Verification: `npm run build`, frontend HTTP `200 OK`, `GET /api/folders`, `GET /api/folders?path=<local-path>`.

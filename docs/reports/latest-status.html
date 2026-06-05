@@ -148,7 +148,7 @@
       <div class="grid">
         <div class="metric">
           <span>현재 단계</span>
-          <strong>UI 한글화</strong>
+          <strong>폴더 선택</strong>
         </div>
         <div class="metric">
           <span>기본 프로젝트</span>
@@ -163,19 +163,19 @@
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>대시보드의 주요 문구, 버튼, 입력 폼, 위험 뱃지, 추천 작업을 한글화했습니다.</li>
-          <li><code>blocked</code> 대신 <code>확인 필요</code>로 표시되도록 바꿨습니다.</li>
-          <li>예시 경로 때문에 스캔이 막힌 경우, 실제 폴더 경로를 등록해야 한다는 안내 박스를 추가했습니다.</li>
-          <li>위험 메시지와 생성 프롬프트 본문도 한글로 내려오게 바꿨습니다.</li>
+          <li>프로젝트 추가 폼에 <code>찾아보기</code> 버튼을 추가했습니다.</li>
+          <li>로컬 드라이브와 하위 폴더를 대시보드 안에서 탐색할 수 있게 만들었습니다.</li>
+          <li>원하는 폴더를 선택하면 프로젝트 경로 입력칸에 자동으로 들어가게 했습니다.</li>
+          <li>백엔드에는 읽기 전용 폴더 목록 API인 <code>GET /api/folders</code>를 추가했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>사용자가 처음 봤을 때 앱 오류처럼 느껴질 수 있는 <code>blocked</code> 상태를 설명 중심으로 바꿨습니다.</li>
-          <li>프론트엔드 화면 문구와 백엔드 API 메시지를 함께 바꿔서 영어가 섞이는 부분을 줄였습니다.</li>
-          <li>브라우저 시각 검증은 Windows sandbox 문제로 열리지 않아 빌드와 API 검증으로 대체했습니다.</li>
+          <li>브라우저 기본 보안상 일반 웹 입력으로는 절대경로를 직접 가져오기 어렵기 때문에 로컬 백엔드 기반 탐색기로 구현했습니다.</li>
+          <li>드라이브 루트, 상위 폴더, 하위 폴더 이동을 지원하도록 했습니다.</li>
+          <li>사용자 프로젝트 목록 파일 변경은 로컬 데이터로 보고 커밋에 포함하지 않았습니다.</li>
         </ul>
       </section>
 
@@ -183,8 +183,8 @@
         <h2>결과</h2>
         <ul>
           <li><code>npm run build</code>가 통과했습니다.</li>
-          <li><code>GET /api/snapshots</code>가 한글 위험 메시지를 반환했습니다.</li>
-          <li><code>POST /api/projects/ue5-soullike/prompt</code>가 한글 프롬프트 본문을 반환했습니다.</li>
+          <li><code>GET /api/folders</code>가 로컬 드라이브와 폴더 목록을 반환했습니다.</li>
+          <li><code>GET /api/folders?path=&lt;local-path&gt;</code>가 선택한 경로의 하위 폴더를 반환했습니다.</li>
           <li>대시보드는 <code>http://127.0.0.1:5173</code>에서 바로 확인할 수 있습니다.</li>
           <li>다음 작업은 실제 LETHE/SoulLike 경로를 연결해서 진짜 프로젝트 상태를 보는 것입니다.</li>
         </ul>
