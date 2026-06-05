@@ -97,5 +97,5 @@ Each log should include:
 #### Project Document Interface Design
 
 - File: `docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md`
-- Summary: Recorded the decision to model orchestration documents as common interface roles with per-project profile mappings, rather than hardcoding one document layout for every project.
+- Summary: Recorded the updated decision to make `docs/orchestration/*` a common interface for every portfolio project, with project-specific profile mappings only as a migration fallback.
 - Verification: Documentation-only design note.

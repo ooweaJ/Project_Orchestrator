@@ -70,18 +70,20 @@
 
 ## Priority 1
 
-### Project Document Profiles
+### Project Orchestration Interface
 
 Goal:
 
-- Define common orchestration document roles: project brief, current task, next tasks, prompt context, decision log, and reports.
-- Add per-project profile mappings so LETHE, SoulLike, and future projects can use different existing document structures.
-- Auto-detect likely files first, then allow user confirmation or editing.
+- Define standard `docs/orchestration/*` documents for every portfolio project.
+- Add templates for project brief, current task, next tasks, prompt context, decision log, and reports.
+- Add a scaffold action that creates missing interface files in a selected project.
+- Keep legacy profile mappings only as a migration fallback.
 
 Verification:
 
-- dashboard shows resolved and missing document roles for a selected project
-- generated command prompt can include mapped prompt context and current task content
+- dashboard shows which interface documents exist or are missing
+- generated command prompt can include `PROMPT_CONTEXT.md`, `CURRENT_TASK.md`, and `NEXT_TASKS.md`
+- LETHE can be scaffolded from existing docs without losing current documentation
 
 ### Validate Real Project Paths
 

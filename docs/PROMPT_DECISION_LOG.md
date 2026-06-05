@@ -67,10 +67,10 @@ Skip:
 - User refinement: The portfolio record should preserve strong prompts and design decisions selectively, not every raw message.
 - Portfolio value: Shows privacy-aware presentation of AI-assisted development process.
 
-#### Project Document Interface And Profile Mapping
+#### Project Document Interface Standard
 
 - File: `docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md`
-- User intent: Avoid turning project-specific orchestration documents into brittle hardcoded paths.
-- Key decision: Use a common document-role interface backed by per-project profile mappings.
-- User refinement: Treat this as an interface design problem: every project exposes common roles, but each project can map those roles to different existing files.
-- Portfolio value: Demonstrates system design judgment around AI context management, configurability, and project-specific documentation.
+- User intent: Make every portfolio project easier to orchestrate by giving it the same document contract.
+- Key decision: Use standard `docs/orchestration/*` interface files as the primary design.
+- User refinement: Per-project profile mappings are useful as a compatibility layer, but should not replace a shared interface because all projects have a common portfolio purpose.
+- Portfolio value: Demonstrates system design judgment around reusable AI context interfaces and cross-project portfolio operations.

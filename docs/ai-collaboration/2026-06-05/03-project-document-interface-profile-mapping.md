@@ -1,99 +1,115 @@
-# Project Document Interface And Profile Mapping
+# Project Document Interface Standard
 
 Date: 2026-06-05
 
 ## Goal
 
-Design how AI Project Orchestrator should read project-specific documents across projects that already have different documentation structures.
+Design how AI Project Orchestrator should read project-specific documents across portfolio projects.
 
 ## User Framing
 
 The user identified that the idea is closer to an interface:
 
 - all projects should expose common orchestration roles
-- each project may already store those roles in different files or folders
-- hardcoding exact file names per project feels brittle
-- the design risk should be recorded before implementation
+- the projects are portfolio projects, so they can share a common operating contract
+- consistent documents are easier to manage than per-project one-off mappings
+- profile mappings are useful, but feel like a workaround if used as the primary design
+- the design should favor a stable interface that every project implements
 
 ## Decision
 
-Use a common orchestration document interface, backed by per-project profile mappings.
+Use a common orchestration document interface as the primary standard.
 
-Common interface:
+Every orchestrated portfolio project should eventually provide the same document contract:
 
 ```text
-projectBrief
-currentTask
-nextTasks
-promptContext
-decisionLog
-reports
+docs/orchestration/PROJECT_BRIEF.md
+docs/orchestration/CURRENT_TASK.md
+docs/orchestration/NEXT_TASKS.md
+docs/orchestration/PROMPT_CONTEXT.md
+docs/orchestration/DECISION_LOG.md
+docs/orchestration/reports/
 ```
 
-Project-specific profile example:
+Role meanings:
 
-```json
-{
-  "projectBrief": ["README.md", "docs/<planning-doc>.md"],
-  "currentTask": ["docs/CODEX_STATUS.md"],
-  "nextTasks": ["docs/NEXT_TASKS.md"],
-  "promptContext": ["AGENTS.md", "docs/WORKFLOW.md", "docs/CODEX_RUNBOOK.md"],
-  "decisionLog": ["docs/DECISIONS.md", "docs/adr/"],
-  "reports": ["docs/reports/units/"]
-}
+```text
+PROJECT_BRIEF.md   -> what the project is, goals, stack, portfolio angle
+CURRENT_TASK.md    -> active work, blockers, acceptance criteria
+NEXT_TASKS.md      -> upcoming task candidates
+PROMPT_CONTEXT.md  -> stable context Codex should receive every time
+DECISION_LOG.md    -> important design and AI-direction decisions
+reports/           -> work-unit reports
 ```
 
-## Why This Is Not Pure Hardcoding
+## Why A Shared Interface Is Better
 
-The hardcoded part is the interface role names, not every project file path.
+This is not arbitrary hardcoding. It is a deliberate project contract.
 
-This is acceptable because the roles are the product contract:
+Because the user's projects are also portfolio artifacts, the consistency itself has value:
 
-- what is this project?
-- what is happening now?
-- what should happen next?
-- what context should Codex always receive?
-- what decisions matter?
-- where are work reports?
+- easier dashboard implementation
+- easier prompt generation
+- easier portfolio extraction
+- easier cross-project comparison
+- less need for manual profile configuration
+- fewer ambiguous "which document should Codex read?" moments
 
-The file paths are project-specific mappings and can differ per project.
+## Profile Mapping Role
 
-## Risk
+Per-project profile mappings should still exist, but as a compatibility layer, not the primary interface.
 
-If profile mappings become too manual, the orchestrator can feel like a config-heavy tool.
+Use mappings when:
 
-If mappings are fully automatic, the orchestrator may misread project documents because document names and meanings vary by project.
+- a project already has older documents
+- a project is being migrated into the standard
+- a document role needs to temporarily point to an existing file
+- the orchestrator needs to suggest initial content from legacy files
 
-## Mitigation
+Example compatibility mapping for LETHE:
+
+```text
+PROJECT_BRIEF.md   <- README.md + planning docs
+CURRENT_TASK.md    <- docs/CODEX_STATUS.md
+NEXT_TASKS.md      <- docs/NEXT_TASKS.md
+PROMPT_CONTEXT.md  <- AGENTS.md + docs/WORKFLOW.md + docs/CODEX_RUNBOOK.md
+DECISION_LOG.md    <- docs/DECISIONS.md + docs/adr/
+reports/           <- docs/reports/units/
+```
+
+## Migration Plan
 
 Use a hybrid approach:
 
-- auto-detect common files first
-- generate a suggested profile
-- allow the user to edit mappings
-- show which interface roles are resolved or missing
-- include resolved role content in generated Codex prompts
+- define the standard document interface
+- detect whether a project already has `docs/orchestration/*`
+- if missing, generate scaffold files from templates
+- if legacy docs exist, suggest content to copy or summarize into the interface docs
+- keep compatibility mappings only until the project has the standard files
 
-## LETHE Mapping Observation
+## LETHE Observation
 
 LETHE already has many documents, so it should not require a brand-new document set immediately.
 
-Likely mapping:
+But as a portfolio project, LETHE should still get the standard interface eventually:
 
 ```text
-projectBrief   -> README.md + planning docs
-currentTask    -> docs/CODEX_STATUS.md
-nextTasks      -> docs/NEXT_TASKS.md
-promptContext  -> AGENTS.md + docs/WORKFLOW.md + docs/CODEX_RUNBOOK.md
-decisionLog    -> docs/DECISIONS.md + docs/adr/
-reports        -> docs/reports/units/
+docs/orchestration/PROJECT_BRIEF.md
+docs/orchestration/CURRENT_TASK.md
+docs/orchestration/NEXT_TASKS.md
+docs/orchestration/PROMPT_CONTEXT.md
+docs/orchestration/DECISION_LOG.md
+docs/orchestration/reports/
 ```
+
+The first version can be generated from existing LETHE docs instead of handwritten from scratch.
 
 ## Next Task
 
-Implement project document profiles:
+Implement the orchestration document standard:
 
-- add profile storage under `orchestration/<project-id>/profile.json`
-- add document role detection
-- show a dashboard panel for resolved/missing roles
-- include selected document role summaries in command prompt generation
+- create templates for the six standard roles
+- add a scaffold action per project
+- read `docs/orchestration/*` before falling back to legacy mappings
+- show interface completion status in the dashboard
+- include `PROMPT_CONTEXT.md`, `CURRENT_TASK.md`, and `NEXT_TASKS.md` in command prompt generation
