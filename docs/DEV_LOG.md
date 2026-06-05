@@ -87,3 +87,9 @@ Each log should include:
 - File: `server/index.mjs`, `src/main.tsx`, `src/styles.css`
 - Summary: Added a local folder browsing API and a dashboard folder picker so project paths can be selected instead of typed manually.
 - Verification: `npm run build`, frontend HTTP `200 OK`, `GET /api/folders`, `GET /api/folders?path=<local-path>`.
+
+#### Command-Centered Dashboard
+
+- File: `src/main.tsx`, `src/styles.css`
+- Summary: Reworked the selected project detail view around current work, progress state, next tasks, and user-authored Codex commands. Moved file signals into a collapsed supporting section.
+- Verification: `npm run build`.

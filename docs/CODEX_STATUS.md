@@ -70,6 +70,15 @@ Completed project folder picker:
 - The folder picker can navigate roots, parent folders, and child folders.
 - Selecting a folder fills the project path input without manually typing the path.
 
+Completed command-centered dashboard update:
+
+- Added a `작업 지휘` panel for each selected project.
+- The panel summarizes current work, progress state, and next tasks.
+- Users can type their own instruction and generate a combined Codex command prompt.
+- Prompt template tabs remain available, but the final prompt can now include the user's direct command.
+- File signals were moved into a collapsed supporting section so they do not dominate the workflow.
+- Empty project state now explains that a project must be selected before prompt menus appear.
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -117,3 +126,4 @@ Verified on 2026-06-05:
 - `POST /api/projects/ue5-soullike/prompt` returned a Korean prompt body.
 - `GET /api/folders` returned local drive roots and folders.
 - `GET /api/folders?path=<local-path>` returned child folders for a selected path.
+- Command-centered dashboard build passed.

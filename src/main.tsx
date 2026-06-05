@@ -171,6 +171,8 @@ function App() {
   const [actionMessage, setActionMessage] = React.useState("");
   const [promptKind, setPromptKind] = React.useState<PromptKind>("diagnose");
   const [promptText, setPromptText] = React.useState("");
+  const [customInstruction, setCustomInstruction] = React.useState("");
+  const [commandPrompt, setCommandPrompt] = React.useState("");
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -300,6 +302,116 @@ function App() {
     return "정상";
   }
 
+  function getCurrentWork(snapshot: ProjectSnapshot) {
+    if (!snapshot.exists) {
+      return "프로젝트 경로 연결";
+    }
+
+    if (snapshot.actionCategories.needsPull) {
+      return "원격 변경사항 확인";
+    }
+
+    if (snapshot.actionCategories.needsCommit) {
+      return "변경사항 정리와 커밋 준비";
+    }
+
+    if (snapshot.actionCategories.needsPush) {
+      return "푸시 준비";
+    }
+
+    if (snapshot.actionCategories.needsDocs) {
+      return "문서 정리";
+    }
+
+    if (snapshot.actionCategories.needsReview) {
+      return "위험 신호 리뷰";
+    }
+
+    return "다음 구현 준비";
+  }
+
+  function getProgressText(snapshot: ProjectSnapshot) {
+    if (!snapshot.exists) {
+      return "등록된 경로를 찾지 못해서 아직 실제 작업 상태를 읽지 못했습니다.";
+    }
+
+    if (!snapshot.git.isRepo) {
+      return "폴더는 찾았지만 Git 저장소가 아니라 작업 이력을 읽을 수 없습니다.";
+    }
+
+    if (snapshot.git.dirty) {
+      return `진행 중인 변경사항이 있습니다. 수정 ${snapshot.git.modified.length}개, 스테이징 ${snapshot.git.staged.length}개, 추적 안 됨 ${snapshot.git.untracked.length}개입니다.`;
+    }
+
+    if (snapshot.git.ahead > 0 || snapshot.git.behind > 0) {
+      return `원격과 차이가 있습니다. ahead ${snapshot.git.ahead}, behind ${snapshot.git.behind} 상태입니다.`;
+    }
+
+    return "Git 기준으로는 깨끗합니다. 다음 작업을 바로 지시할 수 있습니다.";
+  }
+
+  function getNextTasks(snapshot: ProjectSnapshot) {
+    if (!snapshot.exists) {
+      return ["찾아보기로 실제 프로젝트 폴더 선택", "프로젝트를 추가한 뒤 다시 스캔", "스캔 결과 기준으로 첫 작업 프롬프트 생성"];
+    }
+
+    const tasks = [];
+
+    if (snapshot.actionCategories.needsPull) {
+      tasks.push("원격 변경사항을 먼저 확인");
+    }
+
+    if (snapshot.actionCategories.needsCommit) {
+      tasks.push("변경 파일을 기능 단위로 요약하고 커밋 준비");
+    }
+
+    if (snapshot.actionCategories.needsDocs) {
+      tasks.push("README, AGENTS, 상태 문서 최신화");
+    }
+
+    if (snapshot.actionCategories.needsReview) {
+      tasks.push("TODO, 대용량 파일, 스캔 제한 신호 리뷰");
+    }
+
+    if (snapshot.actionCategories.needsPush) {
+      tasks.push("push 전 검증 목록 확인");
+    }
+
+    return tasks.length > 0 ? tasks.slice(0, 4) : ["다음 구현 단위를 정하고 Codex에게 작업 지시"];
+  }
+
+  function generateCommandPrompt(snapshot: ProjectSnapshot) {
+    const instruction = customInstruction.trim() || "현재 상태를 기준으로 다음 작업을 진행해줘.";
+    const nextTasks = getNextTasks(snapshot);
+    const basePrompt = promptText || snapshot.recommendedActions[0]?.prompt || "";
+
+    setCommandPrompt(
+      [
+        `${displayProjectName(snapshot)} 작업 지시`,
+        "",
+        "사용자 명령:",
+        `- ${instruction}`,
+        "",
+        "현재 작업:",
+        `- ${getCurrentWork(snapshot)}`,
+        "",
+        "진행 상태:",
+        `- ${getProgressText(snapshot)}`,
+        "",
+        "다음 작업 후보:",
+        ...nextTasks.map((task) => `- ${task}`),
+        "",
+        "작업 규칙:",
+        "- 먼저 상태와 가정을 짧게 요약해줘",
+        "- 필요한 변경만 작게 진행해줘",
+        "- 검증 결과와 다음 작업을 마지막에 보고해줘",
+        "",
+        "참고용 상태 프롬프트:",
+        basePrompt || "선택된 프로젝트 상태 프롬프트가 없습니다.",
+      ].join("\n"),
+    );
+  }
+
   async function addProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -404,10 +516,12 @@ function App() {
   React.useEffect(() => {
     if (!selected) {
       setPromptText("");
+      setCommandPrompt("");
       return;
     }
 
     void loadPrompt(selected.id, promptKind);
+    setCommandPrompt("");
   }, [selected?.id, promptKind]);
 
   return (
@@ -648,10 +762,57 @@ function App() {
                 <InfoBlock label="앞섬 / 뒤처짐" value={`${selected.git.ahead} / ${selected.git.behind}`} />
               </div>
 
+              <section className="workCommandPanel">
+                <div className="sectionTitle">
+                  <h3>작업 지휘</h3>
+                  <span>현재 상태에서 바로 명령 만들기</span>
+                </div>
+                <div className="workSummaryGrid">
+                  <div>
+                    <span>현재 작업</span>
+                    <strong>{getCurrentWork(selected)}</strong>
+                  </div>
+                  <div>
+                    <span>진행 상태</span>
+                    <p>{getProgressText(selected)}</p>
+                  </div>
+                  <div>
+                    <span>다음 작업</span>
+                    <ul>
+                      {getNextTasks(selected).map((task) => (
+                        <li key={task}>{task}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <label className="commandInput">
+                  내가 내릴 명령
+                  <textarea
+                    value={customInstruction}
+                    onChange={(event) => setCustomInstruction(event.target.value)}
+                    placeholder="예: LETHE 전투 시스템 다음 구현 단위를 정하고, 필요한 파일만 수정한 뒤 검증까지 해줘"
+                  />
+                </label>
+                <div className="commandActions">
+                  <button className="primaryButton" type="button" onClick={() => generateCommandPrompt(selected)}>
+                    명령 프롬프트 생성
+                  </button>
+                  <button
+                    className="secondaryButton"
+                    type="button"
+                    onClick={() => void copyPrompt(displayPrompt(commandPrompt || promptText || ""), selected.id)}
+                    disabled={!commandPrompt && !promptText}
+                  >
+                    <Clipboard size={16} />
+                    {copied === selected.id ? "복사됨" : "복사"}
+                  </button>
+                </div>
+              </section>
+
               <section className="actionPanel">
                 <div className="sectionTitle compact">
-                  <h3>추천 작업</h3>
-                  <span>{selected.recommendedActions.length}개 프롬프트</span>
+                  <h3>작업 분류</h3>
+                  <span>켜진 항목이 필요한 작업입니다</span>
                 </div>
                 <div className="actionChips">
                   {actionLabels.map(([key, label]) => (
@@ -676,11 +837,62 @@ function App() {
                 </StatusGroup>
               </div>
 
-              <section className="fileSignalsPanel">
-                <div className="sectionTitle compact">
-                  <h3>파일 신호</h3>
-                  <span>{selected.files.scannedFiles}개 스캔</span>
+              <section className="riskPanel">
+                <h3>위험 신호</h3>
+                {selected.risks.length > 0 ? (
+                  selected.risks.map((risk) => (
+                    <div className="riskItem" key={`${risk.type}-${risk.message}`}>
+                      <AlertTriangle size={16} />
+                      <span>{risk.message}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="riskItem calm">
+                    <CheckCircle2 size={16} />
+                    <span>큰 위험 신호가 없습니다.</span>
+                  </div>
+                )}
+              </section>
+
+              <section className="promptPanel">
+                <div className="sectionTitle">
+                  <h3>Codex 작업 프롬프트</h3>
+                  <span>{commandPrompt ? "사용자 명령 포함" : isPromptLoading ? "생성 중" : promptKindLabels[promptKind]}</span>
                 </div>
+                <p className="promptHelp">아래 메뉴는 프롬프트 템플릿입니다. 원하는 메뉴를 누른 뒤 위의 명령을 섞어서 최종 프롬프트를 만들 수 있습니다.</p>
+                <div className="segmentedControl" aria-label="Prompt type">
+                  {(Object.keys(promptKindLabels) as PromptKind[]).map((kind) => (
+                    <button
+                      className={promptKind === kind ? "active" : ""}
+                      key={kind}
+                      type="button"
+                      onClick={() => setPromptKind(kind)}
+                    >
+                      {promptKindLabels[kind]}
+                    </button>
+                  ))}
+                </div>
+                <pre>{displayPrompt(commandPrompt || promptText || selected.recommendedActions[0]?.prompt || "생성된 프롬프트가 없습니다.")}</pre>
+                <button
+                  className="secondaryButton"
+                  type="button"
+                  onClick={() =>
+                    void copyPrompt(
+                      displayPrompt(commandPrompt || promptText || selected.recommendedActions[0]?.prompt || ""),
+                      selected.id,
+                    )
+                  }
+                >
+                  <Clipboard size={16} />
+                  {copied === selected.id ? "복사됨" : "프롬프트 복사"}
+                </button>
+              </section>
+
+              <details className="fileSignalsPanel">
+                <summary>
+                  <span>보조 스캔 정보</span>
+                  <small>{selected.files.scannedFiles}개 파일 스캔</small>
+                </summary>
                 <div className="fileSignalGrid">
                   <Signal label="TODO/FIXME/BUG" value={selected.files.todoCount} />
                   <Signal label="대용량 파일" value={selected.files.largeFiles.length} />
@@ -713,57 +925,13 @@ function App() {
                   }))}
                   title="TODO"
                 />
-              </section>
-
-              <section className="riskPanel">
-                <h3>위험 신호</h3>
-                {selected.risks.length > 0 ? (
-                  selected.risks.map((risk) => (
-                    <div className="riskItem" key={`${risk.type}-${risk.message}`}>
-                      <AlertTriangle size={16} />
-                      <span>{risk.message}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="riskItem calm">
-                    <CheckCircle2 size={16} />
-                    <span>큰 위험 신호가 없습니다.</span>
-                  </div>
-                )}
-              </section>
-
-              <section className="promptPanel">
-                <div className="sectionTitle">
-                  <h3>Codex 작업 프롬프트</h3>
-                  <span>{isPromptLoading ? "생성 중" : promptKindLabels[promptKind]}</span>
-                </div>
-                <div className="segmentedControl" aria-label="Prompt type">
-                  {(Object.keys(promptKindLabels) as PromptKind[]).map((kind) => (
-                    <button
-                      className={promptKind === kind ? "active" : ""}
-                      key={kind}
-                      type="button"
-                      onClick={() => setPromptKind(kind)}
-                    >
-                      {promptKindLabels[kind]}
-                    </button>
-                  ))}
-                </div>
-                <pre>{displayPrompt(promptText || selected.recommendedActions[0]?.prompt || "생성된 프롬프트가 없습니다.")}</pre>
-                <button
-                  className="secondaryButton"
-                  type="button"
-                  onClick={() =>
-                    void copyPrompt(displayPrompt(promptText || selected.recommendedActions[0]?.prompt || ""), selected.id)
-                  }
-                >
-                  <Clipboard size={16} />
-                  {copied === selected.id ? "복사됨" : "프롬프트 복사"}
-                </button>
-              </section>
+              </details>
             </>
           ) : (
-            <div className="emptyDetail">선택된 프로젝트가 없습니다.</div>
+            <div className="emptyDetail">
+              <h2>프로젝트를 먼저 추가하세요</h2>
+              <p>프로젝트가 선택되어야 현재 작업, 다음 작업, Codex 프롬프트 메뉴가 표시됩니다.</p>
+            </div>
           )}
         </div>
       </section>
