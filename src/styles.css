@@ -184,6 +184,10 @@ h3 {
   font-weight: 700;
 }
 
+.sectionTitle.compact {
+  margin-bottom: 12px;
+}
+
 .projectForm {
   display: grid;
   gap: 10px;
@@ -371,16 +375,86 @@ h3 {
 }
 
 .statusGroup,
+.fileSignalsPanel,
 .riskPanel,
 .promptPanel {
   padding: 16px;
 }
 
 .statusGroup h3,
+.fileSignalsPanel h3,
 .riskPanel h3,
 .promptPanel h3 {
   margin: 0 0 12px;
   font-size: 1rem;
+}
+
+.fileSignalsPanel {
+  margin-bottom: 14px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.fileSignalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.signalNote {
+  margin: 0 0 12px;
+  color: #7b5200;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.fileList {
+  padding: 12px 0;
+  border-top: 1px solid #edf2ec;
+}
+
+.fileList h4 {
+  margin: 0 0 8px;
+  color: #60706a;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.fileList ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fileList li {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fileList span,
+.fileList small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileList span {
+  color: #26342f;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82rem;
+}
+
+.fileList small,
+.fileList p {
+  margin: 0;
+  color: #697873;
+  font-size: 0.82rem;
 }
 
 .signal,
@@ -487,6 +561,7 @@ h3 {
   .workspace,
   .detailGrid,
   .panelRow,
+  .fileSignalGrid,
   .formRow {
     grid-template-columns: 1fr;
   }

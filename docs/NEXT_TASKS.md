@@ -35,22 +35,16 @@
 - Added prompt type selector for diagnose, commit, docs, and review.
 - Verified add/delete API flow and review prompt generation.
 
-## Priority 1
-
 ### Improve Scanner Signals
 
-Goal:
+- Added recent files.
+- Added TODO/FIXME/BUG count with ignored heavy folders.
+- Added large-file detection.
+- Improved Unity/Unreal Git LFS risk messages.
+- Added scan limits for large repositories.
+- Verified snapshot output includes file signals beyond Git state.
 
-- Add recent files.
-- Add TODO/FIXME count with ignored heavy folders.
-- Add large-file detection.
-- Improve Unity/Unreal risk messages.
-
-Verification:
-
-- snapshot output includes file signals beyond Git state
-
-## Priority 2
+## Priority 1
 
 ### Risk Scoring
 
@@ -74,7 +68,7 @@ Verification:
 
 - generated prompt reflects the selected project state
 
-## Priority 3
+## Priority 2
 
 ### Portfolio Mode
 

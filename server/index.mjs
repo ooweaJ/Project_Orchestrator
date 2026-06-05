@@ -18,6 +18,47 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const ignoredDirectoryNames = new Set([
+  ".git",
+  "node_modules",
+  "Binaries",
+  "Intermediate",
+  "Saved",
+  "Library",
+  "Temp",
+  ".vs",
+  ".next",
+  "dist",
+  "build",
+]);
+
+const textFileExtensions = new Set([
+  ".c",
+  ".cc",
+  ".cpp",
+  ".cs",
+  ".css",
+  ".h",
+  ".hpp",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".mjs",
+  ".md",
+  ".py",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".xml",
+  ".yaml",
+  ".yml",
+]);
+
+const maxScannedFiles = 2500;
+const maxTodoFileBytes = 300000;
+const largeFileThresholdBytes = 10 * 1024 * 1024;
+
 async function ensureDataFiles() {
   await fs.mkdir(snapshotsDir, { recursive: true });
   try {
@@ -114,6 +155,111 @@ function parseStatusPorcelain(output) {
 
 async function hasFile(projectPath, relativePath) {
   return pathExists(path.join(projectPath, relativePath));
+}
+
+function toRelativePath(projectPath, filePath) {
+  return path.relative(projectPath, filePath).replace(/\\/g, "/");
+}
+
+function shouldReadForTodos(filePath, size) {
+  return size <= maxTodoFileBytes && textFileExtensions.has(path.extname(filePath).toLowerCase());
+}
+
+async function collectFileSignals(projectPath) {
+  const recentFiles = [];
+  const largeFiles = [];
+  const todoItems = [];
+  let todoCount = 0;
+  let scannedFiles = 0;
+  let truncated = false;
+
+  async function visit(directory) {
+    if (scannedFiles >= maxScannedFiles) {
+      truncated = true;
+      return;
+    }
+
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+
+    for (const entry of entries) {
+      if (scannedFiles >= maxScannedFiles) {
+        truncated = true;
+        return;
+      }
+
+      if (entry.name.startsWith(".") && entry.name !== ".gitattributes") {
+        if (entry.isDirectory() || ignoredDirectoryNames.has(entry.name)) {
+          continue;
+        }
+      }
+
+      const fullPath = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        if (!ignoredDirectoryNames.has(entry.name)) {
+          await visit(fullPath);
+        }
+        continue;
+      }
+
+      if (!entry.isFile()) {
+        continue;
+      }
+
+      scannedFiles += 1;
+      const stats = await fs.stat(fullPath).catch(() => null);
+      if (!stats) {
+        continue;
+      }
+
+      const relativePath = toRelativePath(projectPath, fullPath);
+
+      recentFiles.push({
+        path: relativePath,
+        modifiedAt: stats.mtime.toISOString(),
+      });
+
+      if (stats.size >= largeFileThresholdBytes) {
+        largeFiles.push({
+          path: relativePath,
+          sizeBytes: stats.size,
+        });
+      }
+
+      if (shouldReadForTodos(fullPath, stats.size)) {
+        const content = await fs.readFile(fullPath, "utf8").catch(() => "");
+        const lines = content.split(/\r?\n/);
+
+        lines.forEach((line, index) => {
+          if (/\b(TODO|FIXME|BUG)\b/i.test(line)) {
+            todoCount += 1;
+
+            if (todoItems.length < 12) {
+              todoItems.push({
+                path: relativePath,
+                line: index + 1,
+                text: line.trim().slice(0, 180),
+              });
+            }
+          }
+        });
+      }
+    }
+  }
+
+  await visit(projectPath);
+
+  recentFiles.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+  largeFiles.sort((a, b) => b.sizeBytes - a.sizeBytes);
+
+  return {
+    recentFiles: recentFiles.slice(0, 10),
+    largeFiles: largeFiles.slice(0, 10),
+    todoCount,
+    todoItems,
+    scannedFiles,
+    truncated,
+  };
 }
 
 async function detectProjectType(project, projectPath) {
@@ -226,11 +372,43 @@ function scoreRisks(project, git, files, exists) {
     });
   }
 
+  if (files.todoCount > 0) {
+    risks.push({
+      level: "low",
+      type: "todo-comments",
+      message: `${files.todoCount} TODO/FIXME/BUG comments need review.`,
+    });
+  }
+
+  if (files.largeFiles.length > 0) {
+    risks.push({
+      level: "high",
+      type: "large-files",
+      message: `${files.largeFiles.length} large files were found. Check whether Git LFS is needed.`,
+    });
+  }
+
   if (project.type === "unreal" && !files.hasGitAttributes) {
     risks.push({
       level: "high",
       type: "git-lfs-candidate",
-      message: "Unreal projects usually need .gitattributes and Git LFS patterns.",
+      message: "Unreal projects usually need .gitattributes with Git LFS patterns for .uasset, .umap, and binaries.",
+    });
+  }
+
+  if (project.type === "unity" && !files.hasGitAttributes) {
+    risks.push({
+      level: "high",
+      type: "git-lfs-candidate",
+      message: "Unity projects often need .gitattributes with Git LFS patterns for assets, scenes, prefabs, and binaries.",
+    });
+  }
+
+  if (files.truncated) {
+    risks.push({
+      level: "medium",
+      type: "scan-truncated",
+      message: `File scan stopped after ${files.scannedFiles} files to avoid scanning too much.`,
     });
   }
 
@@ -257,6 +435,9 @@ function generatePrompt(project, snapshot, kind = "diagnose") {
     `- type: ${snapshot.type}`,
     `- branch: ${snapshot.git.branch || "unknown"}`,
     dirtyLine,
+    `- todo/fixme/bug comments: ${snapshot.files.todoCount}`,
+    `- large files: ${snapshot.files.largeFiles.length}`,
+    `- recent files: ${snapshot.files.recentFiles.map((file) => file.path).join(", ") || "none"}`,
     `- risk level: ${snapshot.riskLevel}`,
     "",
     "주의:",
@@ -362,7 +543,11 @@ async function scanProject(project) {
       hasDocsNextTasks: false,
       hasGitAttributes: false,
       recentFiles: [],
+      largeFiles: [],
       todoCount: 0,
+      todoItems: [],
+      scannedFiles: 0,
+      truncated: false,
     };
     const risks = scoreRisks(project, blankGit, files, false);
     const snapshot = {
@@ -422,6 +607,7 @@ async function scanProject(project) {
     }
   }
 
+  const fileSignals = await collectFileSignals(project.path);
   const files = {
     hasAgentsMd: await hasFile(project.path, "AGENTS.md"),
     hasReadme: await hasFile(project.path, "README.md"),
@@ -429,8 +615,7 @@ async function scanProject(project) {
     hasDocsStatus: await hasFile(project.path, "docs/CODEX_STATUS.md"),
     hasDocsNextTasks: await hasFile(project.path, "docs/NEXT_TASKS.md"),
     hasGitAttributes: await hasFile(project.path, ".gitattributes"),
-    recentFiles: [],
-    todoCount: 0,
+    ...fileSignals,
   };
 
   const normalizedProject = { ...project, type };

@@ -43,8 +43,22 @@ type ProjectSnapshot = {
     hasDocsStatus: boolean;
     hasDocsNextTasks: boolean;
     hasGitAttributes: boolean;
-    recentFiles: string[];
+    recentFiles: Array<{
+      path: string;
+      modifiedAt: string;
+    }>;
+    largeFiles: Array<{
+      path: string;
+      sizeBytes: number;
+    }>;
     todoCount: number;
+    todoItems: Array<{
+      path: string;
+      line: number;
+      text: string;
+    }>;
+    scannedFiles: number;
+    truncated: boolean;
   };
   risks: Array<{
     level: RiskLevel;
@@ -76,6 +90,18 @@ const promptKindLabels: Record<PromptKind, string> = {
 
 function riskRank(level: RiskLevel) {
   return ["low", "medium", "high", "blocked"].indexOf(level);
+}
+
+function formatBytes(value: number) {
+  if (value >= 1024 * 1024 * 1024) {
+    return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  }
+
+  if (value >= 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(value / 1024))} KB`;
 }
 
 function App() {
@@ -400,6 +426,45 @@ function App() {
                 </StatusGroup>
               </div>
 
+              <section className="fileSignalsPanel">
+                <div className="sectionTitle compact">
+                  <h3>File Signals</h3>
+                  <span>{selected.files.scannedFiles} scanned</span>
+                </div>
+                <div className="fileSignalGrid">
+                  <Signal label="TODO/FIXME/BUG" value={selected.files.todoCount} />
+                  <Signal label="Large Files" value={selected.files.largeFiles.length} />
+                  <Signal label="Recent Files" value={selected.files.recentFiles.length} />
+                </div>
+                {selected.files.truncated ? (
+                  <p className="signalNote">Scan was capped to avoid reading too many files.</p>
+                ) : null}
+                <FileList
+                  emptyText="No recent files found."
+                  items={selected.files.recentFiles.slice(0, 5).map((file) => ({
+                    label: file.path,
+                    meta: new Date(file.modifiedAt).toLocaleString("ko-KR"),
+                  }))}
+                  title="Recent"
+                />
+                <FileList
+                  emptyText="No large files found."
+                  items={selected.files.largeFiles.slice(0, 5).map((file) => ({
+                    label: file.path,
+                    meta: formatBytes(file.sizeBytes),
+                  }))}
+                  title="Large"
+                />
+                <FileList
+                  emptyText="No TODO/FIXME/BUG comments found."
+                  items={selected.files.todoItems.slice(0, 5).map((item) => ({
+                    label: `${item.path}:${item.line}`,
+                    meta: item.text,
+                  }))}
+                  title="TODO"
+                />
+              </section>
+
               <section className="riskPanel">
                 <h3>Risks</h3>
                 {selected.risks.length > 0 ? (
@@ -500,6 +565,26 @@ function DocSignal({ label, ok }: { label: string; ok: boolean }) {
       <FileText size={15} />
       <span>{label}</span>
       <strong>{ok ? "yes" : "missing"}</strong>
+    </div>
+  );
+}
+
+function FileList({ title, items, emptyText }: { title: string; items: Array<{ label: string; meta: string }>; emptyText: string }) {
+  return (
+    <div className="fileList">
+      <h4>{title}</h4>
+      {items.length > 0 ? (
+        <ul>
+          {items.map((item) => (
+            <li key={`${item.label}-${item.meta}`}>
+              <span>{item.label}</span>
+              <small>{item.meta}</small>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{emptyText}</p>
+      )}
     </div>
   );
 }

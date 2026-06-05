@@ -35,6 +35,15 @@ Completed dashboard interaction improvements:
 - Prompt type selector for diagnose, commit, docs, and review.
 - Prompt generation connected to `POST /api/projects/:id/prompt`.
 
+Completed scanner signal improvements:
+
+- Recent files detection with ignored heavy folders.
+- TODO/FIXME/BUG comment counting and sample items.
+- Large file detection with Git LFS-oriented risk messages.
+- Scan limits to avoid blindly scanning very large repositories.
+- File signal panel in the dashboard.
+- Prompt generation now includes file signal summaries.
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -67,3 +76,10 @@ Verified on 2026-06-04:
 - Review prompt generation was verified through `POST /api/projects/:id/prompt`.
 
 Browser plugin visual verification was attempted, but the browser runtime failed with a Windows sandbox spawn error. HTTP/API verification succeeded.
+
+Verified on 2026-06-05:
+
+- `npm run build` passed.
+- Frontend dev server returned HTML from `http://127.0.0.1:5173`.
+- `GET /api/snapshots` returned the new file signal fields.
+- Temporary scanner test project returned recent files, TODO count, TODO samples, large file count, and scan truncation status.

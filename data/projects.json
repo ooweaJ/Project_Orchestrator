@@ -4,8 +4,16 @@
     "name": "UE5 SoulLike",
     "path": "C:\\Projects\\UnrealGame",
     "type": "unreal",
-    "tags": ["game", "unreal"],
-    "importantFiles": ["AGENTS.md", "README.md", "docs/CODEX_STATUS.md", "docs/NEXT_TASKS.md"],
+    "tags": [
+      "game",
+      "unreal"
+    ],
+    "importantFiles": [
+      "AGENTS.md",
+      "README.md",
+      "docs/CODEX_STATUS.md",
+      "docs/NEXT_TASKS.md"
+    ],
     "createdAt": "2026-06-04T00:00:00.000Z",
     "updatedAt": "2026-06-04T00:00:00.000Z"
   },
@@ -14,8 +22,18 @@
     "name": "LETHE Prototype",
     "path": "C:\\Projects\\WebGamePrototype",
     "type": "web-game",
-    "tags": ["game", "prototype", "javascript"],
-    "importantFiles": ["AGENTS.md", "README.md", "docs/CODEX_STATUS.md", "docs/NEXT_TASKS.md", "package.json"],
+    "tags": [
+      "game",
+      "prototype",
+      "javascript"
+    ],
+    "importantFiles": [
+      "AGENTS.md",
+      "README.md",
+      "docs/CODEX_STATUS.md",
+      "docs/NEXT_TASKS.md",
+      "package.json"
+    ],
     "createdAt": "2026-06-04T00:00:00.000Z",
     "updatedAt": "2026-06-04T00:00:00.000Z"
   }

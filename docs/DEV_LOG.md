@@ -61,3 +61,11 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-04/03-dashboard-interactions.md`
 - Summary: Added project registration, delete confirmation, and prompt type selection to the dashboard.
 - Verification: `npm run build`, add/delete API flow, review prompt generation API.
+
+### 2026-06-05
+
+#### Scanner Signals
+
+- File: `docs/ai-collaboration/2026-06-05/01-scanner-signals.md`
+- Summary: Added recent file detection, TODO/FIXME/BUG scanning, large file detection, scan limits, improved asset-project risks, and dashboard file signal display.
+- Verification: `npm run build`, frontend HTTP `200 OK`, snapshots API `200 OK`, temporary scanner test project.
