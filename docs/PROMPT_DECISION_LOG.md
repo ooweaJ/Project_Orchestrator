@@ -48,3 +48,21 @@ Skip:
 - Key decision: Use four named guardrails: Think Before Coding, Simplicity First, Surgical Changes, and Goal-Driven Execution.
 - User refinement: The user identified that the first draft was too compressed and supplied the more useful rule shape.
 - Portfolio value: Demonstrates that the user can audit AI operating rules and improve the harness before coding begins.
+
+### 2026-06-05
+
+#### Action-Oriented Orchestration
+
+- File: `docs/ai-collaboration/2026-06-05/02-risk-prompts-portfolio-report.md`
+- User intent: Continue the planned next work and complete risk scoring, prompt generator, portfolio mode, and Discord reporting together.
+- Key decision: Represent project state as action categories instead of only broad risk levels.
+- User refinement: Keep reports readable and task-based, while preserving portfolio evidence separately.
+- Portfolio value: Demonstrates that the user designs AI workflows as operational systems, not isolated prompts.
+
+#### Privacy-Aware Portfolio Mode
+
+- File: `docs/ai-collaboration/2026-06-05/02-risk-prompts-portfolio-report.md`
+- User intent: Make the project usable as portfolio evidence without leaking local paths or private file details.
+- Key decision: Add Portfolio Mode directly to the dashboard instead of creating a separate static portfolio page.
+- User refinement: The portfolio record should preserve strong prompts and design decisions selectively, not every raw message.
+- Portfolio value: Shows privacy-aware presentation of AI-assisted development process.

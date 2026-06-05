@@ -44,51 +44,65 @@
 - Added scan limits for large repositories.
 - Verified snapshot output includes file signals beyond Git state.
 
-## Priority 1
-
 ### Risk Scoring
 
-Goal:
-
-- Refine rule-based risk levels: `low`, `medium`, `high`, `blocked`.
-- Separate "needs commit", "needs docs", "needs push", and "blocked" categories.
-
-Verification:
-
-- snapshot output includes clear risks and recommended actions
+- Added action categories for blocked, commit, docs, push, pull, review, LFS, test, and cleanup.
+- Recommended actions now use those categories instead of only raw Git state.
+- Missing project paths are treated as blocked without incorrectly marking docs as missing.
 
 ### Prompt Generator
 
-Goal:
-
-- Expand prompt kinds for continue implementation, verification, cleanup, and push preparation.
-- Make generated prompts more specific to detected risks.
-
-Verification:
-
-- generated prompt reflects the selected project state
-
-## Priority 2
+- Added prompt kinds for continue implementation, verification, cleanup, and push preparation.
+- Generated prompts include Git state and file signals.
+- Verified selected prompt kinds reflect project state.
 
 ### Portfolio Mode
 
-Goal:
-
-- Hide private paths.
-- Show workflow explanation.
-- Display sanitized project examples and generated prompt examples.
-
-Verification:
-
-- portfolio mode can be shown without leaking local paths
+- Added a dashboard toggle that hides local paths, file names, TODO text, and project names.
+- Sanitized generated prompt display and copied prompt output.
+- Added recommended action chips to show workflow without exposing private paths.
 
 ### Discord Report Prototype
 
+- Added `GET /api/report` to generate a compact scan-based report.
+- Added Discord snapshot report scripts.
+- Kept HTML report attachment flow for human-readable work-unit reports.
+
+## Priority 1
+
+### Validate Real Project Paths
+
 Goal:
 
-- Generate a compact Markdown/embed-style report from a scan result.
-- Keep detailed logs local and send only summaries.
+- Replace sanitized example paths locally with the real LETHE and SoulLike folders.
+- Run snapshots against the actual projects.
+- Confirm the scanner ignores generated folders and does not expose private paths in portfolio mode.
 
 Verification:
 
-- generated report includes work, issue, resolution, result, verification, and next task
+- `GET /api/snapshots` succeeds for both real projects
+- Portfolio Mode hides sensitive paths and file names
+
+### Browser Visual QA
+
+Goal:
+
+- Verify the dashboard visually in the browser once the browser runtime is available.
+- Check desktop and mobile layout for overflow, overlapping text, and empty panels.
+
+Verification:
+
+- browser screenshot or manual visual check passes
+
+## Priority 2
+
+### HTML Report From Scan Data
+
+Goal:
+
+- Generate a dated HTML report from `GET /api/report` output.
+- Keep the current manual work-unit report format for richer explanations.
+
+Verification:
+
+- generated HTML report includes work, progress, result, verification, and next task

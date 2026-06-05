@@ -69,3 +69,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-05/01-scanner-signals.md`
 - Summary: Added recent file detection, TODO/FIXME/BUG scanning, large file detection, scan limits, improved asset-project risks, and dashboard file signal display.
 - Verification: `npm run build`, frontend HTTP `200 OK`, snapshots API `200 OK`, temporary scanner test project.
+
+#### Risk Actions, Prompts, Portfolio Mode, Snapshot Reports
+
+- File: `docs/ai-collaboration/2026-06-05/02-risk-prompts-portfolio-report.md`
+- Summary: Added action categories, expanded prompt kinds, dashboard Portfolio Mode, recommended action chips, `GET /api/report`, and scan-based Discord report commands.
+- Verification: `npm run build`, `GET /api/report`, temporary full-flow prompt test, `npm run report:discord:snapshot:dry`.

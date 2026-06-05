@@ -8,6 +8,7 @@ const envFile = path.join(rootDir, ".env");
 const reportFile = path.join(rootDir, "docs", "reports", "latest-status.html");
 const isDryRun = process.argv.includes("--dry-run");
 const shouldAttachHtml = !process.argv.includes("--no-attach");
+const shouldUseSnapshotReport = process.argv.includes("--from-snapshots");
 
 function stripTags(value) {
   return value
@@ -77,8 +78,15 @@ function extractReport(html) {
   };
 }
 
-function buildPayload(report, username) {
+function buildPayload(report, username, sourceLabel = "docs/reports/latest-status.html 기준으로 생성됨") {
   const description = report.status ? `기준: ${report.status}` : "최신 진행 보고서";
+  const toValue = (value, fallback) => {
+    if (Array.isArray(value)) {
+      return value.map((item) => `- ${item}`).join("\n");
+    }
+
+    return value || fallback;
+  };
 
   return {
     username,
@@ -90,22 +98,22 @@ function buildPayload(report, username) {
         fields: [
           {
             name: "어떤 작업",
-            value: truncate(report.work || "기록된 작업이 없습니다.", 1024),
+            value: truncate(toValue(report.work, "기록된 작업이 없습니다."), 1024),
             inline: false,
           },
           {
             name: "진행 내용",
-            value: truncate(report.progress || "특이사항이 없습니다.", 1024),
+            value: truncate(toValue(report.progress, "특이사항이 없습니다."), 1024),
             inline: false,
           },
           {
             name: "결과",
-            value: truncate(report.result || "기록된 결과가 없습니다.", 1024),
+            value: truncate(toValue(report.result, "기록된 결과가 없습니다."), 1024),
             inline: false,
           },
         ],
         footer: {
-          text: "docs/reports/latest-status.html 기준으로 생성됨",
+          text: sourceLabel,
         },
         timestamp: new Date().toISOString(),
       },
@@ -114,16 +122,27 @@ function buildPayload(report, username) {
 }
 
 const env = await readEnv();
-const html = await fs.readFile(reportFile, "utf8");
-const report = extractReport(html);
-const payload = buildPayload(report, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
+const report = shouldUseSnapshotReport
+  ? await fetch("http://127.0.0.1:4317/api/report").then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Snapshot report failed: ${response.status}`);
+      }
+
+      return response.json();
+    })
+  : extractReport(await fs.readFile(reportFile, "utf8"));
+const payload = buildPayload(
+  report,
+  env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator",
+  shouldUseSnapshotReport ? "GET /api/report 스캔 결과 기준으로 생성됨" : "docs/reports/latest-status.html 기준으로 생성됨",
+);
 
 if (isDryRun) {
   console.log(
     JSON.stringify(
       {
         ...payload,
-        followUpAttachments: shouldAttachHtml ? ["latest-status.html"] : [],
+        followUpAttachments: shouldAttachHtml && !shouldUseSnapshotReport ? ["latest-status.html"] : [],
       },
       null,
       2,
@@ -152,7 +171,7 @@ if (!response.ok) {
   process.exit(1);
 }
 
-if (!shouldAttachHtml) {
+if (!shouldAttachHtml || shouldUseSnapshotReport) {
   console.log("Discord report sent.");
   process.exit(0);
 }

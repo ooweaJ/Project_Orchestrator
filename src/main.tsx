@@ -13,7 +13,7 @@ import {
 import "./styles.css";
 
 type RiskLevel = "low" | "medium" | "high" | "blocked";
-type PromptKind = "diagnose" | "commit" | "docs" | "review";
+type PromptKind = "diagnose" | "commit" | "docs" | "review" | "continue" | "verification" | "cleanup" | "push";
 
 type ProjectSnapshot = {
   id: string;
@@ -66,6 +66,17 @@ type ProjectSnapshot = {
     message: string;
   }>;
   riskLevel: RiskLevel;
+  actionCategories: {
+    blocked: boolean;
+    needsCommit: boolean;
+    needsDocs: boolean;
+    needsPush: boolean;
+    needsPull: boolean;
+    needsReview: boolean;
+    needsLfs: boolean;
+    needsTest: boolean;
+    needsCleanup: boolean;
+  };
   recommendedActions: Array<{
     kind: string;
     label: string;
@@ -86,7 +97,23 @@ const promptKindLabels: Record<PromptKind, string> = {
   commit: "Commit",
   docs: "Docs",
   review: "Review",
+  continue: "Continue",
+  verification: "Verify",
+  cleanup: "Cleanup",
+  push: "Push",
 };
+
+const actionLabels: Array<[keyof ProjectSnapshot["actionCategories"], string]> = [
+  ["blocked", "Blocked"],
+  ["needsCommit", "Commit"],
+  ["needsDocs", "Docs"],
+  ["needsPush", "Push"],
+  ["needsPull", "Pull"],
+  ["needsReview", "Review"],
+  ["needsLfs", "LFS"],
+  ["needsTest", "Test"],
+  ["needsCleanup", "Cleanup"],
+];
 
 function riskRank(level: RiskLevel) {
   return ["low", "medium", "high", "blocked"].indexOf(level);
@@ -115,6 +142,7 @@ function App() {
   const [actionMessage, setActionMessage] = React.useState("");
   const [promptKind, setPromptKind] = React.useState<PromptKind>("diagnose");
   const [promptText, setPromptText] = React.useState("");
+  const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [formState, setFormState] = React.useState({
     name: "",
     path: "",
@@ -124,10 +152,9 @@ function App() {
 
   const selected = snapshots.find((snapshot) => snapshot.id === selectedId) ?? snapshots[0];
   const riskyProjects = snapshots.filter((snapshot) => riskRank(snapshot.riskLevel) >= riskRank("medium")).length;
-  const needsCommit = snapshots.filter((snapshot) => snapshot.git.dirty || snapshot.git.untracked.length > 0).length;
-  const needsDocs = snapshots.filter(
-    (snapshot) => !snapshot.files.hasAgentsMd || !snapshot.files.hasReadme || !snapshot.files.hasDocsStatus,
-  ).length;
+  const needsCommit = snapshots.filter((snapshot) => snapshot.actionCategories?.needsCommit).length;
+  const needsDocs = snapshots.filter((snapshot) => snapshot.actionCategories?.needsDocs).length;
+  const needsPush = snapshots.filter((snapshot) => snapshot.actionCategories?.needsPush).length;
   const lastScan = snapshots
     .map((snapshot) => new Date(snapshot.updatedAt).getTime())
     .sort((a, b) => b - a)[0];
@@ -160,6 +187,33 @@ function App() {
     await navigator.clipboard.writeText(prompt);
     setCopied(id);
     window.setTimeout(() => setCopied(""), 1600);
+  }
+
+  function displayProjectName(snapshot: ProjectSnapshot) {
+    if (!portfolioMode) {
+      return snapshot.name;
+    }
+
+    const typeLabel = snapshot.type === "unknown" ? "Project" : snapshot.type;
+    return `${typeLabel} Project`;
+  }
+
+  function displayProjectPath(snapshot: ProjectSnapshot) {
+    return portfolioMode ? "Local path hidden" : snapshot.path;
+  }
+
+  function displayFilePath(value: string, index: number) {
+    return portfolioMode ? `File ${index + 1}` : value;
+  }
+
+  function displayPrompt(value: string) {
+    if (!portfolioMode || !selected) {
+      return value;
+    }
+
+    return value
+      .replaceAll(selected.path, "[local path hidden]")
+      .replaceAll(selected.name, displayProjectName(selected));
   }
 
   async function addProject(event: React.FormEvent<HTMLFormElement>) {
@@ -279,10 +333,20 @@ function App() {
           <p className="eyebrow">Local AI Development Command Center</p>
           <h1>AI Project Orchestrator</h1>
         </div>
-        <button className="primaryButton" type="button" onClick={() => void loadSnapshots()} disabled={isLoading}>
-          <RefreshCw size={17} />
-          {isLoading ? "Scanning" : "Rescan"}
-        </button>
+        <div className="topActions">
+          <label className="toggleControl">
+            <input
+              checked={portfolioMode}
+              onChange={(event) => setPortfolioMode(event.target.checked)}
+              type="checkbox"
+            />
+            Portfolio Mode
+          </label>
+          <button className="primaryButton" type="button" onClick={() => void loadSnapshots()} disabled={isLoading}>
+            <RefreshCw size={17} />
+            {isLoading ? "Scanning" : "Rescan"}
+          </button>
+        </div>
       </section>
 
       <section className="summaryGrid" aria-label="Project summary">
@@ -290,8 +354,18 @@ function App() {
         <Metric label="Risky" value={riskyProjects.toString()} />
         <Metric label="Need Commit" value={needsCommit.toString()} />
         <Metric label="Need Docs" value={needsDocs.toString()} />
+        <Metric label="Need Push" value={needsPush.toString()} />
         <Metric label="Last Scan" value={lastScan ? new Date(lastScan).toLocaleTimeString("ko-KR") : "-"} />
       </section>
+
+      {portfolioMode ? (
+        <section className="portfolioBanner">
+          <div>
+            <h2>Portfolio Mode</h2>
+            <p>Local paths and file names are hidden so the orchestration workflow can be shown safely.</p>
+          </div>
+        </section>
+      ) : null}
 
       {error ? <div className="errorBox">{error}</div> : null}
       {actionMessage ? <div className="successBox">{actionMessage}</div> : null}
@@ -365,13 +439,13 @@ function App() {
               <button className="cardSelect" type="button" onClick={() => setSelectedId(snapshot.id)}>
                 <div className="cardHeader">
                   <div>
-                    <h3>{snapshot.name}</h3>
+                    <h3>{displayProjectName(snapshot)}</h3>
                     <p>{snapshot.type}</p>
                   </div>
                   <RiskBadge level={snapshot.riskLevel} />
                 </div>
 
-                <p className="pathLine">{snapshot.path}</p>
+                <p className="pathLine">{displayProjectPath(snapshot)}</p>
 
                 <div className="cardSignals">
                   <span>
@@ -400,7 +474,7 @@ function App() {
               <div className="detailHeader">
                 <div>
                   <p className="eyebrow">Selected Project</p>
-                  <h2>{selected.name}</h2>
+                  <h2>{displayProjectName(selected)}</h2>
                 </div>
                 <RiskBadge level={selected.riskLevel} />
               </div>
@@ -411,6 +485,20 @@ function App() {
                 <InfoBlock label="Upstream" value={selected.git.hasUpstream ? "connected" : "missing"} />
                 <InfoBlock label="Ahead / Behind" value={`${selected.git.ahead} / ${selected.git.behind}`} />
               </div>
+
+              <section className="actionPanel">
+                <div className="sectionTitle compact">
+                  <h3>Recommended Actions</h3>
+                  <span>{selected.recommendedActions.length} prompts</span>
+                </div>
+                <div className="actionChips">
+                  {actionLabels.map(([key, label]) => (
+                    <span className={selected.actionCategories[key] ? "active" : ""} key={key}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </section>
 
               <div className="panelRow">
                 <StatusGroup title="Git Status">
@@ -441,25 +529,25 @@ function App() {
                 ) : null}
                 <FileList
                   emptyText="No recent files found."
-                  items={selected.files.recentFiles.slice(0, 5).map((file) => ({
-                    label: file.path,
+                  items={selected.files.recentFiles.slice(0, 5).map((file, index) => ({
+                    label: displayFilePath(file.path, index),
                     meta: new Date(file.modifiedAt).toLocaleString("ko-KR"),
                   }))}
                   title="Recent"
                 />
                 <FileList
                   emptyText="No large files found."
-                  items={selected.files.largeFiles.slice(0, 5).map((file) => ({
-                    label: file.path,
+                  items={selected.files.largeFiles.slice(0, 5).map((file, index) => ({
+                    label: displayFilePath(file.path, index),
                     meta: formatBytes(file.sizeBytes),
                   }))}
                   title="Large"
                 />
                 <FileList
                   emptyText="No TODO/FIXME/BUG comments found."
-                  items={selected.files.todoItems.slice(0, 5).map((item) => ({
-                    label: `${item.path}:${item.line}`,
-                    meta: item.text,
+                  items={selected.files.todoItems.slice(0, 5).map((item, index) => ({
+                    label: portfolioMode ? `TODO ${index + 1}` : `${item.path}:${item.line}`,
+                    meta: portfolioMode ? "Comment text hidden" : item.text,
                   }))}
                   title="TODO"
                 />
@@ -499,11 +587,13 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <pre>{promptText || selected.recommendedActions[0]?.prompt || "No prompt generated."}</pre>
+                <pre>{displayPrompt(promptText || selected.recommendedActions[0]?.prompt || "No prompt generated.")}</pre>
                 <button
                   className="secondaryButton"
                   type="button"
-                  onClick={() => void copyPrompt(promptText || selected.recommendedActions[0]?.prompt || "", selected.id)}
+                  onClick={() =>
+                    void copyPrompt(displayPrompt(promptText || selected.recommendedActions[0]?.prompt || ""), selected.id)
+                  }
                 >
                   <Clipboard size={16} />
                   {copied === selected.id ? "Copied" : "Copy Prompt"}

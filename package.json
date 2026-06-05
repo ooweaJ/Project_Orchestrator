@@ -9,7 +9,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "report:discord": "node scripts/send-discord-report.mjs",
-    "report:discord:dry": "node scripts/send-discord-report.mjs --dry-run"
+    "report:discord:dry": "node scripts/send-discord-report.mjs --dry-run",
+    "report:discord:snapshot": "node scripts/send-discord-report.mjs --from-snapshots --no-attach",
+    "report:discord:snapshot:dry": "node scripts/send-discord-report.mjs --from-snapshots --no-attach --dry-run"
   },
   "dependencies": {
     "cors": "^2.8.5",

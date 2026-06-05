@@ -422,6 +422,34 @@ function getRiskLevel(risks) {
   }, "low");
 }
 
+function getActionCategories(git, files, exists) {
+  if (!exists) {
+    return {
+      blocked: true,
+      needsCommit: false,
+      needsDocs: false,
+      needsPush: false,
+      needsPull: false,
+      needsReview: false,
+      needsLfs: false,
+      needsTest: false,
+      needsCleanup: false,
+    };
+  }
+
+  return {
+    blocked: false,
+    needsCommit: git.dirty || git.staged.length > 0 || git.modified.length > 0 || git.untracked.length > 0,
+    needsDocs: !files.hasAgentsMd || !files.hasReadme || !files.hasDocsStatus || !files.hasDocsNextTasks,
+    needsPush: git.ahead > 0 || (git.isRepo && !git.hasUpstream),
+    needsPull: git.behind > 0,
+    needsReview: files.todoCount > 0 || files.largeFiles.length > 0 || files.truncated,
+    needsLfs: files.largeFiles.length > 0 || !files.hasGitAttributes,
+    needsTest: git.dirty || files.todoCount > 0,
+    needsCleanup: git.untracked.length > 0 || files.truncated,
+  };
+}
+
 function generatePrompt(project, snapshot, kind = "diagnose") {
   const dirtyLine = snapshot.git.dirty
     ? `- working tree has ${snapshot.git.modified.length} modified, ${snapshot.git.staged.length} staged, and ${snapshot.git.untracked.length} untracked files`
@@ -480,6 +508,50 @@ function generatePrompt(project, snapshot, kind = "diagnose") {
     ].join("\n");
   }
 
+  if (kind === "continue") {
+    return [
+      ...base,
+      "",
+      "목표:",
+      "- 현재 구현 상태와 최근 파일을 보고 이어서 할 최소 작업을 정해줘",
+      "- 이미 완료된 작업과 중복되지 않게 다음 작은 구현 단위를 제안해줘",
+      "- 변경 전 검증 기준을 먼저 제시해줘",
+    ].join("\n");
+  }
+
+  if (kind === "verification") {
+    return [
+      ...base,
+      "",
+      "목표:",
+      "- 지금 상태에서 필요한 검증 명령과 수동 확인 항목을 제안해줘",
+      "- 실패 가능성이 높은 부분을 우선순위로 정리해줘",
+      "- 검증 후 커밋 가능 여부를 판단해줘",
+    ].join("\n");
+  }
+
+  if (kind === "cleanup") {
+    return [
+      ...base,
+      "",
+      "목표:",
+      "- untracked 파일, TODO/FIXME/BUG, 스캔 제한 신호를 검토해줘",
+      "- 삭제나 되돌리기 같은 destructive 작업은 하지 말고 정리 계획만 제안해줘",
+      "- 안전하게 남길 파일과 검토할 파일을 분류해줘",
+    ].join("\n");
+  }
+
+  if (kind === "push") {
+    return [
+      ...base,
+      "",
+      "목표:",
+      "- upstream, ahead/behind, dirty 상태를 보고 push 준비 상태를 판단해줘",
+      "- push 전에 필요한 commit/test/docs 확인 목록을 제안해줘",
+      "- force push나 history rewrite가 필요해 보이면 먼저 위험과 대안을 설명해줘",
+    ].join("\n");
+  }
+
   return [
     ...base,
     "",
@@ -493,6 +565,7 @@ function generatePrompt(project, snapshot, kind = "diagnose") {
 
 function recommendedActions(project, snapshot) {
   const actions = [];
+  const categories = snapshot.actionCategories;
 
   actions.push({
     kind: "codex-prompt",
@@ -500,7 +573,7 @@ function recommendedActions(project, snapshot) {
     prompt: generatePrompt(project, snapshot, "diagnose"),
   });
 
-  if (snapshot.git.dirty || snapshot.git.untracked.length > 0) {
+  if (categories.needsCommit) {
     actions.push({
       kind: "codex-prompt",
       label: "Prepare commit",
@@ -508,7 +581,7 @@ function recommendedActions(project, snapshot) {
     });
   }
 
-  if (!snapshot.files.hasAgentsMd || !snapshot.files.hasReadme || !snapshot.files.hasDocsStatus) {
+  if (categories.needsDocs) {
     actions.push({
       kind: "codex-prompt",
       label: "Update docs",
@@ -516,7 +589,74 @@ function recommendedActions(project, snapshot) {
     });
   }
 
+  if (categories.needsTest) {
+    actions.push({
+      kind: "codex-prompt",
+      label: "Plan verification",
+      prompt: generatePrompt(project, snapshot, "verification"),
+    });
+  }
+
+  if (categories.needsReview) {
+    actions.push({
+      kind: "codex-prompt",
+      label: "Review risks",
+      prompt: generatePrompt(project, snapshot, "review"),
+    });
+  }
+
+  if (categories.needsPush) {
+    actions.push({
+      kind: "codex-prompt",
+      label: "Prepare push",
+      prompt: generatePrompt(project, snapshot, "push"),
+    });
+  }
+
+  if (categories.needsCleanup) {
+    actions.push({
+      kind: "codex-prompt",
+      label: "Plan cleanup",
+      prompt: generatePrompt(project, snapshot, "cleanup"),
+    });
+  }
+
   return actions;
+}
+
+function buildReportFromSnapshots(snapshots) {
+  const projectCount = snapshots.length;
+  const riskyCount = snapshots.filter((snapshot) => getRiskLevel(snapshot.risks) !== "low").length;
+  const blockedCount = snapshots.filter((snapshot) => snapshot.actionCategories.blocked).length;
+  const needsCommitCount = snapshots.filter((snapshot) => snapshot.actionCategories.needsCommit).length;
+  const needsDocsCount = snapshots.filter((snapshot) => snapshot.actionCategories.needsDocs).length;
+  const needsPushCount = snapshots.filter((snapshot) => snapshot.actionCategories.needsPush).length;
+  const needsReviewCount = snapshots.filter((snapshot) => snapshot.actionCategories.needsReview).length;
+  const topRisks = snapshots
+    .flatMap((snapshot) => snapshot.risks.map((risk) => `${snapshot.name}: ${risk.message}`))
+    .slice(0, 5);
+
+  return {
+    title: "AI Project Orchestrator 스캔 보고서",
+    status: new Date().toISOString(),
+    work: [
+      `${projectCount}개 프로젝트 스냅샷을 스캔했습니다.`,
+      "Git 상태, 문서 상태, 파일 신호, 위험도, 추천 액션을 요약했습니다.",
+    ],
+    progress: [
+      `${riskyCount}개 프로젝트에 medium 이상의 위험 신호가 있습니다.`,
+      `${blockedCount}개 프로젝트가 blocked 상태입니다.`,
+      `${needsReviewCount}개 프로젝트가 리뷰 신호를 가지고 있습니다.`,
+      ...(topRisks.length > 0 ? topRisks : ["상위 위험 신호가 없습니다."]),
+    ],
+    result: [
+      `needs commit: ${needsCommitCount}`,
+      `needs docs: ${needsDocsCount}`,
+      `needs push: ${needsPushCount}`,
+      "다음 작업은 위험도 분류와 추천 액션을 확인한 뒤 Codex 프롬프트로 이어가는 것입니다.",
+    ],
+    nextTask: "위험도와 추천 액션을 기준으로 가장 막힌 프로젝트부터 처리합니다.",
+  };
 }
 
 async function scanProject(project) {
@@ -550,6 +690,7 @@ async function scanProject(project) {
       truncated: false,
     };
     const risks = scoreRisks(project, blankGit, files, false);
+    const actionCategories = getActionCategories(blankGit, files, false);
     const snapshot = {
       ...project,
       exists,
@@ -558,6 +699,7 @@ async function scanProject(project) {
       files,
       risks,
       riskLevel: getRiskLevel(risks),
+      actionCategories,
       recommendedActions: [],
       updatedAt: new Date().toISOString(),
     };
@@ -620,6 +762,7 @@ async function scanProject(project) {
 
   const normalizedProject = { ...project, type };
   const risks = scoreRisks(normalizedProject, git, files, exists);
+  const actionCategories = getActionCategories(git, files, exists);
   const snapshot = {
     ...normalizedProject,
     exists,
@@ -627,6 +770,7 @@ async function scanProject(project) {
     files,
     risks,
     riskLevel: getRiskLevel(risks),
+    actionCategories,
     recommendedActions: [],
     updatedAt: new Date().toISOString(),
   };
@@ -766,6 +910,18 @@ app.get("/api/activity", async (_req, res) => {
       .reverse()
       .slice(0, 50);
     res.json(activity);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/report", async (_req, res) => {
+  try {
+    const projects = await readProjects();
+    const snapshots = await Promise.all(projects.map((project) => scanProject(project)));
+    const report = buildReportFromSnapshots(snapshots);
+    await appendActivity({ type: "report-generated", count: snapshots.length });
+    res.json(report);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

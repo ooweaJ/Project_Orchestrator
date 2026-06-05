@@ -44,6 +44,17 @@ Completed scanner signal improvements:
 - File signal panel in the dashboard.
 - Prompt generation now includes file signal summaries.
 
+Completed orchestration improvements:
+
+- Action categories for `blocked`, `needsCommit`, `needsDocs`, `needsPush`, `needsPull`, `needsReview`, `needsLfs`, `needsTest`, and `needsCleanup`.
+- More specific recommended actions based on project state.
+- Expanded prompt generation for continue implementation, verification, cleanup, and push preparation.
+- Portfolio Mode toggle that hides local paths, file names, TODO text, and project names in the dashboard prompt view.
+- `GET /api/report` for compact scan-based reporting.
+- Discord snapshot report commands:
+  - `npm run report:discord:snapshot:dry`
+  - `npm run report:discord:snapshot`
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -83,3 +94,6 @@ Verified on 2026-06-05:
 - Frontend dev server returned HTML from `http://127.0.0.1:5173`.
 - `GET /api/snapshots` returned the new file signal fields.
 - Temporary scanner test project returned recent files, TODO count, TODO samples, large file count, and scan truncation status.
+- Temporary full-flow project test confirmed action categories and generated `push` / `verification` prompts.
+- `GET /api/report` returned a compact Korean report object.
+- `npm run report:discord:snapshot:dry` produced a valid Discord payload from scan results.

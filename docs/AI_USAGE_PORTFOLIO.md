@@ -83,6 +83,16 @@ Detailed records live under `docs/ai-collaboration/YYYY-MM-DD/`.
 - Summary: The developer established AI agent working rules, Korean-friendly commit conventions, task-based logs, and portfolio-oriented prompt decision tracking before implementation.
 - Skills shown: agent harness design, prompt workflow design, AI suggestion review, portfolio evidence planning.
 
+### 2026-06-05 - Risk Actions And Portfolio Mode
+
+- Record: `docs/ai-collaboration/2026-06-05/02-risk-prompts-portfolio-report.md`
+- Summary: The developer asked to complete the next orchestration loop: classify risk into action categories, generate more useful Codex prompts, hide private project details for portfolio presentation, and report scan summaries to Discord.
+- Skills shown: AI workflow product design, privacy-aware portfolio presentation, action-oriented prompt engineering, reporting automation.
+
+Portfolio phrasing:
+
+> I turned local development state into an AI operating workflow by classifying project risks into action categories, generating context-specific Codex prompts, and adding a portfolio mode that demonstrates the workflow without exposing private paths or code.
+
 ## How To Use This Document Later
 
 When preparing a portfolio, resume bullet, blog post, or interview explanation:

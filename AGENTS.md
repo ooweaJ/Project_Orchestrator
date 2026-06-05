@@ -292,6 +292,8 @@ Preferred flow:
 - update `docs/reports/index.html` when adding dated reports
 - send the Korean summary to Discord with `npm run report:discord`
 - send the Discord embed first, then send the HTML report file as a follow-up message so it appears below the summary
+- use `npm run report:discord:snapshot` only when a compact live scan report is requested
+- use `GET /api/report` as the source for scan-based reports
 - use `.env` for `DISCORD_WEBHOOK_URL`
 - keep `.env` out of Git
 - use `.env.example` to document required variables
