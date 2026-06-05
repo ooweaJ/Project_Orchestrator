@@ -303,7 +303,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "blocked",
       type: "missing-path",
-      message: "Registered project path does not exist.",
+      message: "등록된 프로젝트 폴더를 찾을 수 없습니다.",
     });
     return risks;
   }
@@ -312,7 +312,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "not-git-repo",
-      message: "Project is not a Git repository.",
+      message: "이 폴더는 Git 저장소가 아닙니다.",
     });
   }
 
@@ -320,7 +320,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "dirty-tree",
-      message: "Working tree has uncommitted changes.",
+      message: "아직 커밋하지 않은 변경사항이 있습니다.",
     });
   }
 
@@ -328,7 +328,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "untracked-files",
-      message: "Project has untracked files that may need review.",
+      message: "Git이 추적하지 않는 파일이 있어 검토가 필요합니다.",
     });
   }
 
@@ -336,7 +336,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "no-upstream",
-      message: "Current branch has no upstream remote.",
+      message: "현재 브랜치에 연결된 원격 upstream이 없습니다.",
     });
   }
 
@@ -344,7 +344,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "ahead-of-remote",
-      message: "Local branch has commits that are not pushed.",
+      message: "아직 원격에 push하지 않은 로컬 커밋이 있습니다.",
     });
   }
 
@@ -352,7 +352,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "high",
       type: "behind-remote",
-      message: "Local branch is behind its upstream.",
+      message: "로컬 브랜치가 원격 upstream보다 뒤처져 있습니다.",
     });
   }
 
@@ -360,7 +360,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "low",
       type: "missing-agents",
-      message: "Project has no AGENTS.md guidance file.",
+      message: "AGENTS.md 작업 지침 파일이 없습니다.",
     });
   }
 
@@ -368,7 +368,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "low",
       type: "missing-readme",
-      message: "Project has no README.md.",
+      message: "README.md 문서가 없습니다.",
     });
   }
 
@@ -376,7 +376,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "low",
       type: "todo-comments",
-      message: `${files.todoCount} TODO/FIXME/BUG comments need review.`,
+      message: `검토할 TODO/FIXME/BUG 주석이 ${files.todoCount}개 있습니다.`,
     });
   }
 
@@ -384,7 +384,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "high",
       type: "large-files",
-      message: `${files.largeFiles.length} large files were found. Check whether Git LFS is needed.`,
+      message: `대용량 파일 ${files.largeFiles.length}개가 발견됐습니다. Git LFS가 필요한지 확인하세요.`,
     });
   }
 
@@ -392,7 +392,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "high",
       type: "git-lfs-candidate",
-      message: "Unreal projects usually need .gitattributes with Git LFS patterns for .uasset, .umap, and binaries.",
+      message: "Unreal 프로젝트는 보통 .uasset, .umap, 바이너리 파일용 Git LFS 설정이 필요합니다.",
     });
   }
 
@@ -400,7 +400,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "high",
       type: "git-lfs-candidate",
-      message: "Unity projects often need .gitattributes with Git LFS patterns for assets, scenes, prefabs, and binaries.",
+      message: "Unity 프로젝트는 보통 에셋, 씬, 프리팹, 바이너리 파일용 Git LFS 설정이 필요합니다.",
     });
   }
 
@@ -408,7 +408,7 @@ function scoreRisks(project, git, files, exists) {
     risks.push({
       level: "medium",
       type: "scan-truncated",
-      message: `File scan stopped after ${files.scannedFiles} files to avoid scanning too much.`,
+      message: `너무 많은 파일을 읽지 않도록 ${files.scannedFiles}개 파일에서 스캔을 멈췄습니다.`,
     });
   }
 
@@ -420,6 +420,15 @@ function getRiskLevel(risks) {
   return risks.reduce((current, risk) => {
     return order.indexOf(risk.level) > order.indexOf(current) ? risk.level : current;
   }, "low");
+}
+
+function getRiskLevelLabel(level) {
+  return {
+    low: "정상",
+    medium: "주의",
+    high: "높은 위험",
+    blocked: "확인 필요",
+  }[level] ?? level;
 }
 
 function getActionCategories(git, files, exists) {
@@ -452,21 +461,21 @@ function getActionCategories(git, files, exists) {
 
 function generatePrompt(project, snapshot, kind = "diagnose") {
   const dirtyLine = snapshot.git.dirty
-    ? `- working tree has ${snapshot.git.modified.length} modified, ${snapshot.git.staged.length} staged, and ${snapshot.git.untracked.length} untracked files`
-    : "- working tree appears clean";
+    ? `- 작업 트리에 수정 ${snapshot.git.modified.length}개, 스테이징 ${snapshot.git.staged.length}개, 추적 안 됨 ${snapshot.git.untracked.length}개가 있습니다.`
+    : "- 작업 트리가 깨끗해 보입니다.";
 
   const base = [
     `${project.name} 프로젝트 상태를 먼저 확인해줘.`,
     "",
     "현재 신호:",
-    `- path: ${project.path}`,
-    `- type: ${snapshot.type}`,
-    `- branch: ${snapshot.git.branch || "unknown"}`,
+    `- 경로: ${project.path}`,
+    `- 종류: ${snapshot.type}`,
+    `- 브랜치: ${snapshot.git.branch || "알 수 없음"}`,
     dirtyLine,
-    `- todo/fixme/bug comments: ${snapshot.files.todoCount}`,
-    `- large files: ${snapshot.files.largeFiles.length}`,
-    `- recent files: ${snapshot.files.recentFiles.map((file) => file.path).join(", ") || "none"}`,
-    `- risk level: ${snapshot.riskLevel}`,
+    `- TODO/FIXME/BUG 주석: ${snapshot.files.todoCount}`,
+    `- 대용량 파일: ${snapshot.files.largeFiles.length}`,
+    `- 최근 파일: ${snapshot.files.recentFiles.map((file) => file.path).join(", ") || "없음"}`,
+    `- 위험도: ${getRiskLevelLabel(snapshot.riskLevel)}`,
     "",
     "주의:",
     "- destructive 명령은 실행하지 마",
@@ -569,14 +578,14 @@ function recommendedActions(project, snapshot) {
 
   actions.push({
     kind: "codex-prompt",
-    label: "Diagnose project",
+    label: "상태 진단",
     prompt: generatePrompt(project, snapshot, "diagnose"),
   });
 
   if (categories.needsCommit) {
     actions.push({
       kind: "codex-prompt",
-      label: "Prepare commit",
+      label: "커밋 준비",
       prompt: generatePrompt(project, snapshot, "commit"),
     });
   }
@@ -584,7 +593,7 @@ function recommendedActions(project, snapshot) {
   if (categories.needsDocs) {
     actions.push({
       kind: "codex-prompt",
-      label: "Update docs",
+      label: "문서 정리",
       prompt: generatePrompt(project, snapshot, "docs"),
     });
   }
@@ -592,7 +601,7 @@ function recommendedActions(project, snapshot) {
   if (categories.needsTest) {
     actions.push({
       kind: "codex-prompt",
-      label: "Plan verification",
+      label: "검증 계획",
       prompt: generatePrompt(project, snapshot, "verification"),
     });
   }
@@ -600,7 +609,7 @@ function recommendedActions(project, snapshot) {
   if (categories.needsReview) {
     actions.push({
       kind: "codex-prompt",
-      label: "Review risks",
+      label: "위험 리뷰",
       prompt: generatePrompt(project, snapshot, "review"),
     });
   }
@@ -608,7 +617,7 @@ function recommendedActions(project, snapshot) {
   if (categories.needsPush) {
     actions.push({
       kind: "codex-prompt",
-      label: "Prepare push",
+      label: "푸시 준비",
       prompt: generatePrompt(project, snapshot, "push"),
     });
   }
@@ -616,7 +625,7 @@ function recommendedActions(project, snapshot) {
   if (categories.needsCleanup) {
     actions.push({
       kind: "codex-prompt",
-      label: "Plan cleanup",
+      label: "정리 계획",
       prompt: generatePrompt(project, snapshot, "cleanup"),
     });
   }
@@ -644,15 +653,15 @@ function buildReportFromSnapshots(snapshots) {
       "Git 상태, 문서 상태, 파일 신호, 위험도, 추천 액션을 요약했습니다.",
     ],
     progress: [
-      `${riskyCount}개 프로젝트에 medium 이상의 위험 신호가 있습니다.`,
-      `${blockedCount}개 프로젝트가 blocked 상태입니다.`,
+      `${riskyCount}개 프로젝트에 주의 이상의 위험 신호가 있습니다.`,
+      `${blockedCount}개 프로젝트가 확인 필요 상태입니다.`,
       `${needsReviewCount}개 프로젝트가 리뷰 신호를 가지고 있습니다.`,
       ...(topRisks.length > 0 ? topRisks : ["상위 위험 신호가 없습니다."]),
     ],
     result: [
-      `needs commit: ${needsCommitCount}`,
-      `needs docs: ${needsDocsCount}`,
-      `needs push: ${needsPushCount}`,
+      `커밋 필요: ${needsCommitCount}`,
+      `문서 필요: ${needsDocsCount}`,
+      `푸시 필요: ${needsPushCount}`,
       "다음 작업은 위험도 분류와 추천 액션을 확인한 뒤 Codex 프롬프트로 이어가는 것입니다.",
     ],
     nextTask: "위험도와 추천 액션을 기준으로 가장 막힌 프로젝트부터 처리합니다.",

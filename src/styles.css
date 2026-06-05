@@ -84,6 +84,14 @@ h1 {
   line-height: 1;
 }
 
+.topDescription {
+  max-width: 720px;
+  margin: 10px 0 0;
+  color: #50615b;
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
 h2 {
   margin-bottom: 0;
   font-size: 1.45rem;
@@ -104,6 +112,7 @@ h3 {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .fullWidth {
@@ -169,6 +178,7 @@ h3 {
 .metric {
   min-height: 84px;
   padding: 16px;
+  box-shadow: 0 1px 2px rgba(23, 33, 28, 0.04);
 }
 
 .metric span,
@@ -245,6 +255,7 @@ h3 {
   border: 1px solid #d9e1d7;
   border-radius: 8px;
   background: #ffffff;
+  box-shadow: 0 1px 2px rgba(23, 33, 28, 0.04);
 }
 
 .projectForm label {
@@ -268,6 +279,13 @@ h3 {
   font-size: 0.88rem;
 }
 
+.formHint {
+  margin: 0;
+  color: #60706a;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
 .formRow {
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
@@ -284,6 +302,7 @@ h3 {
   border: 1px solid #d9e1d7;
   border-radius: 8px;
   background: #ffffff;
+  box-shadow: 0 1px 2px rgba(23, 33, 28, 0.04);
 }
 
 .cardSelect {
@@ -361,7 +380,7 @@ h3 {
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 900;
-  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .riskBadge.low {
@@ -393,6 +412,32 @@ h3 {
 
 .detailHeader {
   margin-bottom: 16px;
+}
+
+.statusDescription {
+  margin: 8px 0 0;
+  color: #60706a;
+  line-height: 1.55;
+}
+
+.blockedHelp {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #ffd8bd;
+  border-radius: 8px;
+  background: #fff7ef;
+}
+
+.blockedHelp strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #8b2a18;
+}
+
+.blockedHelp p {
+  margin: 0;
+  color: #694034;
+  line-height: 1.6;
 }
 
 .detailGrid {
@@ -452,11 +497,13 @@ h3 {
   background: #edf2ec;
   font-size: 0.78rem;
   font-weight: 900;
+  border: 1px solid transparent;
 }
 
 .actionChips span.active {
   color: #1f6b4d;
   background: #dff2e5;
+  border-color: #addfc0;
 }
 
 .statusGroup,
@@ -601,6 +648,7 @@ h3 {
 
 .segmentedControl button {
   min-height: 34px;
+  padding: 0 6px;
   color: #50615b;
   border: 0;
   border-radius: 6px;
@@ -650,6 +698,10 @@ h3 {
   .formRow {
     grid-template-columns: 1fr;
   }
+
+  .segmentedControl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
@@ -669,5 +721,9 @@ h3 {
 
   .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric strong {
+    font-size: 1.45rem;
   }
 }

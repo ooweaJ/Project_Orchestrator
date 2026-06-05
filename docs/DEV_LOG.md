@@ -75,3 +75,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-05/02-risk-prompts-portfolio-report.md`
 - Summary: Added action categories, expanded prompt kinds, dashboard Portfolio Mode, recommended action chips, `GET /api/report`, and scan-based Discord report commands.
 - Verification: `npm run build`, `GET /api/report`, temporary full-flow prompt test, `npm run report:discord:snapshot:dry`.
+
+#### Dashboard Korean Localization
+
+- File: `src/main.tsx`
+- Summary: Localized dashboard labels, risk badges, helper text, blocked-state explanation, risk messages, and generated prompt summaries into Korean.
+- Verification: `npm run build`, frontend HTTP `200 OK`, snapshots API returned Korean risk messages, prompt API returned a Korean prompt body.

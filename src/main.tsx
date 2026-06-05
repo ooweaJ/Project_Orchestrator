@@ -86,34 +86,52 @@ type ProjectSnapshot = {
 };
 
 const riskLabels: Record<RiskLevel, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  blocked: "Blocked",
+  low: "정상",
+  medium: "주의",
+  high: "높은 위험",
+  blocked: "확인 필요",
+};
+
+const riskDescriptions: Record<RiskLevel, string> = {
+  low: "지금 바로 이어서 작업해도 괜찮아 보입니다.",
+  medium: "커밋, 문서, 파일 상태를 한 번 확인하는 게 좋습니다.",
+  high: "push, pull, 대용량 파일, LFS 같은 위험을 먼저 확인해야 합니다.",
+  blocked: "등록된 폴더를 찾지 못해서 실제 스캔을 진행하지 못했습니다.",
 };
 
 const promptKindLabels: Record<PromptKind, string> = {
-  diagnose: "Diagnose",
-  commit: "Commit",
-  docs: "Docs",
-  review: "Review",
-  continue: "Continue",
-  verification: "Verify",
-  cleanup: "Cleanup",
-  push: "Push",
+  diagnose: "상태 진단",
+  commit: "커밋 준비",
+  docs: "문서 정리",
+  review: "리뷰",
+  continue: "다음 구현",
+  verification: "검증",
+  cleanup: "정리",
+  push: "푸시 준비",
 };
 
 const actionLabels: Array<[keyof ProjectSnapshot["actionCategories"], string]> = [
-  ["blocked", "Blocked"],
-  ["needsCommit", "Commit"],
-  ["needsDocs", "Docs"],
-  ["needsPush", "Push"],
-  ["needsPull", "Pull"],
-  ["needsReview", "Review"],
+  ["blocked", "경로 확인"],
+  ["needsCommit", "커밋"],
+  ["needsDocs", "문서"],
+  ["needsPush", "푸시"],
+  ["needsPull", "풀"],
+  ["needsReview", "리뷰"],
   ["needsLfs", "LFS"],
-  ["needsTest", "Test"],
-  ["needsCleanup", "Cleanup"],
+  ["needsTest", "테스트"],
+  ["needsCleanup", "정리"],
 ];
+
+const typeLabels: Record<string, string> = {
+  unknown: "미분류",
+  web: "웹",
+  "web-game": "웹 게임",
+  unity: "Unity",
+  unreal: "Unreal",
+  portfolio: "포트폴리오",
+  node: "Node",
+  docs: "문서",
+};
 
 function riskRank(level: RiskLevel) {
   return ["low", "medium", "high", "blocked"].indexOf(level);
@@ -194,16 +212,16 @@ function App() {
       return snapshot.name;
     }
 
-    const typeLabel = snapshot.type === "unknown" ? "Project" : snapshot.type;
-    return `${typeLabel} Project`;
+    const typeLabel = snapshot.type === "unknown" ? "프로젝트" : (typeLabels[snapshot.type] ?? snapshot.type);
+    return `${typeLabel} 예시`;
   }
 
   function displayProjectPath(snapshot: ProjectSnapshot) {
-    return portfolioMode ? "Local path hidden" : snapshot.path;
+    return portfolioMode ? "로컬 경로 숨김" : snapshot.path;
   }
 
   function displayFilePath(value: string, index: number) {
-    return portfolioMode ? `File ${index + 1}` : value;
+    return portfolioMode ? `파일 ${index + 1}` : value;
   }
 
   function displayPrompt(value: string) {
@@ -212,8 +230,24 @@ function App() {
     }
 
     return value
-      .replaceAll(selected.path, "[local path hidden]")
+      .replaceAll(selected.path, "[로컬 경로 숨김]")
       .replaceAll(selected.name, displayProjectName(selected));
+  }
+
+  function getProjectStatusText(snapshot: ProjectSnapshot) {
+    if (!snapshot.exists) {
+      return "경로 없음";
+    }
+
+    if (!snapshot.git.isRepo) {
+      return "Git 아님";
+    }
+
+    if (snapshot.git.dirty) {
+      return "변경 있음";
+    }
+
+    return "정상";
   }
 
   async function addProject(event: React.FormEvent<HTMLFormElement>) {
@@ -247,7 +281,7 @@ function App() {
       const project = (await response.json()) as { id: string; name: string };
       setFormState({ name: "", path: "", type: "unknown", tags: "" });
       setSelectedId(project.id);
-      setActionMessage(`${project.name} added.`);
+      setActionMessage(`${project.name} 프로젝트를 추가했습니다.`);
       await loadSnapshots();
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Unknown error");
@@ -277,7 +311,7 @@ function App() {
       }
 
       setSelectedId((current) => (current === snapshot.id ? "" : current));
-      setActionMessage(`${snapshot.name} removed from dashboard.`);
+      setActionMessage(`${snapshot.name} 프로젝트를 대시보드에서 제거했습니다.`);
       await loadSnapshots();
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Unknown error");
@@ -330,8 +364,9 @@ function App() {
     <main className="appShell">
       <section className="topBar">
         <div>
-          <p className="eyebrow">Local AI Development Command Center</p>
+          <p className="eyebrow">로컬 AI 개발 관제실</p>
           <h1>AI Project Orchestrator</h1>
+          <p className="topDescription">여러 프로젝트의 Git 상태, 파일 신호, 다음 Codex 작업을 한 화면에서 정리합니다.</p>
         </div>
         <div className="topActions">
           <label className="toggleControl">
@@ -340,29 +375,29 @@ function App() {
               onChange={(event) => setPortfolioMode(event.target.checked)}
               type="checkbox"
             />
-            Portfolio Mode
+            포트폴리오 모드
           </label>
           <button className="primaryButton" type="button" onClick={() => void loadSnapshots()} disabled={isLoading}>
             <RefreshCw size={17} />
-            {isLoading ? "Scanning" : "Rescan"}
+            {isLoading ? "스캔 중" : "다시 스캔"}
           </button>
         </div>
       </section>
 
       <section className="summaryGrid" aria-label="Project summary">
-        <Metric label="Projects" value={snapshots.length.toString()} />
-        <Metric label="Risky" value={riskyProjects.toString()} />
-        <Metric label="Need Commit" value={needsCommit.toString()} />
-        <Metric label="Need Docs" value={needsDocs.toString()} />
-        <Metric label="Need Push" value={needsPush.toString()} />
-        <Metric label="Last Scan" value={lastScan ? new Date(lastScan).toLocaleTimeString("ko-KR") : "-"} />
+        <Metric label="등록 프로젝트" value={snapshots.length.toString()} />
+        <Metric label="확인 필요" value={riskyProjects.toString()} />
+        <Metric label="커밋 필요" value={needsCommit.toString()} />
+        <Metric label="문서 필요" value={needsDocs.toString()} />
+        <Metric label="푸시 필요" value={needsPush.toString()} />
+        <Metric label="최근 스캔" value={lastScan ? new Date(lastScan).toLocaleTimeString("ko-KR") : "-"} />
       </section>
 
       {portfolioMode ? (
         <section className="portfolioBanner">
           <div>
-            <h2>Portfolio Mode</h2>
-            <p>Local paths and file names are hidden so the orchestration workflow can be shown safely.</p>
+            <h2>포트폴리오 모드</h2>
+            <p>화면 공유나 포트폴리오 정리에 쓸 수 있도록 로컬 경로, 파일명, TODO 내용을 숨깁니다.</p>
           </div>
         </section>
       ) : null}
@@ -373,13 +408,13 @@ function App() {
       <section className="workspace">
         <div className="projectList" aria-label="Projects">
           <div className="sectionTitle">
-            <h2>Projects</h2>
-            <span>{isLoading ? "Reading local state" : `${snapshots.length} registered`}</span>
+            <h2>프로젝트</h2>
+            <span>{isLoading ? "로컬 상태 읽는 중" : `${snapshots.length}개 등록됨`}</span>
           </div>
 
           <form className="projectForm" onSubmit={(event) => void addProject(event)}>
             <label>
-              Name
+              프로젝트 이름
               <input
                 type="text"
                 value={formState.name}
@@ -389,7 +424,7 @@ function App() {
               />
             </label>
             <label>
-              Path
+              폴더 경로
               <input
                 type="text"
                 value={formState.path}
@@ -400,23 +435,23 @@ function App() {
             </label>
             <div className="formRow">
               <label>
-                Type
+                종류
                 <select
                   value={formState.type}
                   onChange={(event) => setFormState((current) => ({ ...current, type: event.target.value }))}
                 >
-                  <option value="unknown">unknown</option>
-                  <option value="web">web</option>
-                  <option value="web-game">web-game</option>
-                  <option value="unity">unity</option>
-                  <option value="unreal">unreal</option>
-                  <option value="portfolio">portfolio</option>
-                  <option value="node">node</option>
-                  <option value="docs">docs</option>
+                  <option value="unknown">미분류</option>
+                  <option value="web">웹</option>
+                  <option value="web-game">웹 게임</option>
+                  <option value="unity">Unity</option>
+                  <option value="unreal">Unreal</option>
+                  <option value="portfolio">포트폴리오</option>
+                  <option value="node">Node</option>
+                  <option value="docs">문서</option>
                 </select>
               </label>
               <label>
-                Tags
+                태그
                 <input
                   type="text"
                   value={formState.tags}
@@ -427,8 +462,9 @@ function App() {
             </div>
             <button className="primaryButton fullWidth" type="submit" disabled={isSaving}>
               <Plus size={16} />
-              {isSaving ? "Saving" : "Add Project"}
+              {isSaving ? "저장 중" : "프로젝트 추가"}
             </button>
+            <p className="formHint">`확인 필요`는 앱 오류가 아니라, 등록된 경로를 찾지 못했거나 먼저 처리할 항목이 있다는 뜻입니다.</p>
           </form>
 
           {snapshots.map((snapshot) => (
@@ -440,7 +476,7 @@ function App() {
                 <div className="cardHeader">
                   <div>
                     <h3>{displayProjectName(snapshot)}</h3>
-                    <p>{snapshot.type}</p>
+                    <p>{typeLabels[snapshot.type] ?? snapshot.type}</p>
                   </div>
                   <RiskBadge level={snapshot.riskLevel} />
                 </div>
@@ -450,21 +486,21 @@ function App() {
                 <div className="cardSignals">
                   <span>
                     <GitBranch size={14} />
-                    {snapshot.git.branch || "no branch"}
+                    {snapshot.git.branch || "브랜치 없음"}
                   </span>
-                  <span>{snapshot.git.dirty ? "dirty" : "clean"}</span>
-                  <span>{snapshot.exists ? "exists" : "missing"}</span>
+                  <span>{snapshot.git.dirty ? "변경 있음" : "깨끗함"}</span>
+                  <span>{getProjectStatusText(snapshot)}</span>
                 </div>
               </button>
               <button className="iconButton danger" type="button" onClick={() => void deleteProject(snapshot)}>
                 <Trash2 size={15} />
-                <span>Remove</span>
+                <span>제거</span>
               </button>
             </article>
           ))}
 
           {!isLoading && snapshots.length === 0 ? (
-            <div className="emptyBox">Add projects to `data/projects.json` to begin scanning.</div>
+            <div className="emptyBox">스캔할 프로젝트를 추가하면 여기에서 상태를 볼 수 있습니다.</div>
           ) : null}
         </div>
 
@@ -473,23 +509,34 @@ function App() {
             <>
               <div className="detailHeader">
                 <div>
-                  <p className="eyebrow">Selected Project</p>
+                  <p className="eyebrow">선택된 프로젝트</p>
                   <h2>{displayProjectName(selected)}</h2>
+                  <p className="statusDescription">{riskDescriptions[selected.riskLevel]}</p>
                 </div>
                 <RiskBadge level={selected.riskLevel} />
               </div>
 
+              {!selected.exists ? (
+                <section className="blockedHelp">
+                  <strong>실제 폴더 경로를 등록해야 스캔할 수 있어요.</strong>
+                  <p>
+                    현재 기본 프로젝트는 포트폴리오용 예시 경로입니다. 왼쪽에서 실제 LETHE 또는 SoulLike 폴더 경로를
+                    추가하면 Git 상태와 파일 신호가 정상적으로 표시됩니다.
+                  </p>
+                </section>
+              ) : null}
+
               <div className="detailGrid">
-                <InfoBlock label="Branch" value={selected.git.branch || "unknown"} />
-                <InfoBlock label="Latest Commit" value={selected.git.latestCommit?.message ?? "none"} />
-                <InfoBlock label="Upstream" value={selected.git.hasUpstream ? "connected" : "missing"} />
-                <InfoBlock label="Ahead / Behind" value={`${selected.git.ahead} / ${selected.git.behind}`} />
+                <InfoBlock label="브랜치" value={selected.git.branch || "알 수 없음"} />
+                <InfoBlock label="최근 커밋" value={selected.git.latestCommit?.message ?? "없음"} />
+                <InfoBlock label="원격 연결" value={selected.git.hasUpstream ? "연결됨" : "없음"} />
+                <InfoBlock label="앞섬 / 뒤처짐" value={`${selected.git.ahead} / ${selected.git.behind}`} />
               </div>
 
               <section className="actionPanel">
                 <div className="sectionTitle compact">
-                  <h3>Recommended Actions</h3>
-                  <span>{selected.recommendedActions.length} prompts</span>
+                  <h3>추천 작업</h3>
+                  <span>{selected.recommendedActions.length}개 프롬프트</span>
                 </div>
                 <div className="actionChips">
                   {actionLabels.map(([key, label]) => (
@@ -501,13 +548,13 @@ function App() {
               </section>
 
               <div className="panelRow">
-                <StatusGroup title="Git Status">
-                  <Signal label="Staged" value={selected.git.staged.length} />
-                  <Signal label="Modified" value={selected.git.modified.length} />
-                  <Signal label="Untracked" value={selected.git.untracked.length} />
+                <StatusGroup title="Git 상태">
+                  <Signal label="스테이징" value={selected.git.staged.length} />
+                  <Signal label="수정됨" value={selected.git.modified.length} />
+                  <Signal label="추적 안 됨" value={selected.git.untracked.length} />
                 </StatusGroup>
 
-                <StatusGroup title="Important Docs">
+                <StatusGroup title="중요 문서">
                   <DocSignal label="AGENTS.md" ok={selected.files.hasAgentsMd} />
                   <DocSignal label="README.md" ok={selected.files.hasReadme} />
                   <DocSignal label="CODEX_STATUS" ok={selected.files.hasDocsStatus} />
@@ -516,45 +563,45 @@ function App() {
 
               <section className="fileSignalsPanel">
                 <div className="sectionTitle compact">
-                  <h3>File Signals</h3>
-                  <span>{selected.files.scannedFiles} scanned</span>
+                  <h3>파일 신호</h3>
+                  <span>{selected.files.scannedFiles}개 스캔</span>
                 </div>
                 <div className="fileSignalGrid">
                   <Signal label="TODO/FIXME/BUG" value={selected.files.todoCount} />
-                  <Signal label="Large Files" value={selected.files.largeFiles.length} />
-                  <Signal label="Recent Files" value={selected.files.recentFiles.length} />
+                  <Signal label="대용량 파일" value={selected.files.largeFiles.length} />
+                  <Signal label="최근 파일" value={selected.files.recentFiles.length} />
                 </div>
                 {selected.files.truncated ? (
-                  <p className="signalNote">Scan was capped to avoid reading too many files.</p>
+                  <p className="signalNote">너무 많은 파일을 읽지 않도록 스캔을 제한했습니다.</p>
                 ) : null}
                 <FileList
-                  emptyText="No recent files found."
+                  emptyText="최근 파일이 없습니다."
                   items={selected.files.recentFiles.slice(0, 5).map((file, index) => ({
                     label: displayFilePath(file.path, index),
                     meta: new Date(file.modifiedAt).toLocaleString("ko-KR"),
                   }))}
-                  title="Recent"
+                  title="최근 파일"
                 />
                 <FileList
-                  emptyText="No large files found."
+                  emptyText="대용량 파일이 없습니다."
                   items={selected.files.largeFiles.slice(0, 5).map((file, index) => ({
                     label: displayFilePath(file.path, index),
                     meta: formatBytes(file.sizeBytes),
                   }))}
-                  title="Large"
+                  title="대용량"
                 />
                 <FileList
-                  emptyText="No TODO/FIXME/BUG comments found."
+                  emptyText="TODO/FIXME/BUG 주석이 없습니다."
                   items={selected.files.todoItems.slice(0, 5).map((item, index) => ({
                     label: portfolioMode ? `TODO ${index + 1}` : `${item.path}:${item.line}`,
-                    meta: portfolioMode ? "Comment text hidden" : item.text,
+                    meta: portfolioMode ? "주석 내용 숨김" : item.text,
                   }))}
                   title="TODO"
                 />
               </section>
 
               <section className="riskPanel">
-                <h3>Risks</h3>
+                <h3>위험 신호</h3>
                 {selected.risks.length > 0 ? (
                   selected.risks.map((risk) => (
                     <div className="riskItem" key={`${risk.type}-${risk.message}`}>
@@ -565,15 +612,15 @@ function App() {
                 ) : (
                   <div className="riskItem calm">
                     <CheckCircle2 size={16} />
-                    <span>No major risks detected.</span>
+                    <span>큰 위험 신호가 없습니다.</span>
                   </div>
                 )}
               </section>
 
               <section className="promptPanel">
                 <div className="sectionTitle">
-                  <h3>Codex Prompt</h3>
-                  <span>{isPromptLoading ? "Generating" : promptKindLabels[promptKind]}</span>
+                  <h3>Codex 작업 프롬프트</h3>
+                  <span>{isPromptLoading ? "생성 중" : promptKindLabels[promptKind]}</span>
                 </div>
                 <div className="segmentedControl" aria-label="Prompt type">
                   {(Object.keys(promptKindLabels) as PromptKind[]).map((kind) => (
@@ -587,7 +634,7 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <pre>{displayPrompt(promptText || selected.recommendedActions[0]?.prompt || "No prompt generated.")}</pre>
+                <pre>{displayPrompt(promptText || selected.recommendedActions[0]?.prompt || "생성된 프롬프트가 없습니다.")}</pre>
                 <button
                   className="secondaryButton"
                   type="button"
@@ -596,12 +643,12 @@ function App() {
                   }
                 >
                   <Clipboard size={16} />
-                  {copied === selected.id ? "Copied" : "Copy Prompt"}
+                  {copied === selected.id ? "복사됨" : "프롬프트 복사"}
                 </button>
               </section>
             </>
           ) : (
-            <div className="emptyDetail">No project selected.</div>
+            <div className="emptyDetail">선택된 프로젝트가 없습니다.</div>
           )}
         </div>
       </section>
@@ -654,7 +701,7 @@ function DocSignal({ label, ok }: { label: string; ok: boolean }) {
     <div className="docSignal">
       <FileText size={15} />
       <span>{label}</span>
-      <strong>{ok ? "yes" : "missing"}</strong>
+      <strong>{ok ? "있음" : "없음"}</strong>
     </div>
   );
 }

@@ -55,6 +55,14 @@ Completed orchestration improvements:
   - `npm run report:discord:snapshot:dry`
   - `npm run report:discord:snapshot`
 
+Completed dashboard localization and readability improvements:
+
+- Korean labels for dashboard metrics, forms, buttons, risk badges, action chips, and empty states.
+- `blocked` is shown as `확인 필요` in the UI.
+- Missing example paths now show a clear explanation that a real local folder path must be registered.
+- Risk messages and generated prompt summaries are localized in Korean.
+- Dashboard cards, metrics, and action chips received small readability improvements.
+
 ## Product Target
 
 Build a local-first AI Project Orchestrator dashboard with:
@@ -97,3 +105,6 @@ Verified on 2026-06-05:
 - Temporary full-flow project test confirmed action categories and generated `push` / `verification` prompts.
 - `GET /api/report` returned a compact Korean report object.
 - `npm run report:discord:snapshot:dry` produced a valid Discord payload from scan results.
+- Dashboard localization build passed.
+- `GET /api/snapshots` returned Korean risk messages.
+- `POST /api/projects/ue5-soullike/prompt` returned a Korean prompt body.
