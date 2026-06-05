@@ -70,6 +70,19 @@
 
 ## Priority 1
 
+### Project Document Profiles
+
+Goal:
+
+- Define common orchestration document roles: project brief, current task, next tasks, prompt context, decision log, and reports.
+- Add per-project profile mappings so LETHE, SoulLike, and future projects can use different existing document structures.
+- Auto-detect likely files first, then allow user confirmation or editing.
+
+Verification:
+
+- dashboard shows resolved and missing document roles for a selected project
+- generated command prompt can include mapped prompt context and current task content
+
 ### Validate Real Project Paths
 
 Goal:

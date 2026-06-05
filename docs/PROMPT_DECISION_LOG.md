@@ -66,3 +66,11 @@ Skip:
 - Key decision: Add Portfolio Mode directly to the dashboard instead of creating a separate static portfolio page.
 - User refinement: The portfolio record should preserve strong prompts and design decisions selectively, not every raw message.
 - Portfolio value: Shows privacy-aware presentation of AI-assisted development process.
+
+#### Project Document Interface And Profile Mapping
+
+- File: `docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md`
+- User intent: Avoid turning project-specific orchestration documents into brittle hardcoded paths.
+- Key decision: Use a common document-role interface backed by per-project profile mappings.
+- User refinement: Treat this as an interface design problem: every project exposes common roles, but each project can map those roles to different existing files.
+- Portfolio value: Demonstrates system design judgment around AI context management, configurability, and project-specific documentation.

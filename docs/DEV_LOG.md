@@ -93,3 +93,9 @@ Each log should include:
 - File: `src/main.tsx`, `src/styles.css`
 - Summary: Reworked the selected project detail view around current work, progress state, next tasks, and user-authored Codex commands. Moved file signals into a collapsed supporting section.
 - Verification: `npm run build`.
+
+#### Project Document Interface Design
+
+- File: `docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md`
+- Summary: Recorded the decision to model orchestration documents as common interface roles with per-project profile mappings, rather than hardcoding one document layout for every project.
+- Verification: Documentation-only design note.
