@@ -168,6 +168,7 @@
           <li>AI 리뷰 기록, 증거, 템플릿 폴더는 권장 확장으로 분리했습니다.</li>
           <li>공통 <code>AGENTS.md</code> 양식은 먼저 템플릿으로 두고, 반복 검증 후 Codex skill로 승격하는 방향으로 정했습니다.</li>
           <li>다른 프로젝트에 기본 구조를 설치하는 <code>npm run orchestration:install</code> 명령을 추가했습니다.</li>
+          <li>이미 진행 중인 프로젝트를 AI가 해석해서 옮길 수 있도록 마이그레이션 프롬프트 템플릿을 추가했습니다.</li>
         </ul>
       </section>
 
@@ -187,6 +188,7 @@
           <li><code>docs/orchestration/</code> 아래에 이 저장소의 초기 스캐폴드가 생겼습니다.</li>
           <li><code>AGENTS.md</code>가 새 오케스트레이션 문서 흐름을 안내합니다.</li>
           <li><code>npm run orchestration:install -- --target . --dry-run</code> 검증이 통과했습니다.</li>
+          <li>진행 중인 프로젝트는 <code>EXISTING_PROJECT_MIGRATION_PROMPT.md</code>를 사용해 기존 문서의 의미를 새 인터페이스로 옮길 수 있습니다.</li>
           <li>다음 작업은 대시보드에서 이 인터페이스의 존재 여부를 감지하고 누락 파일을 스캐폴드하는 기능입니다.</li>
         </ul>
       </section>

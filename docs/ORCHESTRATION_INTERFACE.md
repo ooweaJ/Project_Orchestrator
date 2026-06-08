@@ -156,6 +156,14 @@ npm run orchestration:install -- --target "C:\path\to\project" --with-agents
 
 The installer creates missing files and folders only. It does not overwrite existing project documents.
 
+For active projects with existing documentation, prefer the AI migration prompt:
+
+```text
+docs/orchestration/templates/EXISTING_PROJECT_MIGRATION_PROMPT.md
+```
+
+Use the installer for missing folders and templates, then use the migration prompt to summarize existing project meaning into the target files.
+
 ## Prompt Generation Rule
 
 When generating a Codex command prompt, prefer these documents in order:

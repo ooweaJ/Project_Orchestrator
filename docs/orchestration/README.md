@@ -49,3 +49,5 @@ npm run orchestration:install -- --target "C:\path\to\project"
 Use `--with-agents` only when the target project should receive a new root `AGENTS.md`.
 
 The installer creates missing files and folders only. It does not overwrite existing documents.
+
+For active projects with existing docs, use `templates/EXISTING_PROJECT_MIGRATION_PROMPT.md` instead of only copying empty templates. That prompt tells AI how to map old docs into the orchestration interface.

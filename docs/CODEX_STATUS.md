@@ -56,6 +56,7 @@ Completed orchestration improvements:
   - `npm run report:discord:snapshot`
 - Expanded `docs/orchestration/*` interface standard with required core documents, recommended evidence extensions, devlog/report separation, and a reusable AGENTS template.
 - `npm run orchestration:install` can scaffold the default interface into another local project without overwriting existing files.
+- `EXISTING_PROJECT_MIGRATION_PROMPT.md` supports active projects that need AI-assisted migration from legacy docs into the new interface.
 
 Completed dashboard localization and readability improvements:
 
@@ -136,3 +137,4 @@ Verified on 2026-06-08:
 - `docs/orchestration/*` required core files and folders were scaffolded for this repository.
 - `AGENTS.md`, `docs/ORCHESTRATION_INTERFACE.md`, `docs/NEXT_TASKS.md`, decision logs, and user-facing reports were updated for the new standard.
 - `npm run orchestration:install -- --target . --dry-run` passed.
+- Existing-project migration prompt template was reviewed.
