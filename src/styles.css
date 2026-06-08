@@ -574,6 +574,7 @@ h3 {
 .orchestrationDesk,
 .generatedDashboardPanel,
 .commandSourcePanel,
+.journalPanel,
 .runbookPanel,
 .workCommandPanel,
 .orchestrationPanel {
@@ -592,10 +593,93 @@ h3 {
 
 .orchestrationDesk h3,
 .generatedDashboardPanel h3,
+.journalPanel h3,
 .workCommandPanel h3,
 .orchestrationPanel h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+.journalPanel {
+  border-color: #c9e8d3;
+  background: #f7fcf8;
+}
+
+.journalBrowser {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.32fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.journalList {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  max-height: 560px;
+  overflow: auto;
+}
+
+.journalList button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 48px;
+  padding: 9px 10px;
+  color: #26342f;
+  text-align: left;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.journalList button.active {
+  color: #1f6b4d;
+  border-color: #addfc0;
+  background: #f0fbf3;
+}
+
+.journalList span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journalList small {
+  color: #697873;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.journalList p,
+.journalPreview p {
+  margin: 0;
+  color: #697873;
+  font-size: 0.84rem;
+}
+
+.journalPreview {
+  min-width: 0;
+  overflow: hidden;
+  min-height: 560px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.journalPreview iframe {
+  display: block;
+  width: 100%;
+  min-height: 560px;
+  border: 0;
+  background: #ffffff;
+}
+
+.journalPreview p {
+  padding: 16px;
 }
 
 .compactButton {
@@ -853,9 +937,10 @@ h3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-.workspace,
+  .workspace,
   .formRow,
   .pathInputGroup,
+  .journalBrowser,
   .docBoard,
   .orchestrationGrid,
   .orchestrationGrid.compact {

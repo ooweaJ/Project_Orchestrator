@@ -246,6 +246,62 @@ async function listOrchestrationViewerFiles(projectPath) {
   return files.sort((a, b) => a.path.localeCompare(b.path, "ko"));
 }
 
+async function listOrchestrationReportFiles(projectPath) {
+  const reportsDir = path.resolve(projectPath, "docs", "orchestration", "reports");
+  const entries = await fs.readdir(reportsDir, { withFileTypes: true }).catch(() => []);
+  const files = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== ".html") {
+      continue;
+    }
+
+    const fullPath = path.join(reportsDir, entry.name);
+    const stats = await fs.stat(fullPath).catch(() => null);
+
+    if (!stats) {
+      continue;
+    }
+
+    const content = await fs.readFile(fullPath, "utf8").catch(() => "");
+    const title =
+      content.match(/<title>(.*?)<\/title>/is)?.[1]?.trim() ||
+      content.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, "").trim() ||
+      entry.name.replace(/\.html$/i, "").replace(/[-_]+/g, " ");
+
+    files.push({
+      path: entry.name,
+      name: entry.name,
+      title,
+      modifiedAt: stats.mtime.toISOString(),
+      sizeBytes: stats.size,
+    });
+  }
+
+  return files.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+}
+
+function resolveOrchestrationReportPath(projectPath, requestedPath) {
+  const reportsDir = path.resolve(projectPath, "docs", "orchestration", "reports");
+  const normalizedPath = requestedPath.replace(/\\/g, "/");
+
+  if (!normalizedPath || normalizedPath.includes("\0") || path.isAbsolute(normalizedPath)) {
+    throw new Error("invalid report path");
+  }
+
+  const fullPath = path.resolve(reportsDir, normalizedPath);
+
+  if (fullPath !== reportsDir && !fullPath.startsWith(`${reportsDir}${path.sep}`)) {
+    throw new Error("report path is outside docs/orchestration/reports");
+  }
+
+  if (path.extname(fullPath).toLowerCase() !== ".html") {
+    throw new Error("only HTML reports can be previewed");
+  }
+
+  return fullPath;
+}
+
 async function readProjects() {
   await ensureDataFiles();
   const content = await fs.readFile(projectsFile, "utf8");
@@ -1350,6 +1406,47 @@ app.get("/api/projects/:id/orchestration-runbook", async (req, res) => {
     res.type("html").send(html);
   } catch (error) {
     res.status(500).type("html").send(error.message);
+  }
+});
+
+app.get("/api/projects/:id/orchestration-reports", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    res.json(await listOrchestrationReportFiles(project.path));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/projects/:id/orchestration-report", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).type("html").send("project not found");
+      return;
+    }
+
+    const requestedPath = typeof req.query.path === "string" ? req.query.path : "";
+    const reportPath = resolveOrchestrationReportPath(project.path, requestedPath);
+    const html = await fs.readFile(reportPath, "utf8").catch(() => "");
+
+    if (!html) {
+      res.status(404).type("html").send("report not found");
+      return;
+    }
+
+    res.type("html").send(html);
+  } catch (error) {
+    res.status(400).type("html").send(error.message);
   }
 });
 

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 보고서 목록</title>
+    <style>
+      :root {
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --text: #17201d;
+        --muted: #64706b;
+        --line: #dce2da;
+        --green: #1f6b4d;
+        --blue: #285f8f;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1050px, 100%); margin: 0 auto; padding: 30px 22px 42px; }
+      a { color: var(--green); font-weight: 900; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 13px; font-weight: 900; }
+      h1 { margin: 0 0 10px; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; }
+      p { margin: 0 0 12px; color: var(--muted); line-height: 1.65; }
+      .panel { margin-top: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+      .panelHeader { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 12px; }
+      h2 { margin: 0; font-size: 19px; }
+      ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+      li { padding: 12px 0; border-bottom: 1px solid #edf0eb; }
+      li:last-child { border-bottom: 0; }
+      small { display: block; margin-top: 5px; color: var(--muted); line-height: 1.45; }
+      .tag { display: inline-flex; margin-left: 8px; padding: 3px 7px; border-radius: 999px; background: #e8f1f8; color: var(--blue); font-size: 12px; font-weight: 900; }
+      footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 개발일지</p>
+      <h1>보고서 목록</h1>
+      <p>
+        작업 단위별 사용자 보고서와 포트폴리오용 요약을 모아보는 HTML 목록입니다.
+        Markdown/state가 원본이고 HTML은 사람이 빠르게 확인하기 위한 진행 기록입니다.
+      </p>
+
+      <section class="panel">
+        <div class="panelHeader">
+          <h2>진행 보고서</h2>
+          <a href="../index.html">대시보드로 돌아가기</a>
+        </div>
+        <p>아직 진행 보고서가 없습니다.</p>
+      </section>
+
+      <footer>이 목록은 <code>docs/orchestration/reports/</code>의 HTML/Markdown 보고서를 기준으로 생성됩니다.</footer>
+    </main>
+  </body>
+</html>

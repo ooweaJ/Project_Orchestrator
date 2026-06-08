@@ -143,3 +143,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/07-project-html-interface-split.md`
 - Summary: Split generated project HTML into `index.html`, `command.html`, and `runbook.html`, then reordered the homepage around project dashboard, next instruction, command prompt, runbook, and collapsed interface checklist.
 - Verification: `npm run build`, `npm run orchestration:dashboard -- --all`, LETHE dashboard/command/runbook APIs.
+
+#### LETHE HTML Template And Development Journal
+
+- File: `docs/ai-collaboration/2026-06-08/08-lethe-html-template-development-journal.md`
+- Summary: Promoted the LETHE HTML shape into `HTML_INTERFACE_TEMPLATE.md`, updated the migration prompt, generated a LETHE-style report index, and added a homepage `개발일지` report browser for `docs/orchestration/reports/*.html`.
+- Verification: `npm run orchestration:dashboard`, `npm run build`, LETHE reports list/report APIs.

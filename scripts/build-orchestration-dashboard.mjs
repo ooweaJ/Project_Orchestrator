@@ -162,6 +162,49 @@ async function listRecentMarkdown(directory, limit = 5) {
   return files.sort((a, b) => b.modifiedAt.getTime() - a.modifiedAt.getTime()).slice(0, limit);
 }
 
+function firstHtmlTitle(html, fallback) {
+  const title = html.match(/<title>(.*?)<\/title>/is)?.[1]?.trim();
+  const h1 = html.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, "").trim();
+
+  return title || h1 || fallback;
+}
+
+function humanizeFileName(fileName) {
+  return fileName.replace(/\.(html|md)$/i, "").replace(/[-_]+/g, " ");
+}
+
+async function listReportFiles(directory, limit = 12) {
+  const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+  const files = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || ![".html", ".md"].includes(path.extname(entry.name).toLowerCase())) {
+      continue;
+    }
+
+    const filePath = path.join(directory, entry.name);
+    const stats = await fs.stat(filePath).catch(() => null);
+    if (!stats) {
+      continue;
+    }
+
+    const content = await readText(filePath);
+    const title =
+      path.extname(entry.name).toLowerCase() === ".html"
+        ? firstHtmlTitle(content, humanizeFileName(entry.name))
+        : firstHeading(content, humanizeFileName(entry.name));
+
+    files.push({
+      name: entry.name,
+      title,
+      modifiedAt: stats.mtime,
+      isHtml: path.extname(entry.name).toLowerCase() === ".html",
+    });
+  }
+
+  return files.sort((a, b) => b.modifiedAt.getTime() - a.modifiedAt.getTime()).slice(0, limit);
+}
+
 function renderRecentList(items, relativeDir, emptyText) {
   if (items.length === 0) {
     return `<p class="muted">${emptyText}</p>`;
@@ -173,6 +216,30 @@ function renderRecentList(items, relativeDir, emptyText) {
         `<li><a href="./${relativeDir}/${encodeURIComponent(item.name)}">${escapeHtml(item.title)}</a><small>${item.modifiedAt.toLocaleString("ko-KR")}</small></li>`,
     )
     .join("")}</ul>`;
+}
+
+function firstNonEmptyLine(value, fallback = "기록 없음") {
+  return (
+    value
+      .split(/\r?\n/)
+      .map((line) => line.trim().replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""))
+      .find((line) => line && !line.startsWith("#")) ?? fallback
+  );
+}
+
+function extractListItems(value, limit = 4) {
+  const items = value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => line.match(/^[-*]\s+(.*)$/u)?.[1] ?? line.match(/^\d+\.\s+(.*)$/u)?.[1] ?? "")
+    .filter(Boolean)
+    .slice(0, limit);
+
+  return items.length > 0 ? items : [firstNonEmptyLine(value, "다음 판단 기준이 아직 없습니다.")];
+}
+
+function renderPlainList(items) {
+  return `<ul>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}</ul>`;
 }
 
 function renderDocCard(title, fileName, markdown, fallback) {
@@ -281,8 +348,8 @@ async function buildDashboard(targetRoot) {
     decisionLog: await readText(path.join(orchestrationDir, "DECISION_LOG.md")),
     runbook: await readText(path.join(orchestrationDir, "RUNBOOK.md")),
   };
-  const devlog = await listRecentMarkdown(path.join(orchestrationDir, "devlog"));
-  const reports = await listRecentMarkdown(path.join(orchestrationDir, "reports"));
+  const reportsDir = path.join(orchestrationDir, "reports");
+  const reports = await listReportFiles(reportsDir);
   const projectName = firstContentLine(extractSection(docs.projectBrief, "Project")) || path.basename(targetRoot);
   const phase = extractSection(docs.status, "Current State") || extractSection(docs.status, "현재 상태");
   const blockers = extractSection(docs.status, "Blockers") || extractSection(docs.status, "블로커");
@@ -301,8 +368,24 @@ async function buildDashboard(targetRoot) {
   const outputPath = path.join(orchestrationDir, "index.html");
   const commandOutputPath = path.join(orchestrationDir, "command.html");
   const runbookOutputPath = path.join(orchestrationDir, "runbook.html");
+  const reportsIndexOutputPath = path.join(reportsDir, "index.html");
+  const latestReport = reports.find((report) => report.name !== "index.html");
+  const reportItems = reports.filter((report) => report.name !== "index.html");
+  const reportListHtml =
+    reportItems.length > 0
+      ? `<ul>${reportItems
+          .map(
+            (report) => `<li>
+            <a href="./${encodeURIComponent(report.name)}">${escapeHtml(report.title)}</a>
+            <span class="tag">${report.isHtml ? "HTML" : "Markdown"}</span>
+            <small>${report.modifiedAt.toLocaleString("ko-KR")}</small>
+          </li>`,
+          )
+          .join("")}</ul>`
+      : "<p>아직 진행 보고서가 없습니다.</p>";
 
   await fs.mkdir(orchestrationDir, { recursive: true });
+  await fs.mkdir(reportsDir, { recursive: true });
   await fs.writeFile(
     outputPath,
     `<!doctype html>
@@ -310,31 +393,59 @@ async function buildDashboard(targetRoot) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${escapeHtml(projectName)} 오케스트레이션</title>
+    <title>${escapeHtml(projectName)} 프로젝트 대시보드</title>
     <style>
       :root {
-        color: #17211c;
-        background: #f5f7f1;
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --text: #17201d;
+        --muted: #64706b;
+        --line: #dce2da;
+        --green: #1f6b4d;
+        --blue: #285f8f;
+        --amber: #916019;
+        --red: #9a3d36;
+        --soft-green: #e7f3ec;
+        --soft-blue: #e8f1f8;
+        --soft-amber: #f8efe0;
+        --soft-red: #fae9e7;
+        color: var(--text);
+        background: var(--bg);
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       * { box-sizing: border-box; }
       body { margin: 0; }
-      main { width: min(1180px, 100%); margin: 0 auto; padding: 32px 22px; }
-      header { margin-bottom: 18px; }
-      .eyebrow { margin: 0 0 8px; color: #60706a; font-size: 13px; font-weight: 900; }
+      main { width: min(1120px, 100%); margin: 0 auto; padding: 30px 22px 38px; }
+      header { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; margin-bottom: 16px; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 13px; font-weight: 900; }
       h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
       h2, h3, h4, p { margin-top: 0; }
-      .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
-      .metric, .card { border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
-      .metric { padding: 16px; }
-      .metric span { display: block; color: #697873; font-size: 13px; font-weight: 900; }
-      .metric strong { display: block; margin-top: 8px; font-size: 20px; line-height: 1.35; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-      .wide { grid-column: 1 / -1; }
-      .card { padding: 18px; min-width: 0; }
+      .badge { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--soft-amber); color: var(--amber); font-size: 13px; font-weight: 900; white-space: nowrap; }
+      .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+      .metric, .panel { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+      .metric { min-height: 106px; padding: 15px; }
+      .metric span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 13px; font-weight: 900; }
+      .metric strong { display: block; font-size: 18px; line-height: 1.32; }
+      .metric small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .green { background: var(--soft-green); }
+      .blue { background: var(--soft-blue); }
+      .amber { background: var(--soft-amber); }
+      .red { background: var(--soft-red); }
+      .heroPanel { padding: 18px; margin-bottom: 14px; border: 1px solid #cbdcce; border-radius: 8px; background: linear-gradient(180deg, #ffffff 0%, #f0f7f2 100%); }
+      .heroPanel h2, .panel h2 { margin: 0 0 10px; font-size: 19px; }
+      .heroPanel p, .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+      .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+      .panel { min-height: 166px; padding: 17px; }
+      .panel ul { margin: 0; padding-left: 19px; line-height: 1.58; }
+      .panel li { margin-bottom: 5px; }
+      .label { color: var(--muted); font-size: 13px; font-weight: 900; }
+      .value { display: block; margin-top: 4px; line-height: 1.5; }
+      .decision { display: grid; gap: 10px; }
+      .decision div { padding-bottom: 9px; border-bottom: 1px solid #edf0eb; }
+      .decision div:last-child { padding-bottom: 0; border-bottom: 0; }
       .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       .cardTitle h2 { margin: 0; font-size: 18px; }
-      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      a { color: var(--green); font-weight: 900; text-decoration: none; }
       a:hover { text-decoration: underline; }
       .markdown { color: #26342f; font-size: 14px; line-height: 1.65; }
       .markdown h3 { margin: 14px 0 8px; color: #1f6b4d; font-size: 15px; }
@@ -349,31 +460,89 @@ async function buildDashboard(targetRoot) {
       small, .muted { color: #697873; font-size: 13px; }
       footer { margin-top: 20px; color: #697873; font-size: 13px; }
       @media (max-width: 760px) {
-        .summary, .grid { grid-template-columns: 1fr; }
+        header, .metrics, .grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <main>
       <header>
-        <p class="eyebrow">오케스트레이션 대시보드</p>
-        <h1>${escapeHtml(projectName)}</h1>
+        <div>
+          <p class="eyebrow">${escapeHtml(projectName)} 프로젝트 대시보드</p>
+          <h1>상태 요약</h1>
+        </div>
+        <span class="badge">${escapeHtml(firstHeading(docs.currentTask, "진행 중"))}</span>
       </header>
 
-      <section class="summary">
-        <div class="metric"><span>현재 단계</span><strong>${escapeHtml(firstHeading(docs.currentTask, "진행 중"))}</strong></div>
-        <div class="metric"><span>최신 검증</span><strong>${verification ? escapeHtml(verification.split(/\r?\n/).find(Boolean) ?? "기록 없음") : "기록 없음"}</strong></div>
-        <div class="metric"><span>현재 blocker</span><strong>${blockers ? escapeHtml(blockers.split(/\r?\n/).find(Boolean) ?? "없음") : "없음"}</strong></div>
+      <section class="metrics" aria-label="핵심 상태 요약">
+        <div class="metric green">
+          <span>현재 단계</span>
+          <strong>${escapeHtml(firstHeading(docs.currentTask, "진행 중"))}</strong>
+          <small>${escapeHtml(firstNonEmptyLine(phase, "상태 기록 없음"))}</small>
+        </div>
+        <div class="metric blue">
+          <span>최신 검증</span>
+          <strong>${escapeHtml(firstNonEmptyLine(verification, "기록 없음"))}</strong>
+          <small>검증 원본은 STATUS.md</small>
+        </div>
+        <div class="metric amber">
+          <span>막힌 점</span>
+          <strong>${escapeHtml(firstNonEmptyLine(blockers, "없음"))}</strong>
+          <small>판단 보류 지점</small>
+        </div>
+        <div class="metric red">
+          <span>다음 게이트</span>
+          <strong>${escapeHtml(firstNonEmptyLine(nextInstructionSummary, "다음 후보 없음"))}</strong>
+          <small>NEXT_TASKS.md 기준</small>
+        </div>
+      </section>
+
+      <section class="heroPanel">
+        <h2>현재 결론</h2>
+        <p>${escapeHtml(firstNonEmptyLine(phase, "현재 결론이 아직 정리되지 않았습니다."))}</p>
       </section>
 
       <div class="grid">
-        ${renderMarkdownCard("현재 상태", phase, "STATUS.md에 현재 상태가 아직 정리되지 않았습니다.")}
-        ${renderMarkdownCard("검증과 블로커", [verification, blockers].filter(Boolean).join("\n\n"), "검증 기록이나 블로커가 없습니다.")}
-        ${renderMarkdownCard("최근 결정", decisionSummary, "DECISION_LOG.md가 아직 작성되지 않았습니다.")}
-        <section class="card listCard">
-          <div class="cardTitle"><h2>진행 기록</h2><a href="./reports/">reports/</a></div>
-          ${renderRecentList(reports, "reports", "아직 진행 보고가 없습니다.")}
-        </section>
+        <article class="panel">
+          <h2>이번 목표</h2>
+          <div class="decision">
+            <div>
+              <span class="label">해야 할 일</span>
+              <span class="value">${inlineMarkdown(firstNonEmptyLine(currentTaskSummary, "현재 작업 없음"))}</span>
+            </div>
+            <div>
+              <span class="label">완료 신호</span>
+              <span class="value">${inlineMarkdown(firstNonEmptyLine(extractSection(docs.currentTask, "Done Criteria") || extractSection(docs.currentTask, "완료 기준"), "완료 기준 없음"))}</span>
+            </div>
+            <div>
+              <span class="label">원본</span>
+              <span class="value"><code>CURRENT_TASK.md</code></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>다음 판단</h2>
+          ${renderPlainList(extractListItems(nextInstructionSummary))}
+        </article>
+
+        <article class="panel">
+          <h2>최근 완료</h2>
+          <div class="decision">
+            <div>
+              <span class="label">보고</span>
+              <span class="value">${latestReport ? `<a href="./reports/${encodeURIComponent(latestReport.name)}">${escapeHtml(latestReport.title)}</a>` : "아직 진행 보고가 없습니다."}</span>
+            </div>
+            <div>
+              <span class="label">결정</span>
+              <span class="value">${inlineMarkdown(firstNonEmptyLine(decisionSummary, "최근 결정 없음"))}</span>
+            </div>
+            <div>
+              <span class="label">목록</span>
+              <span class="value"><a href="./reports/index.html">reports/index.html</a></span>
+            </div>
+          </div>
+        </article>
       </div>
       <footer>Generated from Markdown. Markdown remains the source of truth. ${new Date().toLocaleString("ko-KR")}</footer>
     </main>
@@ -475,7 +644,72 @@ async function buildDashboard(targetRoot) {
     "utf8",
   );
 
-  return [outputPath, commandOutputPath, runbookOutputPath];
+  await fs.writeFile(
+    reportsIndexOutputPath,
+    `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(projectName)} 보고서 목록</title>
+    <style>
+      :root {
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --text: #17201d;
+        --muted: #64706b;
+        --line: #dce2da;
+        --green: #1f6b4d;
+        --blue: #285f8f;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1050px, 100%); margin: 0 auto; padding: 30px 22px 42px; }
+      a { color: var(--green); font-weight: 900; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 13px; font-weight: 900; }
+      h1 { margin: 0 0 10px; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; }
+      p { margin: 0 0 12px; color: var(--muted); line-height: 1.65; }
+      .panel { margin-top: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+      .panelHeader { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 12px; }
+      h2 { margin: 0; font-size: 19px; }
+      ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+      li { padding: 12px 0; border-bottom: 1px solid #edf0eb; }
+      li:last-child { border-bottom: 0; }
+      small { display: block; margin-top: 5px; color: var(--muted); line-height: 1.45; }
+      .tag { display: inline-flex; margin-left: 8px; padding: 3px 7px; border-radius: 999px; background: #e8f1f8; color: var(--blue); font-size: 12px; font-weight: 900; }
+      footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">${escapeHtml(projectName)} 개발일지</p>
+      <h1>보고서 목록</h1>
+      <p>
+        작업 단위별 사용자 보고서와 포트폴리오용 요약을 모아보는 HTML 목록입니다.
+        Markdown/state가 원본이고 HTML은 사람이 빠르게 확인하기 위한 진행 기록입니다.
+      </p>
+
+      <section class="panel">
+        <div class="panelHeader">
+          <h2>진행 보고서</h2>
+          <a href="../index.html">대시보드로 돌아가기</a>
+        </div>
+        ${reportListHtml}
+      </section>
+
+      <footer>이 목록은 <code>docs/orchestration/reports/</code>의 HTML/Markdown 보고서를 기준으로 생성됩니다.</footer>
+    </main>
+  </body>
+</html>
+`,
+    "utf8",
+  );
+
+  return [outputPath, commandOutputPath, runbookOutputPath, reportsIndexOutputPath];
 }
 
 async function getTargets() {

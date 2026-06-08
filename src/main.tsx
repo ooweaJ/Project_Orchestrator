@@ -134,6 +134,14 @@ type FolderBrowser = {
   }>;
 };
 
+type OrchestrationReport = {
+  path: string;
+  name: string;
+  title: string;
+  modifiedAt: string;
+  sizeBytes: number;
+};
+
 const typeLabels: Record<string, string> = {
   unknown: "미분류",
   web: "웹",
@@ -155,6 +163,10 @@ function App() {
   const [actionMessage, setActionMessage] = React.useState("");
   const [customInstruction, setCustomInstruction] = React.useState("");
   const [commandText, setCommandText] = React.useState("");
+  const [isJournalOpen, setIsJournalOpen] = React.useState(false);
+  const [isJournalLoading, setIsJournalLoading] = React.useState(false);
+  const [reports, setReports] = React.useState<OrchestrationReport[]>([]);
+  const [selectedReportPath, setSelectedReportPath] = React.useState("");
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -260,6 +272,37 @@ function App() {
 
   function getOrchestrationDoc(snapshot: ProjectSnapshot, key: OrchestrationDocKey) {
     return snapshot.files.orchestrationDashboard.documents.find((doc) => doc.key === key);
+  }
+
+  async function loadReports(snapshot: ProjectSnapshot, forceOpen = false) {
+    const shouldOpen = forceOpen || !isJournalOpen;
+    setIsJournalOpen(shouldOpen);
+
+    if (!shouldOpen) {
+      return;
+    }
+
+    setIsJournalLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/projects/${snapshot.id}/orchestration-reports`);
+      const body = (await response.json().catch(() => null)) as null | OrchestrationReport[] | { error?: string };
+
+      if (!response.ok) {
+        throw new Error((body as { error?: string } | null)?.error ?? `개발일지를 읽지 못했습니다: ${response.status}`);
+      }
+
+      const nextReports = body as OrchestrationReport[];
+      setReports(nextReports);
+      setSelectedReportPath((current) =>
+        current && nextReports.some((report) => report.path === current) ? current : nextReports[0]?.path || "",
+      );
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Unknown error");
+    } finally {
+      setIsJournalLoading(false);
+    }
   }
 
   function generateCommandText(snapshot: ProjectSnapshot) {
@@ -372,6 +415,9 @@ function App() {
 
   React.useEffect(() => {
     setCommandText("");
+    setIsJournalOpen(false);
+    setReports([]);
+    setSelectedReportPath("");
   }, [selected?.id]);
 
   return (
@@ -588,6 +634,15 @@ function App() {
                   <h2>{displayProjectName(selected)}</h2>
                   <p className="statusDescription">{selected.files.orchestrationDashboard.phase}</p>
                 </div>
+                <button
+                  className="secondaryButton"
+                  type="button"
+                  onClick={() => void loadReports(selected)}
+                  disabled={isJournalLoading}
+                >
+                  <FileText size={16} />
+                  {isJournalLoading ? "읽는 중" : "개발일지"}
+                </button>
               </div>
 
               {!selected.exists ? (
@@ -597,6 +652,47 @@ function App() {
                     현재 기본 프로젝트는 포트폴리오용 예시 경로입니다. 왼쪽에서 실제 LETHE 또는 SoulLike 폴더 경로를
                     추가하면 Git 상태와 파일 신호가 정상적으로 표시됩니다.
                   </p>
+                </section>
+              ) : null}
+
+              {isJournalOpen ? (
+                <section className="journalPanel">
+                  <div className="sectionTitle">
+                    <h3>개발일지</h3>
+                    <span>reports/</span>
+                  </div>
+                  <div className="journalBrowser">
+                    <div className="journalList">
+                      {reports.length > 0 ? (
+                        reports.map((report) => (
+                          <button
+                            className={selectedReportPath === report.path ? "active" : ""}
+                            key={report.path}
+                            type="button"
+                            onClick={() => setSelectedReportPath(report.path)}
+                          >
+                            <span>{report.title}</span>
+                            <small>{new Date(report.modifiedAt).toLocaleString("ko-KR")}</small>
+                          </button>
+                        ))
+                      ) : (
+                        <p>아직 HTML 개발일지가 없습니다.</p>
+                      )}
+                    </div>
+                    <div className="journalPreview">
+                      {selectedReportPath ? (
+                        <iframe
+                          key={`${selected.id}-${selectedReportPath}`}
+                          src={`/api/projects/${selected.id}/orchestration-report?path=${encodeURIComponent(
+                            selectedReportPath,
+                          )}`}
+                          title={`${displayProjectName(selected)} 개발일지 ${selectedReportPath}`}
+                        />
+                      ) : (
+                        <p>왼쪽에서 개발일지를 선택하세요.</p>
+                      )}
+                    </div>
+                  </div>
                 </section>
               ) : null}
 

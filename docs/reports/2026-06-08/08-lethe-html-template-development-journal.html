@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Project Orchestrator 진행 보고서</title>
+    <title>LETHE식 HTML 템플릿과 개발일지 보고서</title>
     <style>
       :root {
         color: #17211c;
@@ -30,10 +30,6 @@
       h2 {
         margin: 0 0 12px;
         font-size: 19px;
-      }
-      p {
-        margin: 0;
-        line-height: 1.65;
       }
       section {
         margin-bottom: 14px;
@@ -71,44 +67,42 @@
   </head>
   <body>
     <main>
-      <h1>AI Project Orchestrator 진행 상태</h1>
-      <span class="status">2026-06-08 기준</span>
+      <h1>LETHE식 HTML 템플릿과 개발일지</h1>
+      <span class="status">2026-06-08 완료</span>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>LETHE의 현재 HTML 대시보드 형식을 재사용 가능한 템플릿 규약으로 정리했습니다.</li>
-          <li>홈페이지 오른쪽 위에 <code>개발일지</code> 버튼을 추가해 <code>docs/orchestration/reports/</code>의 HTML 보고서를 목록/카드로 볼 수 있게 했습니다.</li>
+          <li>LETHE의 현재 HTML 형식을 재사용 가능한 오케스트레이션 템플릿으로 문서화했습니다.</li>
+          <li>홈페이지에서 프로젝트별 HTML 보고서를 개발일지처럼 열람할 수 있게 했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li><code>HTML_INTERFACE_TEMPLATE.md</code>를 추가해 프로젝트 대시보드, 다음 지시, 런북, 보고서 목록의 형식을 설명했습니다.</li>
-          <li><code>EXISTING_PROJECT_MIGRATION_PROMPT.md</code>와 교차 검증해 템플릿 참조와 LETHE 루트 배치 호환 규칙을 추가했습니다.</li>
-          <li>생성기가 LETHE식 상태판과 <code>reports/index.html</code> 목록을 만들도록 조정했습니다.</li>
-          <li>보고서 목록은 HTML 제목을 읽어 표시하고, 선택한 보고서는 iframe 카드로 보여줍니다.</li>
+          <li><code>HTML_INTERFACE_TEMPLATE.md</code>에 대시보드, 다음 지시, 런북, 보고서 목록 규칙을 추가했습니다.</li>
+          <li>마이그레이션 프롬프트가 해당 템플릿을 참조하도록 갱신했습니다.</li>
+          <li>보고서 API는 <code>docs/orchestration/reports/*.html</code>만 읽고, HTML 제목을 목록에 표시합니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>결과</h2>
         <ul>
+          <li><code>npm run orchestration:dashboard</code>가 통과했습니다.</li>
           <li><code>npm run build</code>가 통과했습니다.</li>
-          <li><code>npm run orchestration:dashboard</code>가 현재 프로젝트의 HTML 4종을 생성했습니다.</li>
-          <li>LETHE의 reports 목록 API와 개별 HTML 보고서 API가 모두 <code>200 OK</code>로 응답했습니다.</li>
-          <li>다음 작업은 이 LETHE식 템플릿을 다른 진행 중 프로젝트 하나에 적용해 보는 것입니다.</li>
+          <li>LETHE reports 목록과 개별 보고서 API가 <code>200 OK</code>로 응답했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../orchestration/index.html">오케스트레이션 HTML 대시보드</a></li>
-          <li><a href="../orchestration/RUNBOOK.md">Runbook</a></li>
-          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
-          <li><a href="./2026-06-08/08-lethe-html-template-development-journal.html">작업 단위 보고서</a></li>
+          <li><a href="../../orchestration/templates/HTML_INTERFACE_TEMPLATE.md">HTML_INTERFACE_TEMPLATE.md</a></li>
+          <li><a href="../../orchestration/templates/EXISTING_PROJECT_MIGRATION_PROMPT.md">EXISTING_PROJECT_MIGRATION_PROMPT.md</a></li>
+          <li><a href="../../CODEX_STATUS.md">CODEX_STATUS.md</a></li>
+          <li><a href="../../ai-collaboration/2026-06-08/08-lethe-html-template-development-journal.md">AI 협업 기록</a></li>
         </ul>
       </section>
     </main>

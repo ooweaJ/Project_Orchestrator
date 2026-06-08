@@ -33,36 +33,36 @@
       <div class="grid">
         <article>
           <h2>이번에 끝낼 작업</h2>
-          <div class="markdown"><p>Split the project HTML interface into dashboard, command, and runbook pages.</p>
+          <div class="markdown"><p>Promote the LETHE HTML format into a reusable template and add report browsing.</p>
 <ul>
-<li>Keep <code>docs/orchestration/index.html</code> as the project dashboard.</li>
-<li>Move the next instruction summary into <code>docs/orchestration/command.html</code>.</li>
-<li>Move repeated operating commands into <code>docs/orchestration/runbook.html</code>.</li>
-<li>Show the homepage in the order: project dashboard, next instruction, command prompt, runbook, collapsed interface checklist.</li>
-<li>Treat <code>reports/</code> as the user-facing progress record rather than a separate report panel.</li>
+<li>Treat the current LETHE HTML pages as the source format for reusable project dashboard templates.</li>
+<li>Add <code>HTML_INTERFACE_TEMPLATE.md</code> so other projects can follow the same visual and structural rules.</li>
+<li>Update the migration prompt so it references the LETHE-derived HTML template.</li>
+<li>Generate <code>reports/index.html</code> from <code>docs/orchestration/reports/</code>.</li>
+<li>Add a homepage <code>개발일지</code> button that lists report HTML files and previews the selected report as a card.</li>
 </ul>
 <ul>
-<li>The homepage labels the embedded project view as <code>프로젝트 대시보드</code>.</li>
-<li>The command prompt sits below the embedded <code>command.html</code> next-instruction block.</li>
-<li>The runbook appears as a separate bottom block with explanatory text.</li>
-<li>Visible risk badges, the report block, and the document browser are not part of the main operating flow.</li>
-<li>Interface file completion is available only as a collapsed checklist.</li>
+<li>The template explains <code>index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and <code>reports/index.html</code>.</li>
+<li>The migration prompt references the template and explains the root-layout compatibility with current LETHE.</li>
+<li>The homepage can list <code>docs/orchestration/reports/*.html</code> for the selected project.</li>
+<li>Clicking a report opens it inside the dashboard as an HTML card.</li>
+<li>The generator creates a LETHE-style project dashboard and report index for the current project.</li>
 </ul></div>
         </article>
         <article>
           <h2>다음 후보</h2>
           <div class="markdown"><ul>
-<li>Formalize <code>reports/</code> as the user-facing progress record.</li>
+<li>Apply the LETHE-derived HTML template to one more active project.</li>
 </ul>
-<p>   - Verify: a daily or commit-based report file can be generated and linked from <code>index.html</code>.</p>
+<p>   - Verify: the project has dashboard, command, runbook, and report-list pages with project-specific content.</p>
 <ul>
 <li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
 </ul>
 <p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
 <ul>
-<li>Add generated list pages for <code>reports/</code> and <code>evidence/</code>.</li>
+<li>Decide the report cadence for <code>reports/</code>.</li>
 </ul>
-<p>   - Verify: each folder has an index page linked from the generated dashboard.</p>
+<p>   - Verify: daily, commit-based, or work-unit report naming is documented and generated consistently.</p>
 <ul>
 <li>Add a scaffold action for missing orchestration files.</li>
 </ul>

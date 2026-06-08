@@ -2,23 +2,23 @@
 
 ## Task
 
-Split the project HTML interface into dashboard, command, and runbook pages.
+Promote the LETHE HTML format into a reusable template and add report browsing.
 
 ## Goal
 
-- Keep `docs/orchestration/index.html` as the project dashboard.
-- Move the next instruction summary into `docs/orchestration/command.html`.
-- Move repeated operating commands into `docs/orchestration/runbook.html`.
-- Show the homepage in the order: project dashboard, next instruction, command prompt, runbook, collapsed interface checklist.
-- Treat `reports/` as the user-facing progress record rather than a separate report panel.
+- Treat the current LETHE HTML pages as the source format for reusable project dashboard templates.
+- Add `HTML_INTERFACE_TEMPLATE.md` so other projects can follow the same visual and structural rules.
+- Update the migration prompt so it references the LETHE-derived HTML template.
+- Generate `reports/index.html` from `docs/orchestration/reports/`.
+- Add a homepage `개발일지` button that lists report HTML files and previews the selected report as a card.
 
 ## Done Criteria
 
-- The homepage labels the embedded project view as `프로젝트 대시보드`.
-- The command prompt sits below the embedded `command.html` next-instruction block.
-- The runbook appears as a separate bottom block with explanatory text.
-- Visible risk badges, the report block, and the document browser are not part of the main operating flow.
-- Interface file completion is available only as a collapsed checklist.
+- The template explains `index.html`, `command.html`, `runbook.html`, and `reports/index.html`.
+- The migration prompt references the template and explains the root-layout compatibility with current LETHE.
+- The homepage can list `docs/orchestration/reports/*.html` for the selected project.
+- Clicking a report opens it inside the dashboard as an HTML card.
+- The generator creates a LETHE-style project dashboard and report index for the current project.
 
 ## Related Files
 
@@ -26,12 +26,12 @@ Split the project HTML interface into dashboard, command, and runbook pages.
 - `src/main.tsx`
 - `src/styles.css`
 - `scripts/build-orchestration-dashboard.mjs`
-- `server/index.mjs`
+- `docs/orchestration/templates/HTML_INTERFACE_TEMPLATE.md`
+- `docs/orchestration/templates/EXISTING_PROJECT_MIGRATION_PROMPT.md`
 
 ## Verification
 
 - `npm run build`
-- `npm run orchestration:dashboard -- --all`
-- `GET /api/projects/lethe-prototype/orchestration-dashboard`
-- `GET /api/projects/lethe-prototype/orchestration-command`
-- `GET /api/projects/lethe-prototype/orchestration-runbook`
+- `npm run orchestration:dashboard`
+- `GET /api/projects/lethe-prototype/orchestration-reports`
+- `GET /api/projects/lethe-prototype/orchestration-report?path=2026-06-08-08-plugin-oriented-migration-prompt-update.html`

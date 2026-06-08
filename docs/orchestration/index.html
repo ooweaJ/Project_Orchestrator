@@ -3,31 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 오케스트레이션</title>
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 프로젝트 대시보드</title>
     <style>
       :root {
-        color: #17211c;
-        background: #f5f7f1;
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --text: #17201d;
+        --muted: #64706b;
+        --line: #dce2da;
+        --green: #1f6b4d;
+        --blue: #285f8f;
+        --amber: #916019;
+        --red: #9a3d36;
+        --soft-green: #e7f3ec;
+        --soft-blue: #e8f1f8;
+        --soft-amber: #f8efe0;
+        --soft-red: #fae9e7;
+        color: var(--text);
+        background: var(--bg);
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       * { box-sizing: border-box; }
       body { margin: 0; }
-      main { width: min(1180px, 100%); margin: 0 auto; padding: 32px 22px; }
-      header { margin-bottom: 18px; }
-      .eyebrow { margin: 0 0 8px; color: #60706a; font-size: 13px; font-weight: 900; }
+      main { width: min(1120px, 100%); margin: 0 auto; padding: 30px 22px 38px; }
+      header { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; margin-bottom: 16px; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 13px; font-weight: 900; }
       h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
       h2, h3, h4, p { margin-top: 0; }
-      .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
-      .metric, .card { border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
-      .metric { padding: 16px; }
-      .metric span { display: block; color: #697873; font-size: 13px; font-weight: 900; }
-      .metric strong { display: block; margin-top: 8px; font-size: 20px; line-height: 1.35; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-      .wide { grid-column: 1 / -1; }
-      .card { padding: 18px; min-width: 0; }
+      .badge { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--soft-amber); color: var(--amber); font-size: 13px; font-weight: 900; white-space: nowrap; }
+      .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+      .metric, .panel { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+      .metric { min-height: 106px; padding: 15px; }
+      .metric span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 13px; font-weight: 900; }
+      .metric strong { display: block; font-size: 18px; line-height: 1.32; }
+      .metric small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .green { background: var(--soft-green); }
+      .blue { background: var(--soft-blue); }
+      .amber { background: var(--soft-amber); }
+      .red { background: var(--soft-red); }
+      .heroPanel { padding: 18px; margin-bottom: 14px; border: 1px solid #cbdcce; border-radius: 8px; background: linear-gradient(180deg, #ffffff 0%, #f0f7f2 100%); }
+      .heroPanel h2, .panel h2 { margin: 0 0 10px; font-size: 19px; }
+      .heroPanel p, .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+      .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+      .panel { min-height: 166px; padding: 17px; }
+      .panel ul { margin: 0; padding-left: 19px; line-height: 1.58; }
+      .panel li { margin-bottom: 5px; }
+      .label { color: var(--muted); font-size: 13px; font-weight: 900; }
+      .value { display: block; margin-top: 4px; line-height: 1.5; }
+      .decision { display: grid; gap: 10px; }
+      .decision div { padding-bottom: 9px; border-bottom: 1px solid #edf0eb; }
+      .decision div:last-child { padding-bottom: 0; border-bottom: 0; }
       .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       .cardTitle h2 { margin: 0; font-size: 18px; }
-      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      a { color: var(--green); font-weight: 900; text-decoration: none; }
       a:hover { text-decoration: underline; }
       .markdown { color: #26342f; font-size: 14px; line-height: 1.65; }
       .markdown h3 { margin: 14px 0 8px; color: #1f6b4d; font-size: 15px; }
@@ -42,91 +70,91 @@
       small, .muted { color: #697873; font-size: 13px; }
       footer { margin-top: 20px; color: #697873; font-size: 13px; }
       @media (max-width: 760px) {
-        .summary, .grid { grid-template-columns: 1fr; }
+        header, .metrics, .grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <main>
       <header>
-        <p class="eyebrow">오케스트레이션 대시보드</p>
-        <h1>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents.</h1>
+        <div>
+          <p class="eyebrow">AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 프로젝트 대시보드</p>
+          <h1>상태 요약</h1>
+        </div>
+        <span class="badge">Current Task</span>
       </header>
 
-      <section class="summary">
-        <div class="metric"><span>현재 단계</span><strong>Current Task</strong></div>
-        <div class="metric"><span>최신 검증</span><strong>- `npm run build` passed after the orchestration dashboard update.</strong></div>
-        <div class="metric"><span>현재 blocker</span><strong>- Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</strong></div>
+      <section class="metrics" aria-label="핵심 상태 요약">
+        <div class="metric green">
+          <span>현재 단계</span>
+          <strong>Current Task</strong>
+          <small>MVP app exists with a React dashboard and Express backend.</small>
+        </div>
+        <div class="metric blue">
+          <span>최신 검증</span>
+          <strong>`npm run build` passed after the orchestration dashboard update.</strong>
+          <small>검증 원본은 STATUS.md</small>
+        </div>
+        <div class="metric amber">
+          <span>막힌 점</span>
+          <strong>Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</strong>
+          <small>판단 보류 지점</small>
+        </div>
+        <div class="metric red">
+          <span>다음 게이트</span>
+          <strong>Apply the LETHE-derived HTML template to one more active project.</strong>
+          <small>NEXT_TASKS.md 기준</small>
+        </div>
+      </section>
+
+      <section class="heroPanel">
+        <h2>현재 결론</h2>
+        <p>MVP app exists with a React dashboard and Express backend.</p>
       </section>
 
       <div class="grid">
-        <section class="card">
-    <h2>현재 상태</h2>
-    <div class="markdown"><ul>
-<li>MVP app exists with a React dashboard and Express backend.</li>
-<li>Project registration, local Git scanning, scanner signals, risk scoring, prompt generation, portfolio mode, and Discord report prototype are implemented.</li>
-<li>The orchestration interface standard is being expanded from the original six-role document set.</li>
-<li><code>npm run orchestration:install</code> now scaffolds the default orchestration interface into another local project without overwriting existing files.</li>
-<li>The scanner now detects <code>docs/orchestration/*</code> required core and recommended extension paths.</li>
-<li>The dashboard now shows an <code>오케스트레이션 인터페이스</code> panel for the selected project.</li>
-<li>The dashboard now prioritizes orchestration document contents over risk, prompt, and auxiliary scan panels.</li>
-<li>Project Discord reports are sent from AI Project Orchestrator&#039;s central <code>.env</code>, not from each registered project.</li>
-<li><code>npm run orchestration:dashboard</code> now generates <code>docs/orchestration/index.html</code> as a card-based HTML view of the Markdown interface.</li>
-<li>The homepage now embeds each selected project&#039;s generated <code>docs/orchestration/index.html</code> in an <code>HTML 대시보드</code> panel.</li>
-<li>The generated HTML dashboard is now grouped by decision flow: next instruction, current state, verification/blockers, records, reports, and operational commands.</li>
-<li>The homepage can now browse individual files under each selected project&#039;s <code>docs/orchestration/</code> folder.</li>
-<li>Project HTML output is being split into interface pages: <code>index.html</code> for the project dashboard, <code>command.html</code> for the next instruction block, and <code>runbook.html</code> for operating procedures.</li>
-<li>The homepage now orders the selected project view as project dashboard, next-instruction block, command prompt, runbook, then collapsed interface checklist.</li>
-<li>Visible risk badges, the report send block, and the document browser were removed from the main operating flow.</li>
-</ul></div>
-  </section>
-        <section class="card">
-    <h2>검증과 블로커</h2>
-    <div class="markdown"><ul>
-<li><code>npm run build</code> passed after the orchestration dashboard update.</li>
-<li>Current documentation and install-command updates have been checked by file review.</li>
-<li><code>npm run orchestration:install -- --target . --dry-run</code> passed.</li>
-<li><code>GET /api/snapshots</code> returned <code>requiredPresent: 11</code>, <code>requiredTotal: 11</code>, and <code>complete: true</code> for LETHE_Prototype and Project_Orchestrator.</li>
-<li><code>GET /api/snapshots</code> returned orchestration document content summaries for <code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code>, and <code>DECISION_LOG.md</code>.</li>
-<li><code>POST /api/projects/lethe-prototype/discord-report</code> with <code>dryRun: true</code> returned a Discord payload without sending.</li>
-<li><code>npm run orchestration:dashboard</code> generated this project&#039;s <code>docs/orchestration/index.html</code>.</li>
-<li><code>npm run orchestration:dashboard -- --all</code> generated dashboards for LETHE_Prototype and Project_Orchestrator.</li>
-<li><code>npm run build</code> passed after embedding generated HTML dashboards in the homepage.</li>
-<li><code>GET /api/projects/lethe-prototype/orchestration-dashboard</code> returned LETHE_Prototype&#039;s generated HTML with <code>200 OK</code>.</li>
-<li><code>GET http://127.0.0.1:5173</code> returned the homepage Vite HTML with <code>200 OK</code>.</li>
-<li><code>npm run orchestration:dashboard -- --all</code> regenerated the classified HTML dashboards for LETHE_Prototype and Project_Orchestrator.</li>
-<li><code>GET /api/projects/lethe-prototype/orchestration-files</code> returned LETHE_Prototype&#039;s <code>docs/orchestration</code> document list with <code>200 OK</code>.</li>
-<li><code>GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md</code> returned LETHE_Prototype&#039;s <code>STATUS.md</code> content with <code>200 OK</code>.</li>
-<li><code>npm run orchestration:dashboard -- --all</code> generated <code>index.html</code>, <code>command.html</code>, and <code>runbook.html</code> for LETHE_Prototype and Project_Orchestrator.</li>
-<li><code>GET /api/projects/lethe-prototype/orchestration-command</code> returned LETHE_Prototype&#039;s next-instruction HTML with <code>200 OK</code>.</li>
-<li><code>GET /api/projects/lethe-prototype/orchestration-runbook</code> returned LETHE_Prototype&#039;s runbook HTML with <code>200 OK</code>.</li>
-</ul>
-<ul>
-<li>Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</li>
-<li>SoulLike real project path validation is still pending.</li>
-</ul></div>
-  </section>
-        <section class="card">
-    <h2>최근 결정</h2>
-    <div class="markdown"><h4>2026-06-05: Standard orchestration document interface</h4>
-<ul>
-<li>Decision: Use <code>docs/orchestration/*</code> as the shared document contract for portfolio projects.</li>
-<li>Context: Per-project profile mappings are useful as a migration fallback, but should not be the primary design.</li>
-<li>Reference: <code>docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md</code></li>
-</ul>
-<h4>2026-06-08: Expanded interface with operations and evidence</h4>
-<ul>
-<li>Decision: Expand the interface with <code>README.md</code>, <code>STATUS.md</code>, <code>RUNBOOK.md</code>, <code>SCOPE_GUARD.md</code>, <code>devlog/</code>, and evidence-oriented extension folders.</li>
-<li>Context: LETHE feedback showed that current state, verification, AI handoff, scope limits, and evidence records are essential for reliable continuation.</li>
-<li>Result: Required core documents cover day-to-day operation; recommended extensions improve review quality and automation.</li>
-</ul></div>
-  </section>
-        <section class="card listCard">
-          <div class="cardTitle"><h2>진행 기록</h2><a href="./reports/">reports/</a></div>
-          <p class="muted">아직 진행 보고가 없습니다.</p>
-        </section>
+        <article class="panel">
+          <h2>이번 목표</h2>
+          <div class="decision">
+            <div>
+              <span class="label">해야 할 일</span>
+              <span class="value">Promote the LETHE HTML format into a reusable template and add report browsing.</span>
+            </div>
+            <div>
+              <span class="label">완료 신호</span>
+              <span class="value">The template explains <code>index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and <code>reports/index.html</code>.</span>
+            </div>
+            <div>
+              <span class="label">원본</span>
+              <span class="value"><code>CURRENT_TASK.md</code></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>다음 판단</h2>
+          <ul><li>Apply the LETHE-derived HTML template to one more active project.</li><li>Verify: the project has dashboard, command, runbook, and report-list pages with project-specific content.</li><li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li><li>Verify: clicking the action runs the generator and refreshes the embedded dashboard.</li></ul>
+        </article>
+
+        <article class="panel">
+          <h2>최근 완료</h2>
+          <div class="decision">
+            <div>
+              <span class="label">보고</span>
+              <span class="value">아직 진행 보고가 없습니다.</span>
+            </div>
+            <div>
+              <span class="label">결정</span>
+              <span class="value">Decision: Use <code>docs/orchestration/*</code> as the shared document contract for portfolio projects.</span>
+            </div>
+            <div>
+              <span class="label">목록</span>
+              <span class="value"><a href="./reports/index.html">reports/index.html</a></span>
+            </div>
+          </div>
+        </article>
       </div>
-      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 4:57:40</footer>
+      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 6:27:04</footer>
     </main>
   </body>
 </html>
