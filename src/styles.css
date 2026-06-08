@@ -612,6 +612,51 @@ h3 {
   background: #f7fcf8;
 }
 
+.journalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px;
+  background: rgb(16 24 20 / 0.42);
+}
+
+.journalDrawer {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 48px);
+  margin: 0;
+  overflow: hidden;
+  box-shadow: 0 22px 60px rgb(16 24 20 / 0.24);
+}
+
+.journalDrawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.journalDrawerHeader h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.journalDrawerHeader span {
+  display: block;
+  margin-top: 4px;
+  color: #697873;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.journalDrawer .journalBrowser {
+  min-height: 0;
+}
+
 .journalBrowser {
   display: grid;
   grid-template-columns: minmax(220px, 0.32fr) minmax(0, 1fr);
@@ -624,6 +669,10 @@ h3 {
   gap: 7px;
   max-height: 560px;
   overflow: auto;
+}
+
+.journalDrawer .journalList {
+  max-height: none;
 }
 
 .journalList button {
@@ -677,12 +726,21 @@ h3 {
   background: #ffffff;
 }
 
+.journalDrawer .journalPreview {
+  min-height: 0;
+}
+
 .journalPreview iframe {
   display: block;
   width: 100%;
   min-height: 560px;
   border: 0;
   background: #ffffff;
+}
+
+.journalDrawer .journalPreview iframe {
+  height: 100%;
+  min-height: 0;
 }
 
 .journalPreview p {
@@ -1028,6 +1086,22 @@ h3 {
   .orchestrationGrid.compact {
     grid-template-columns: 1fr;
   }
+
+  .journalOverlay {
+    padding: 14px;
+  }
+
+  .journalDrawer {
+    max-height: calc(100vh - 28px);
+  }
+
+  .journalDrawer .journalBrowser {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .journalDrawer .journalList {
+    max-height: 220px;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1051,5 +1125,19 @@ h3 {
 
   .metric strong {
     font-size: 1.45rem;
+  }
+
+  .journalOverlay {
+    padding: 8px;
+  }
+
+  .journalDrawer {
+    max-height: calc(100vh - 16px);
+    padding: 12px;
+  }
+
+  .journalDrawerHeader {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

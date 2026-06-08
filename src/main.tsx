@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Terminal,
   Trash2,
+  X,
 } from "lucide-react";
 import "./styles.css";
 
@@ -434,7 +435,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ overwrite: false }),
+        body: JSON.stringify({ overwrite: true }),
       });
       const body = (await response.json().catch(() => null)) as null | { error?: string; path?: string; created?: boolean };
 
@@ -845,47 +846,6 @@ function App() {
                 </section>
               ) : null}
 
-              {isJournalOpen ? (
-                <section className="journalPanel">
-                  <div className="sectionTitle">
-                    <h3>개발일지</h3>
-                    <span>reports/</span>
-                  </div>
-                  <div className="journalBrowser">
-                    <div className="journalList">
-                      {reports.length > 0 ? (
-                        reports.map((report) => (
-                          <button
-                            className={selectedReportPath === report.path ? "active" : ""}
-                            key={report.path}
-                            type="button"
-                            onClick={() => setSelectedReportPath(report.path)}
-                          >
-                            <span>{report.title}</span>
-                            <small>{new Date(report.modifiedAt).toLocaleString("ko-KR")}</small>
-                          </button>
-                        ))
-                      ) : (
-                        <p>아직 HTML 개발일지가 없습니다.</p>
-                      )}
-                    </div>
-                    <div className="journalPreview">
-                      {selectedReportPath ? (
-                        <iframe
-                          key={`${selected.id}-${selectedReportPath}`}
-                          src={`/api/projects/${selected.id}/orchestration-report?path=${encodeURIComponent(
-                            selectedReportPath,
-                          )}`}
-                          title={`${displayProjectName(selected)} 개발일지 ${selectedReportPath}`}
-                        />
-                      ) : (
-                        <p>왼쪽에서 개발일지를 선택하세요.</p>
-                      )}
-                    </div>
-                  </div>
-                </section>
-              ) : null}
-
               <section className="generatedDashboardPanel">
                 <div className="sectionTitle">
                   <h3>프로젝트 대시보드</h3>
@@ -1069,6 +1029,69 @@ function App() {
           )}
         </div>
       </section>
+
+      {selected && isJournalOpen ? (
+        <section
+          aria-label="Development journal panel"
+          className="journalOverlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsJournalOpen(false);
+            }
+          }}
+        >
+          <div className="journalPanel journalDrawer" role="dialog" aria-modal="true">
+            <div className="journalDrawerHeader">
+              <div>
+                <p className="eyebrow">reports/</p>
+                <h3>개발일지</h3>
+                <span>{displayProjectName(selected)}</span>
+              </div>
+              <button
+                aria-label="Close development journal"
+                className="secondaryButton compactButton"
+                type="button"
+                onClick={() => setIsJournalOpen(false)}
+              >
+                <X size={15} />
+                닫기
+              </button>
+            </div>
+            <div className="journalBrowser">
+              <div className="journalList">
+                {reports.length > 0 ? (
+                  reports.map((report) => (
+                    <button
+                      className={selectedReportPath === report.path ? "active" : ""}
+                      key={report.path}
+                      type="button"
+                      onClick={() => setSelectedReportPath(report.path)}
+                    >
+                      <span>{report.title}</span>
+                      <small>{new Date(report.modifiedAt).toLocaleString("ko-KR")}</small>
+                    </button>
+                  ))
+                ) : (
+                  <p>아직 HTML 개발일지가 없습니다.</p>
+                )}
+              </div>
+              <div className="journalPreview">
+                {selectedReportPath ? (
+                  <iframe
+                    key={`${selected.id}-${selectedReportPath}`}
+                    src={`/api/projects/${selected.id}/orchestration-report?path=${encodeURIComponent(
+                      selectedReportPath,
+                    )}`}
+                    title={`${displayProjectName(selected)} 개발일지 ${selectedReportPath}`}
+                  />
+                ) : (
+                  <p>왼쪽에서 개발일지를 선택하세요.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

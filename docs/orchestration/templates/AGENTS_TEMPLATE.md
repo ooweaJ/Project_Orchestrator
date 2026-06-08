@@ -50,7 +50,7 @@ After meaningful work:
 - Update the user-facing daily journal at `docs/orchestration/reports/YYYYMMDD/index.html`.
 - Put optional detailed report pages under `docs/orchestration/reports/YYYYMMDD/units/`.
 - Regenerate or update `docs/orchestration/interface/*.html` when state changes.
-- If Discord notification is needed, submit the report to Project Orchestrator's central Discord intake instead of storing a project-specific webhook by default.
+- If Discord notification is needed, submit the report to Project Orchestrator's central Discord intake (`POST /api/orchestration/discord-report`) instead of storing a project-specific webhook by default. Use the registered `projectId`; `reportPath` is relative to `docs/orchestration/reports/`.
 
 ## Command Rules
 

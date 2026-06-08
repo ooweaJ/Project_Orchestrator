@@ -128,12 +128,39 @@ docs/orchestration/reports/
 
 The host Project Orchestrator dashboard should read date folder `index.html` pages only, such as `reports/20260608/index.html`. Files under `units/` are detail pages or Discord attachments and should be reachable from the date page, but they should not be the primary journal list.
 
+Each date page should also show its own unit entries when they exist:
+
+```text
+reports/20260608/index.html
+  -> units/2026-06-08-01-short-slug.html
+  -> units/2026-06-08-02-short-slug.html
+```
+
+This gives the human flow: report archive -> date page -> unit detail page.
+
+When a date page has unit entries, clicking a unit should open the detail in a dismissible drawer or overlay panel within the same page. Avoid opening a new browser window for normal reading. Provide a clear close/back control and keep the date page visible as the user's place in the archive.
+
 ## Discord Report Relationship
 
 - Keep the readable report in `reports/YYYYMMDD/index.html`.
 - Keep `reports/index.html` as the archive of date pages.
 - Use `reports/YYYYMMDD/units/*.html` when a specific work unit needs an attachable or portfolio drill-down page.
-- Submit Discord delivery through Project Orchestrator's central intake when available.
+- Submit Discord delivery through Project Orchestrator's central intake when available: `POST /api/orchestration/discord-report`.
+- Use `projectId`, `reportPath`, `attachHtml`, and optional `dryRun` in the request body.
+- `projectId` is the id registered in Project Orchestrator's local project list.
+- `reportPath` is relative to `docs/orchestration/reports/`, for example `20260609/index.html` or `20260609/units/2026-06-09-02-short-slug.html`.
+- Keep `DISCORD_WEBHOOK_URL` in Project Orchestrator's `.env`; individual projects should not copy the webhook secret by default.
+- Test with:
+
+```json
+{
+  "projectId": "<registered-project-id>",
+  "reportPath": "YYYYMMDD/index.html",
+  "attachHtml": true,
+  "dryRun": true
+}
+```
+
 - Discord should receive a short Korean summary/embed first, then the HTML report attachment when requested.
 
 ## Source Relationship

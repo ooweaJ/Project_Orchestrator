@@ -588,17 +588,7 @@ async function createMigrationPromptFile(projectPath, { overwrite = false, dryRu
 
   const template = await fs.readFile(templatePath, "utf8");
   await fs.mkdir(targetDir, { recursive: true });
-  await fs.writeFile(
-    targetPath,
-    [
-      "# Development Docs Plugin Migration Prompt",
-      "",
-      "Use this file when this existing project should adopt the shared personal development-docs plugin.",
-      "",
-      template,
-    ].join("\n"),
-    "utf8",
-  );
+  await fs.writeFile(targetPath, template, "utf8");
 
   return {
     created: true,

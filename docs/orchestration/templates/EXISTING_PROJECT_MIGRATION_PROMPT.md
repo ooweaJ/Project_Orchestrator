@@ -23,6 +23,8 @@ This should feel like a local personal AI plugin:
 - `docs/orchestration/templates/HTML_INTERFACE_TEMPLATE.md` describes the LETHE-derived HTML format that other projects should follow.
 - Existing docs outside orchestration should be migrated, summarized, or archived so future work can start from `docs/orchestration/`.
 - Discord delivery should be delegated to Project Orchestrator when available. Projects prepare or submit a short Korean summary plus a report path; Project Orchestrator owns the shared `.env` webhook and sends the Discord embed first, then the HTML report attachment.
+- The central Discord submission function is Project Orchestrator's `POST /api/orchestration/discord-report`. Migrated projects should call or document that endpoint instead of sending Discord webhooks directly.
+- Migrated projects should record the exact Discord handoff in their own runbook: keep `DISCORD_WEBHOOK_URL` only in Project Orchestrator, keep the report HTML under `docs/orchestration/reports/`, then submit `projectId`, report path, and attachment preference to the Orchestrator endpoint.
 
 ````text
 You are working inside an existing local project. Adopt the shared personal development-docs plugin for this project.
@@ -99,7 +101,8 @@ Core concept:
   - a root `reports/index.html` page that lists date journals newest-first like a blog archive,
   - detailed user-facing HTML work-unit reports under `YYYYMMDD/units/` when useful,
   - portfolio-ready summaries,
-  - unit pages linked from the relevant date page, not treated as the primary report list.
+  - unit pages linked from the relevant date page, not treated as the primary report list,
+  - date pages that show their own unit entries so people can drill down from date -> work unit.
 - `templates/HTML_INTERFACE_TEMPLATE.md` is the shared human-facing format contract. Use it to make other projects look and behave like the LETHE HTML interface without copying LETHE-specific content.
 - `devlog/` is for AI/internal continuity:
   - date-based Markdown logs,
@@ -108,6 +111,32 @@ Core concept:
 - Existing docs should be migrated into `state/`, `devlog/`, `reports/`, `evidence/`, or `legacy/`.
 - After migration, old docs outside orchestration should not be needed for normal Codex resume.
 - When the project needs Discord notification, do not store per-project Discord webhook secrets by default. Submit the finished Korean summary and report path to Project Orchestrator's central intake API or documented CLI/script, then let Project Orchestrator send the Discord message and attach the HTML report.
+- The preferred central intake call is:
+
+```powershell
+$body = @{
+  projectId = "<registered-project-id>"
+  reportPath = "YYYYMMDD/index.html"
+  attachHtml = $true
+  dryRun = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:4317/api/orchestration/discord-report" `
+  -Method POST `
+  -ContentType "application/json; charset=utf-8" `
+  -Body $body
+```
+
+Use `dryRun = $true` first to confirm the selected project, Discord embed payload, and HTML attachment path. For the real send, remove `dryRun` or set it to `$false`.
+
+`reportPath` is relative to `docs/orchestration/reports/`, so a daily report usually looks like `20260609/index.html`. A unit report attachment can use a path like `20260609/units/2026-06-09-02-short-slug.html`.
+
+If Project Orchestrator is calling from its own UI for a known project, the project-scoped equivalent is:
+
+```text
+POST /api/projects/<registered-project-id>/discord-report
+```
 
 Before editing:
 1. Inspect existing documentation and project files.
@@ -186,6 +215,7 @@ After meaningful work:
 - Append AI/internal process detail to `docs/orchestration/devlog/YYYY-MM-DD.md`.
 - Add or regenerate the user-facing date journal under `docs/orchestration/reports/YYYYMMDD/index.html`.
 - Add or regenerate `docs/orchestration/reports/index.html` so it lists date journal pages newest-first like a compact blog archive.
+- In each `reports/YYYYMMDD/index.html`, list that date's unit reports from `reports/YYYYMMDD/units/*.html` as clickable work-unit entries.
 - Add detailed unit HTML under `docs/orchestration/reports/YYYYMMDD/units/` only when a separate attachable or portfolio work-unit page is useful.
 - Record durable decisions in `docs/orchestration/state/DECISION_LOG.md`.
 - Keep `state/NEXT_TASKS.md` short, usually no more than five active candidates.
@@ -207,6 +237,8 @@ Migration and adoption rules:
 - `devlog/` is AI/internal continuity. Date-based files can be appended in order, but do not let one file become the only source of truth.
 - `reports/` is people-facing. Prefer a date-folder HTML journal at `reports/YYYYMMDD/index.html`. If a generator requires Markdown input, keep that input under `reports/source/`, not as the primary human surface.
 - `reports/index.html` is the blog-like archive page. It should list date report pages newest-first, show a short title/date/summary for each date, and link to `reports/YYYYMMDD/index.html` rather than flattening every `units/` page into the main list.
+- `reports/YYYYMMDD/index.html` is the date page. It should read like a blog entry for that date and include a clickable list of that date's unit reports under `reports/YYYYMMDD/units/*.html` when unit pages exist.
+- Unit clicks on `reports/YYYYMMDD/index.html` should open the unit detail in a dismissible drawer or overlay panel inside the current page. Do not require a new browser window for normal unit reading.
 - `reports/YYYYMMDD/units/` is optional detail storage for separate work-unit pages, Discord attachments, or portfolio drill-down pages.
 - `evidence/` stores or links useful test outputs, screenshots, logs, benchmark summaries, playtest outputs, generated QA summaries, or other proof.
 - `legacy/` stores migration notes, archived old docs, or pointer files. Legacy docs should not be required for normal resume after migration.
@@ -235,6 +267,10 @@ Discord reporting rules:
 - Prefer `docs/orchestration/reports/YYYYMMDD/index.html` as the main report path for a day.
 - Use `docs/orchestration/reports/YYYYMMDD/units/*.html` only for detailed work-unit pages, Discord attachments, or portfolio drill-down pages.
 - Submit Discord delivery through Project Orchestrator's central intake when available, using the project id, report path, optional attachment flag, and a short Korean summary.
+- Use `POST http://127.0.0.1:4317/api/orchestration/discord-report` as the normal function-style handoff. The minimum body is `projectId`, `reportPath`, and `attachHtml`; use `dryRun: true` before a real send when testing.
+- `projectId` must match the id registered in Project Orchestrator's local `data/projects.json`. For LETHE-style projects, use that registered id, for example `lethe` if the Orchestrator project list uses `lethe`.
+- `reportPath` must be relative to `docs/orchestration/reports/`, not an absolute filesystem path.
+- The project may also submit `reportHtml` or a structured `report` object, but the normal path-based flow is preferred because it keeps the HTML report as the local source of truth.
 - Project Orchestrator owns `DISCORD_WEBHOOK_URL` in its `.env`; migrated projects should not duplicate webhook secrets by default.
 - Discord should receive a short summary/embed first and the HTML report file as the follow-up attachment when attachment delivery is requested.
 
@@ -246,7 +282,7 @@ Human-facing HTML rule:
 - `interface/command.html` should show the next instruction, copyable prompt if useful, done criteria, and do-not-touch notes.
 - `interface/runbook.html` should show repeated commands and operating procedures.
 - `reports/index.html` lists date journal pages newest-first like a compact blog archive, with title, date, short summary, and link to each `reports/YYYYMMDD/index.html`.
-- `reports/YYYYMMDD/index.html` is the human-facing daily development journal page and should be the main report page the host dashboard reads.
+- `reports/YYYYMMDD/index.html` is the human-facing daily development journal page and should be the main report page the host dashboard reads. It should also show clickable unit entries for that date when `units/*.html` pages exist.
 - `reports/YYYYMMDD/units/YYYY-MM-DD-NN-slug.html` is an optional detailed work-unit report or Discord attachment.
 - People should not need to open Markdown for normal review.
 - If an existing project already uses root-level `docs/orchestration/index.html`, `command.html`, and `runbook.html`, preserve that layout during migration unless the user explicitly asks to move them into `interface/`. The page roles and format are more important than the folder name during adoption.
