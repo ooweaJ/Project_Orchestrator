@@ -4,7 +4,15 @@ Use this prompt when a project is already in progress and should adopt the share
 
 The goal is not to blindly move or rename every existing document. The goal is to install `docs/orchestration/` as the ongoing project-management interface so Codex can resume, execute, verify, report, and preserve portfolio-ready records consistently across projects.
 
-```text
+Current interface rule:
+- Markdown files are the source of truth.
+- Generated HTML files are the human-facing project interface.
+- `index.html` is the project dashboard.
+- `command.html` is the compact next-instruction block shown above the command prompt.
+- `runbook.html` is the operating-procedure block shown below the command prompt.
+- `reports/` is the user-facing progress record, similar to a report-oriented devlog.
+
+````text
 You are working inside an existing local project. Adopt the shared Codex orchestration interface for this project.
 
 Goal:
@@ -12,6 +20,7 @@ Goal:
 - Add an Orchestration Interface section to the root `AGENTS.md` if it exists, without deleting or replacing existing project-specific agent rules.
 - Preserve existing project meaning, decisions, verification notes, task state, reports, and development history.
 - Keep Markdown files as the source of truth. HTML files may be generated as readable dashboards or reports, but should not replace the Markdown originals.
+- Treat generated HTML as an interface contract, not as random documentation output.
 - Do not overwrite useful existing files without first checking their contents.
 
 Required target structure:
@@ -26,6 +35,9 @@ docs/orchestration/
   RUNBOOK.md
   SCOPE_GUARD.md
   DECISION_LOG.md
+  index.html
+  command.html
+  runbook.html
   devlog/
   reports/
 
@@ -41,12 +53,19 @@ Optional generated views:
 
 docs/orchestration/
   index.html
+  command.html
+  runbook.html
   reports/index.html
   devlog/index.html
 
 Core concept:
 - `AGENTS.md` is the top-level rulebook Codex must follow in this repository.
 - `docs/orchestration/` is the ongoing operating interface where project state, current work, next tasks, decisions, devlogs, reports, evidence, and portfolio material are organized.
+- The generated HTML files inside `docs/orchestration/` are the human-facing project interface:
+  - `index.html`: project dashboard for current status, verification, blockers, decisions, and progress records.
+  - `command.html`: small next-instruction view used immediately above the command prompt.
+  - `runbook.html`: repeated commands and operating procedures with short explanations.
+- `reports/` is the main user-facing progress history. Use it to explain what changed, what was verified, and what should happen next.
 - Existing docs should not be deleted. Summarize or link them from orchestration files when they remain useful.
 - If old docs and orchestration docs conflict, preserve the old docs and update orchestration files to clearly state the current source of truth.
 
@@ -78,7 +97,7 @@ AGENTS.md adoption rule:
   - what files to read before meaningful work,
   - which orchestration files to update after meaningful work,
   - that Markdown is the source of truth,
-  - that generated HTML is only a readable view,
+  - that generated HTML is the human-facing project interface generated from Markdown,
   - and that existing project-specific AGENTS rules still take priority.
 
 Suggested `AGENTS.md` section:
@@ -109,20 +128,23 @@ Use orchestration files as follows:
 - `SCOPE_GUARD.md`: explicit non-goals and things not to build yet.
 - `DECISION_LOG.md`: index of important technical, product, and AI-direction decisions.
 - `devlog/`: internal daily work log.
-- `reports/`: user-facing and portfolio-facing work-unit reports.
+- `reports/`: user-facing progress record and portfolio-facing work-unit reports.
 - `review_prompts/`: prompts prepared for Claude/GPT/Codex review.
 - `review_responses/`: saved AI review responses.
 - `evidence/`: useful test outputs, screenshots, logs, benchmark summaries, or links.
 - `templates/`: reusable document, report, review, and task templates.
+- `index.html`: generated project dashboard for people.
+- `command.html`: generated next-instruction block for the command area.
+- `runbook.html`: generated operating-procedure block.
 
 After meaningful work:
 
 - Update `STATUS.md`, `CURRENT_TASK.md`, or `NEXT_TASKS.md` as needed.
 - Record internal process details in `devlog/YYYY-MM-DD.md`.
-- Record user-facing summaries in `reports/YYYY-MM-DD.md`.
+- Record user-facing progress in `reports/YYYY-MM-DD.md` or in a dated report file with task/commit sections.
 - Record durable decisions in `DECISION_LOG.md`.
 - Keep `NEXT_TASKS.md` short, usually no more than five active candidates.
-- Keep Markdown as the source of truth; generated HTML is only a readable view.
+- Keep Markdown as the source of truth; regenerate HTML interface files after meaningful Markdown updates.
 - Do not delete legacy docs during adoption; summarize or link them from orchestration files.
 ```
 
@@ -136,17 +158,30 @@ Migration and adoption rules:
 - `RUNBOOK.md` contains the practical commands and recovery procedures Codex or the user should run.
 - `SCOPE_GUARD.md` contains explicit non-goals, forbidden expansions, and scope boundaries.
 - `DECISION_LOG.md` is an index of durable decisions. Link to ADRs, reports, reviews, or evidence instead of duplicating everything.
-- `devlog/` is the internal black box. Use date-based files such as `devlog/YYYY-MM-DD.md`.
-- `reports/` is for external/user/portfolio-ready summaries. Keep reports clear enough to share.
+- `devlog/` is the internal black box. Use date-based files such as `devlog/YYYY-MM-DD.md` when the project needs private process detail.
+- `reports/` is the user-facing progress record. It can work like a report-oriented devlog: daily files, commit/task sections, or both. Keep reports clear enough for the user to understand what happened, what was verified, and what should happen next.
 - `review_prompts/` and `review_responses/` store AI handoff prompts and saved responses.
 - `evidence/` stores or links useful test outputs, screenshots, logs, benchmark summaries, playtest outputs, generated QA summaries, or other proof.
 - `templates/` stores reusable document/report/review/task templates.
 
-HTML/dashboard rule:
+Generated HTML interface rule:
 - Markdown is the source of truth.
-- If HTML dashboards or report pages are needed, generate them from Markdown.
+- Generate `docs/orchestration/index.html` as the main project dashboard.
+- Generate `docs/orchestration/command.html` as the compact next-instruction block.
+- Generate `docs/orchestration/runbook.html` as the operating-procedure block.
+- The project dashboard should not be a raw Markdown dump. Prefer sections such as:
+  - current state
+  - latest verification
+  - blockers
+  - current task
+  - recent decisions
+  - recent progress reports from `reports/`
+- `command.html` should be short and readable. It should answer: what should the user tell Codex to do next?
+- `runbook.html` should explain repeated commands briefly, then show the command snippets from `RUNBOOK.md`.
+- Do not show risk badges, scanner warnings, report-send controls, or interface file checklists in the main project dashboard unless the project explicitly asks for them.
+- Interface completion checks can exist, but they should be collapsed or secondary.
 - Do not hand-edit generated HTML unless the project explicitly uses HTML as the source.
-- If a generator script exists, use it. If no generator exists, document the desired generated views before adding new automation.
+- If a generator script exists, use it. If no generator exists, create or update the Markdown sources first, then describe the intended generated HTML files.
 
 Safety rules:
 - Do not delete old documentation.
@@ -163,4 +198,4 @@ After editing:
 - Verify by reading the new `docs/orchestration/README.md`, `STATUS.md`, `CURRENT_TASK.md`, and `NEXT_TASKS.md`.
 - Leave a short devlog entry under `docs/orchestration/devlog/YYYY-MM-DD.md`.
 - If the project has report generation or dashboard scripts, run the relevant check/generation commands. Otherwise, clearly state that no generator exists yet.
-```
+````
