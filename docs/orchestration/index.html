@@ -25,9 +25,6 @@
       .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
       .wide { grid-column: 1 / -1; }
       .card { padding: 18px; min-width: 0; }
-      .focusCard { border-color: #addfc0; background: #f7fcf8; }
-      .focusGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-      .focusGrid article { padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
       .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       .cardTitle h2 { margin: 0; font-size: 18px; }
       a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
@@ -40,16 +37,12 @@
       .markdown li { margin-bottom: 4px; }
       code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
       pre { overflow: auto; margin: 0 0 10px; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
-      .commandManual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-      .commandManual article { min-width: 0; padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #f8faf7; }
-      .commandManual h3 { margin: 0 0 6px; color: #1f6b4d; font-size: 15px; }
-      .commandManual p { margin: 0 0 10px; color: #60706a; font-size: 13px; line-height: 1.55; }
       .listCard ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
       .listCard li { display: grid; gap: 3px; }
       small, .muted { color: #697873; font-size: 13px; }
       footer { margin-top: 20px; color: #697873; font-size: 13px; }
       @media (max-width: 760px) {
-        .summary, .grid, .focusGrid, .commandManual { grid-template-columns: 1fr; }
+        .summary, .grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -67,51 +60,6 @@
       </section>
 
       <div class="grid">
-        <section class="card wide focusCard">
-          <div class="cardTitle"><h2>다음 지시와 명령 기준</h2><a href="./CURRENT_TASK.md">CURRENT_TASK.md</a></div>
-          <div class="focusGrid">
-            <article>
-              <h3>이번에 끝낼 작업</h3>
-              <div class="markdown"><p>Reclassify the orchestration HTML dashboard and add project document browsing.</p>
-<ul>
-<li>Remove duplicated Markdown summary cards from the homepage.</li>
-<li>Combine the user-facing next instruction summary with the command panel.</li>
-<li>Rebuild generated HTML around decision categories instead of raw document blocks.</li>
-<li>Let the homepage browse individual files under each selected project&#039;s <code>docs/orchestration/</code> folder.</li>
-</ul>
-<ul>
-<li>The homepage no longer shows the old top Markdown document card row.</li>
-<li>The command panel shows current task and next instruction summaries.</li>
-<li>Generated <code>docs/orchestration/index.html</code> uses classified sections for instruction, state, verification, records, reports, and operations.</li>
-<li><code>개발 문서</code> shows a project-specific file list and selected document preview.</li>
-<li>Document preview endpoints only read inside <code>docs/orchestration/</code>.</li>
-</ul></div>
-            </article>
-            <article>
-              <h3>다음 후보</h3>
-              <div class="markdown"><ul>
-<li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
-</ul>
-<p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
-<ul>
-<li>Add generated list pages for <code>reports/</code>, <code>devlog/</code>, and <code>evidence/</code>.</li>
-</ul>
-<p>   - Verify: each folder has an index page linked from the generated dashboard.</p>
-<ul>
-<li>Add a scaffold action for missing orchestration files.</li>
-</ul>
-<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p>
-<ul>
-<li>Validate real project paths.</li>
-</ul>
-<p>   - Verify: snapshots succeed for real LETHE and SoulLike paths while portfolio mode hides sensitive details.</p>
-<ul>
-<li>Complete browser visual QA.</li>
-</ul>
-<p>   - Verify: desktop and mobile dashboard layouts have no broken overflow, overlap, or empty critical panels.</p></div>
-            </article>
-          </div>
-        </section>
         <section class="card">
     <h2>현재 상태</h2>
     <div class="markdown"><ul>
@@ -127,6 +75,9 @@
 <li>The homepage now embeds each selected project&#039;s generated <code>docs/orchestration/index.html</code> in an <code>HTML 대시보드</code> panel.</li>
 <li>The generated HTML dashboard is now grouped by decision flow: next instruction, current state, verification/blockers, records, reports, and operational commands.</li>
 <li>The homepage can now browse individual files under each selected project&#039;s <code>docs/orchestration/</code> folder.</li>
+<li>Project HTML output is being split into interface pages: <code>index.html</code> for the project dashboard, <code>command.html</code> for the next instruction block, and <code>runbook.html</code> for operating procedures.</li>
+<li>The homepage now orders the selected project view as project dashboard, next-instruction block, command prompt, runbook, then collapsed interface checklist.</li>
+<li>Visible risk badges, the report send block, and the document browser were removed from the main operating flow.</li>
 </ul></div>
   </section>
         <section class="card">
@@ -146,6 +97,9 @@
 <li><code>npm run orchestration:dashboard -- --all</code> regenerated the classified HTML dashboards for LETHE_Prototype and Project_Orchestrator.</li>
 <li><code>GET /api/projects/lethe-prototype/orchestration-files</code> returned LETHE_Prototype&#039;s <code>docs/orchestration</code> document list with <code>200 OK</code>.</li>
 <li><code>GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md</code> returned LETHE_Prototype&#039;s <code>STATUS.md</code> content with <code>200 OK</code>.</li>
+<li><code>npm run orchestration:dashboard -- --all</code> generated <code>index.html</code>, <code>command.html</code>, and <code>runbook.html</code> for LETHE_Prototype and Project_Orchestrator.</li>
+<li><code>GET /api/projects/lethe-prototype/orchestration-command</code> returned LETHE_Prototype&#039;s next-instruction HTML with <code>200 OK</code>.</li>
+<li><code>GET /api/projects/lethe-prototype/orchestration-runbook</code> returned LETHE_Prototype&#039;s runbook HTML with <code>200 OK</code>.</li>
 </ul>
 <ul>
 <li>Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</li>
@@ -168,44 +122,11 @@
 </ul></div>
   </section>
         <section class="card listCard">
-          <div class="cardTitle"><h2>작업 기록</h2><a href="./devlog/">devlog/</a></div>
-          <ul><li><a href="./devlog/2026-06-08.md">2026-06-08 Devlog</a><small>2026. 6. 8. PM 4:35:27</small></li></ul>
-        </section>
-        <section class="card listCard">
-          <div class="cardTitle"><h2>공유 보고서</h2><a href="./reports/">reports/</a></div>
-          <p class="muted">아직 report가 없습니다.</p>
-        </section>
-        <section class="card wide">
-          <div class="cardTitle"><h2>운영 명령 매뉴얼</h2><a href="./RUNBOOK.md">RUNBOOK.md</a></div>
-          <div class="commandManual"><article>
-        <h3>Preflight</h3>
-        <p>작업 전 변경 상태와 영향 범위를 확인합니다.</p>
-        <pre><code>git status --short
-git diff --stat</code></pre>
-      </article><article>
-        <h3>Build</h3>
-        <p>프론트엔드와 타입 검사를 포함해 배포 가능한지 확인합니다.</p>
-        <pre><code>npm run build</code></pre>
-      </article><article>
-        <h3>Lint</h3>
-        <p>프로젝트 운영 중 반복해서 쓰는 절차입니다.</p>
-        <pre><code>npm run lint</code></pre>
-      </article><article>
-        <h3>Test</h3>
-        <p>프로젝트 운영 중 반복해서 쓰는 절차입니다.</p>
-        <pre><code>npm run test</code></pre>
-      </article><article>
-        <h3>Discord Dry Run</h3>
-        <p>중앙 오케스트레이터 설정으로 보고 메시지를 미리 확인하거나 전송합니다.</p>
-        <pre><code>npm run report:discord:unit:dry</code></pre>
-      </article><article>
-        <h3>Install Orchestration Interface In Another Project</h3>
-        <p>다른 프로젝트에 오케스트레이션 문서 구조를 설치합니다.</p>
-        <pre><code>npm run orchestration:install -- --target &quot;C:\path\to\project&quot; --dry-run</code></pre>
-      </article></div>
+          <div class="cardTitle"><h2>진행 기록</h2><a href="./reports/">reports/</a></div>
+          <p class="muted">아직 진행 보고가 없습니다.</p>
         </section>
       </div>
-      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 4:36:34</footer>
+      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 4:57:40</footer>
     </main>
   </body>
 </html>

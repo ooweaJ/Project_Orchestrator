@@ -64,7 +64,8 @@ Completed orchestration improvements:
 - `npm run orchestration:dashboard` generates `docs/orchestration/index.html` as a card-based HTML view of the Markdown orchestration interface.
 - The homepage embeds the selected project's generated orchestration HTML dashboard through `GET /api/projects/:id/orchestration-dashboard`.
 - The generated HTML dashboard is grouped into decision-oriented sections rather than raw Markdown document cards.
-- The homepage includes a project-specific `docs/orchestration` document browser with safe per-file preview endpoints.
+- Generated project HTML now uses an interface set: `index.html` for the project dashboard, `command.html` for the next instruction block, and `runbook.html` for operating procedures.
+- The homepage main flow no longer shows risk badges, a report block, or a document browser; interface completion is collapsed.
 
 Completed dashboard localization and readability improvements:
 
@@ -159,3 +160,6 @@ Verified on 2026-06-08:
 - `npm run orchestration:dashboard -- --all` regenerated classified dashboards for LETHE_Prototype and Project_Orchestrator.
 - `GET /api/projects/lethe-prototype/orchestration-files` returned LETHE_Prototype's document list with `200 OK`.
 - `GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md` returned LETHE_Prototype's document content with `200 OK`.
+- `npm run orchestration:dashboard -- --all` generated `index.html`, `command.html`, and `runbook.html` for LETHE_Prototype and Project_Orchestrator.
+- `GET /api/projects/lethe-prototype/orchestration-command` returned `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-runbook` returned `200 OK`.

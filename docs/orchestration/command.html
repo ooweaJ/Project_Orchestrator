@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 다음 지시</title>
+    <style>
+      :root { color: #17211c; background: #f7fcf8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { padding: 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      h1 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      article { min-width: 0; padding: 12px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      h2 { margin: 0 0 8px; color: #1f6b4d; font-size: 14px; }
+      .markdown { color: #26342f; font-size: 13px; line-height: 1.55; }
+      .markdown h3, .markdown h4 { margin: 10px 0 6px; font-size: 13px; }
+      .markdown p { margin: 0 0 8px; }
+      .markdown ul { margin: 0; padding-left: 18px; }
+      .markdown li { margin-bottom: 3px; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>다음 지시</h1>
+        <a href="./CURRENT_TASK.md">CURRENT_TASK.md</a>
+      </header>
+      <div class="grid">
+        <article>
+          <h2>이번에 끝낼 작업</h2>
+          <div class="markdown"><p>Split the project HTML interface into dashboard, command, and runbook pages.</p>
+<ul>
+<li>Keep <code>docs/orchestration/index.html</code> as the project dashboard.</li>
+<li>Move the next instruction summary into <code>docs/orchestration/command.html</code>.</li>
+<li>Move repeated operating commands into <code>docs/orchestration/runbook.html</code>.</li>
+<li>Show the homepage in the order: project dashboard, next instruction, command prompt, runbook, collapsed interface checklist.</li>
+<li>Treat <code>reports/</code> as the user-facing progress record rather than a separate report panel.</li>
+</ul>
+<ul>
+<li>The homepage labels the embedded project view as <code>프로젝트 대시보드</code>.</li>
+<li>The command prompt sits below the embedded <code>command.html</code> next-instruction block.</li>
+<li>The runbook appears as a separate bottom block with explanatory text.</li>
+<li>Visible risk badges, the report block, and the document browser are not part of the main operating flow.</li>
+<li>Interface file completion is available only as a collapsed checklist.</li>
+</ul></div>
+        </article>
+        <article>
+          <h2>다음 후보</h2>
+          <div class="markdown"><ul>
+<li>Formalize <code>reports/</code> as the user-facing progress record.</li>
+</ul>
+<p>   - Verify: a daily or commit-based report file can be generated and linked from <code>index.html</code>.</p>
+<ul>
+<li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
+</ul>
+<p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
+<ul>
+<li>Add generated list pages for <code>reports/</code> and <code>evidence/</code>.</li>
+</ul>
+<p>   - Verify: each folder has an index page linked from the generated dashboard.</p>
+<ul>
+<li>Add a scaffold action for missing orchestration files.</li>
+</ul>
+<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p>
+<ul>
+<li>Validate real project paths.</li>
+</ul>
+<p>   - Verify: snapshots succeed for real LETHE and SoulLike paths while portfolio mode hides sensitive details.</p></div>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

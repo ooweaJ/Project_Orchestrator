@@ -1295,6 +1295,64 @@ app.get("/api/projects/:id/orchestration-dashboard", async (req, res) => {
   }
 });
 
+app.get("/api/projects/:id/orchestration-command", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).type("html").send("project not found");
+      return;
+    }
+
+    const commandPath = path.join(project.path, "docs", "orchestration", "command.html");
+    const html = await fs.readFile(commandPath, "utf8").catch(() => "");
+
+    if (!html) {
+      res
+        .status(404)
+        .type("html")
+        .send(
+          "<!doctype html><html><body><p>docs/orchestration/command.html이 아직 생성되지 않았습니다.</p></body></html>",
+        );
+      return;
+    }
+
+    res.type("html").send(html);
+  } catch (error) {
+    res.status(500).type("html").send(error.message);
+  }
+});
+
+app.get("/api/projects/:id/orchestration-runbook", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).type("html").send("project not found");
+      return;
+    }
+
+    const runbookPath = path.join(project.path, "docs", "orchestration", "runbook.html");
+    const html = await fs.readFile(runbookPath, "utf8").catch(() => "");
+
+    if (!html) {
+      res
+        .status(404)
+        .type("html")
+        .send(
+          "<!doctype html><html><body><p>docs/orchestration/runbook.html이 아직 생성되지 않았습니다.</p></body></html>",
+        );
+      return;
+    }
+
+    res.type("html").send(html);
+  } catch (error) {
+    res.status(500).type("html").send(error.message);
+  }
+});
+
 app.get("/api/projects/:id/orchestration-files", async (req, res) => {
   try {
     const projects = await readProjects();

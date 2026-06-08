@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Project Orchestrator 진행 보고서</title>
+    <title>프로젝트 HTML 인터페이스 분리 보고서</title>
     <style>
       :root {
         color: #17211c;
@@ -30,10 +30,6 @@
       h2 {
         margin: 0 0 12px;
         font-size: 19px;
-      }
-      p {
-        margin: 0;
-        line-height: 1.65;
       }
       section {
         margin-bottom: 14px;
@@ -71,24 +67,24 @@
   </head>
   <body>
     <main>
-      <h1>AI Project Orchestrator 진행 상태</h1>
-      <span class="status">2026-06-08 기준</span>
+      <h1>프로젝트 HTML 인터페이스 분리</h1>
+      <span class="status">2026-06-08 완료</span>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>프로젝트 HTML 인터페이스를 <code>index.html</code>, <code>command.html</code>, <code>runbook.html</code> 세트로 나눴습니다.</li>
-          <li>홈페이지 흐름을 프로젝트 대시보드, 다음 지시, 명령 프롬프트, 런북, 접힌 인터페이스 확인 순서로 정리했습니다.</li>
+          <li>프로젝트별 HTML 인터페이스를 <code>index.html</code>, <code>command.html</code>, <code>runbook.html</code>로 나눴습니다.</li>
+          <li>홈페이지는 이 세 HTML을 읽어 프로젝트 대시보드, 다음 지시, 런북으로 표시합니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li><code>index.html</code>은 프로젝트 대시보드로 유지하고, 다음 지시는 <code>command.html</code>로 분리했습니다.</li>
-          <li>런북은 설명이 붙은 <code>runbook.html</code> 블럭으로 맨 아래에 배치했습니다.</li>
-          <li>높은 위험 같은 위험 배지, 보고 블럭, 문서 브라우저는 메인 운영 흐름에서 제거했습니다.</li>
-          <li>인터페이스 구성 확인은 접힌 상태로 남겼습니다.</li>
+          <li><code>index.html</code>은 프로젝트 대시보드 역할만 합니다.</li>
+          <li><code>command.html</code>은 명령 프롬프트 위에 놓이는 다음 지시 블럭입니다.</li>
+          <li><code>runbook.html</code>은 설명이 붙은 운영 절차 블럭입니다.</li>
+          <li>위험 배지, 보고 블럭, 문서 브라우저는 메인 운영 흐름에서 제거했습니다.</li>
         </ul>
       </section>
 
@@ -96,19 +92,18 @@
         <h2>결과</h2>
         <ul>
           <li><code>npm run build</code>가 통과했습니다.</li>
-          <li><code>npm run orchestration:dashboard -- --all</code>이 LETHE와 Project_Orchestrator에 HTML 세트를 생성했습니다.</li>
-          <li>LETHE의 프로젝트 대시보드, 다음 지시, 런북 API가 모두 <code>200 OK</code>로 응답했습니다.</li>
-          <li>다음 작업은 <code>reports/</code>를 하루/커밋 기준 진행 기록으로 확정하는 것입니다.</li>
+          <li><code>npm run orchestration:dashboard -- --all</code>이 HTML 세트를 생성했습니다.</li>
+          <li>LETHE 프로젝트 대시보드, 다음 지시, 런북 API가 모두 <code>200 OK</code>로 응답했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../orchestration/index.html">오케스트레이션 HTML 대시보드</a></li>
-          <li><a href="../orchestration/RUNBOOK.md">Runbook</a></li>
-          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
-          <li><a href="./2026-06-08/07-project-html-interface-split.html">작업 단위 보고서</a></li>
+          <li><a href="../../orchestration/CURRENT_TASK.md">CURRENT_TASK.md</a></li>
+          <li><a href="../../orchestration/STATUS.md">STATUS.md</a></li>
+          <li><a href="../../CODEX_STATUS.md">CODEX_STATUS.md</a></li>
+          <li><a href="../../ai-collaboration/2026-06-08/07-project-html-interface-split.md">AI 협업 기록</a></li>
         </ul>
       </section>
     </main>

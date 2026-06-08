@@ -2,22 +2,23 @@
 
 ## Task
 
-Reclassify the orchestration HTML dashboard and add project document browsing.
+Split the project HTML interface into dashboard, command, and runbook pages.
 
 ## Goal
 
-- Remove duplicated Markdown summary cards from the homepage.
-- Combine the user-facing next instruction summary with the command panel.
-- Rebuild generated HTML around decision categories instead of raw document blocks.
-- Let the homepage browse individual files under each selected project's `docs/orchestration/` folder.
+- Keep `docs/orchestration/index.html` as the project dashboard.
+- Move the next instruction summary into `docs/orchestration/command.html`.
+- Move repeated operating commands into `docs/orchestration/runbook.html`.
+- Show the homepage in the order: project dashboard, next instruction, command prompt, runbook, collapsed interface checklist.
+- Treat `reports/` as the user-facing progress record rather than a separate report panel.
 
 ## Done Criteria
 
-- The homepage no longer shows the old top Markdown document card row.
-- The command panel shows current task and next instruction summaries.
-- Generated `docs/orchestration/index.html` uses classified sections for instruction, state, verification, records, reports, and operations.
-- `개발 문서` shows a project-specific file list and selected document preview.
-- Document preview endpoints only read inside `docs/orchestration/`.
+- The homepage labels the embedded project view as `프로젝트 대시보드`.
+- The command prompt sits below the embedded `command.html` next-instruction block.
+- The runbook appears as a separate bottom block with explanatory text.
+- Visible risk badges, the report block, and the document browser are not part of the main operating flow.
+- Interface file completion is available only as a collapsed checklist.
 
 ## Related Files
 
@@ -25,11 +26,12 @@ Reclassify the orchestration HTML dashboard and add project document browsing.
 - `src/main.tsx`
 - `src/styles.css`
 - `scripts/build-orchestration-dashboard.mjs`
+- `server/index.mjs`
 
 ## Verification
 
 - `npm run build`
 - `npm run orchestration:dashboard -- --all`
 - `GET /api/projects/lethe-prototype/orchestration-dashboard`
-- `GET /api/projects/lethe-prototype/orchestration-files`
-- `GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md`
+- `GET /api/projects/lethe-prototype/orchestration-command`
+- `GET /api/projects/lethe-prototype/orchestration-runbook`

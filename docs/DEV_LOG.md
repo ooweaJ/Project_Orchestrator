@@ -137,3 +137,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/06-classified-dashboard-document-browser.md`
 - Summary: Reclassified the generated HTML dashboard, removed duplicated Markdown cards from the homepage, merged current/next instructions into the command panel, and added project-specific `docs/orchestration` file browsing.
 - Verification: `npm run build`, `npm run orchestration:dashboard -- --all`, LETHE document list/content/dashboard APIs.
+
+#### Project HTML Interface Split
+
+- File: `docs/ai-collaboration/2026-06-08/07-project-html-interface-split.md`
+- Summary: Split generated project HTML into `index.html`, `command.html`, and `runbook.html`, then reordered the homepage around project dashboard, next instruction, command prompt, runbook, and collapsed interface checklist.
+- Verification: `npm run build`, `npm run orchestration:dashboard -- --all`, LETHE dashboard/command/runbook APIs.

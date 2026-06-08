@@ -299,6 +299,8 @@ async function buildDashboard(targetRoot) {
     extractSection(docs.nextTasks, "Top Candidates") || extractSection(docs.nextTasks, "다음 후보") || docs.nextTasks;
   const decisionSummary = extractSection(docs.decisionLog, "Decisions") || docs.decisionLog;
   const outputPath = path.join(orchestrationDir, "index.html");
+  const commandOutputPath = path.join(orchestrationDir, "command.html");
+  const runbookOutputPath = path.join(orchestrationDir, "runbook.html");
 
   await fs.mkdir(orchestrationDir, { recursive: true });
   await fs.writeFile(
@@ -330,9 +332,6 @@ async function buildDashboard(targetRoot) {
       .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
       .wide { grid-column: 1 / -1; }
       .card { padding: 18px; min-width: 0; }
-      .focusCard { border-color: #addfc0; background: #f7fcf8; }
-      .focusGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-      .focusGrid article { padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
       .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       .cardTitle h2 { margin: 0; font-size: 18px; }
       a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
@@ -345,16 +344,12 @@ async function buildDashboard(targetRoot) {
       .markdown li { margin-bottom: 4px; }
       code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
       pre { overflow: auto; margin: 0 0 10px; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
-      .commandManual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-      .commandManual article { min-width: 0; padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #f8faf7; }
-      .commandManual h3 { margin: 0 0 6px; color: #1f6b4d; font-size: 15px; }
-      .commandManual p { margin: 0 0 10px; color: #60706a; font-size: 13px; line-height: 1.55; }
       .listCard ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
       .listCard li { display: grid; gap: 3px; }
       small, .muted { color: #697873; font-size: 13px; }
       footer { margin-top: 20px; color: #697873; font-size: 13px; }
       @media (max-width: 760px) {
-        .summary, .grid, .focusGrid, .commandManual { grid-template-columns: 1fr; }
+        .summary, .grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -372,33 +367,12 @@ async function buildDashboard(targetRoot) {
       </section>
 
       <div class="grid">
-        <section class="card wide focusCard">
-          <div class="cardTitle"><h2>다음 지시와 명령 기준</h2><a href="./CURRENT_TASK.md">CURRENT_TASK.md</a></div>
-          <div class="focusGrid">
-            <article>
-              <h3>이번에 끝낼 작업</h3>
-              <div class="markdown">${normalizeSnippet(currentTaskSummary, "CURRENT_TASK.md가 아직 작성되지 않았습니다.")}</div>
-            </article>
-            <article>
-              <h3>다음 후보</h3>
-              <div class="markdown">${normalizeSnippet(nextInstructionSummary, "NEXT_TASKS.md가 아직 작성되지 않았습니다.")}</div>
-            </article>
-          </div>
-        </section>
         ${renderMarkdownCard("현재 상태", phase, "STATUS.md에 현재 상태가 아직 정리되지 않았습니다.")}
         ${renderMarkdownCard("검증과 블로커", [verification, blockers].filter(Boolean).join("\n\n"), "검증 기록이나 블로커가 없습니다.")}
         ${renderMarkdownCard("최근 결정", decisionSummary, "DECISION_LOG.md가 아직 작성되지 않았습니다.")}
         <section class="card listCard">
-          <div class="cardTitle"><h2>작업 기록</h2><a href="./devlog/">devlog/</a></div>
-          ${renderRecentList(devlog, "devlog", "아직 devlog가 없습니다.")}
-        </section>
-        <section class="card listCard">
-          <div class="cardTitle"><h2>공유 보고서</h2><a href="./reports/">reports/</a></div>
-          ${renderRecentList(reports, "reports", "아직 report가 없습니다.")}
-        </section>
-        <section class="card wide">
-          <div class="cardTitle"><h2>운영 명령 매뉴얼</h2><a href="./RUNBOOK.md">RUNBOOK.md</a></div>
-          ${renderCommandList(docs.runbook)}
+          <div class="cardTitle"><h2>진행 기록</h2><a href="./reports/">reports/</a></div>
+          ${renderRecentList(reports, "reports", "아직 진행 보고가 없습니다.")}
         </section>
       </div>
       <footer>Generated from Markdown. Markdown remains the source of truth. ${new Date().toLocaleString("ko-KR")}</footer>
@@ -409,7 +383,99 @@ async function buildDashboard(targetRoot) {
     "utf8",
   );
 
-  return outputPath;
+  await fs.writeFile(
+    commandOutputPath,
+    `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(projectName)} 다음 지시</title>
+    <style>
+      :root { color: #17211c; background: #f7fcf8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { padding: 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      h1 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      article { min-width: 0; padding: 12px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      h2 { margin: 0 0 8px; color: #1f6b4d; font-size: 14px; }
+      .markdown { color: #26342f; font-size: 13px; line-height: 1.55; }
+      .markdown h3, .markdown h4 { margin: 10px 0 6px; font-size: 13px; }
+      .markdown p { margin: 0 0 8px; }
+      .markdown ul { margin: 0; padding-left: 18px; }
+      .markdown li { margin-bottom: 3px; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>다음 지시</h1>
+        <a href="./CURRENT_TASK.md">CURRENT_TASK.md</a>
+      </header>
+      <div class="grid">
+        <article>
+          <h2>이번에 끝낼 작업</h2>
+          <div class="markdown">${normalizeSnippet(currentTaskSummary, "CURRENT_TASK.md가 아직 작성되지 않았습니다.")}</div>
+        </article>
+        <article>
+          <h2>다음 후보</h2>
+          <div class="markdown">${normalizeSnippet(nextInstructionSummary, "NEXT_TASKS.md가 아직 작성되지 않았습니다.")}</div>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>
+`,
+    "utf8",
+  );
+
+  await fs.writeFile(
+    runbookOutputPath,
+    `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(projectName)} 운영 절차</title>
+    <style>
+      :root { color: #17211c; background: #fff; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { padding: 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      h1 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      p { margin: 0 0 12px; color: #60706a; font-size: 13px; line-height: 1.55; }
+      .commandManual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .commandManual article { min-width: 0; padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #f8faf7; }
+      .commandManual h3 { margin: 0 0 6px; color: #1f6b4d; font-size: 15px; }
+      .commandManual p { margin: 0 0 10px; }
+      pre { overflow: auto; margin: 0; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      @media (max-width: 680px) { .commandManual { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>운영 절차</h1>
+        <a href="./RUNBOOK.md">RUNBOOK.md</a>
+      </header>
+      <p>검증, 설치, 대시보드 재생성처럼 반복되는 조작은 여기서 확인합니다. 명령은 원본 RUNBOOK.md에서 관리합니다.</p>
+      ${renderCommandList(docs.runbook)}
+    </main>
+  </body>
+</html>
+`,
+    "utf8",
+  );
+
+  return [outputPath, commandOutputPath, runbookOutputPath];
 }
 
 async function getTargets() {
@@ -438,7 +504,7 @@ for (const target of targets) {
     continue;
   }
 
-  built.push(await buildDashboard(target));
+  built.push(...(await buildDashboard(target)));
 }
 
 console.log(`Built dashboards: ${built.length}`);

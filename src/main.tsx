@@ -6,7 +6,6 @@ import {
   FileText,
   FolderOpen,
   GitBranch,
-  MessageSquare,
   Plus,
   RefreshCw,
   Trash2,
@@ -135,29 +134,6 @@ type FolderBrowser = {
   }>;
 };
 
-type OrchestrationFile = {
-  path: string;
-  name: string;
-  directory: string;
-  extension: string;
-  sizeBytes: number;
-  modifiedAt: string;
-};
-
-type OrchestrationFileContent = {
-  path: string;
-  extension: string;
-  modifiedAt: string;
-  content: string;
-};
-
-const riskLabels: Record<RiskLevel, string> = {
-  low: "정상",
-  medium: "주의",
-  high: "높은 위험",
-  blocked: "확인 필요",
-};
-
 const typeLabels: Record<string, string> = {
   unknown: "미분류",
   web: "웹",
@@ -174,17 +150,11 @@ function App() {
   const [selectedId, setSelectedId] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [isDiscordLoading, setIsDiscordLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [copied, setCopied] = React.useState("");
   const [actionMessage, setActionMessage] = React.useState("");
   const [customInstruction, setCustomInstruction] = React.useState("");
   const [commandText, setCommandText] = React.useState("");
-  const [discordPreview, setDiscordPreview] = React.useState("");
-  const [documentFiles, setDocumentFiles] = React.useState<OrchestrationFile[]>([]);
-  const [selectedDocumentPath, setSelectedDocumentPath] = React.useState("");
-  const [documentContent, setDocumentContent] = React.useState<OrchestrationFileContent | null>(null);
-  const [isDocumentLoading, setIsDocumentLoading] = React.useState(false);
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -292,77 +262,6 @@ function App() {
     return snapshot.files.orchestrationDashboard.documents.find((doc) => doc.key === key);
   }
 
-  function summarizeDocument(snapshot: ProjectSnapshot, key: OrchestrationDocKey, fallback: string) {
-    const content = getOrchestrationDoc(snapshot, key)?.content || "";
-    const lines = content
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#"))
-      .map((line) => line.replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""))
-      .filter((line) => line && line !== "-")
-      .slice(0, 4);
-
-    return lines.join("\n") || fallback;
-  }
-
-  async function loadProjectDocument(snapshot: ProjectSnapshot, documentPath: string) {
-    if (!documentPath) {
-      setDocumentContent(null);
-      return;
-    }
-
-    setIsDocumentLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `/api/projects/${snapshot.id}/orchestration-file?path=${encodeURIComponent(documentPath)}`,
-      );
-      const body = (await response.json().catch(() => null)) as null | OrchestrationFileContent | { error?: string };
-
-      if (!response.ok) {
-        throw new Error((body as { error?: string } | null)?.error ?? `문서를 읽지 못했습니다: ${response.status}`);
-      }
-
-      setSelectedDocumentPath(documentPath);
-      setDocumentContent(body as OrchestrationFileContent);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Unknown error");
-    } finally {
-      setIsDocumentLoading(false);
-    }
-  }
-
-  async function loadProjectDocuments(snapshot: ProjectSnapshot) {
-    setDocumentFiles([]);
-    setDocumentContent(null);
-    setSelectedDocumentPath("");
-
-    try {
-      const response = await fetch(`/api/projects/${snapshot.id}/orchestration-files`);
-      const body = (await response.json().catch(() => null)) as null | OrchestrationFile[] | { error?: string };
-
-      if (!response.ok) {
-        throw new Error((body as { error?: string } | null)?.error ?? `문서 목록을 읽지 못했습니다: ${response.status}`);
-      }
-
-      const files = (body as OrchestrationFile[]).filter((file) => file.extension !== ".html");
-      const defaultPath =
-        files.find((file) => file.path === "STATUS.md")?.path ||
-        files.find((file) => file.path === "CURRENT_TASK.md")?.path ||
-        files[0]?.path ||
-        "";
-
-      setDocumentFiles(files);
-
-      if (defaultPath) {
-        await loadProjectDocument(snapshot, defaultPath);
-      }
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Unknown error");
-    }
-  }
-
   function generateCommandText(snapshot: ProjectSnapshot) {
     const instruction = customInstruction.trim() || "현재 오케스트레이션 문서를 기준으로 다음 작업을 진행해줘.";
     const status = getOrchestrationDoc(snapshot, "status")?.content || "STATUS.md 내용 없음";
@@ -467,49 +366,12 @@ function App() {
     }
   }
 
-  async function sendDiscordReport(snapshot: ProjectSnapshot, dryRun: boolean) {
-    setIsDiscordLoading(true);
-    setError("");
-    setActionMessage("");
-
-    try {
-      const response = await fetch(`/api/projects/${snapshot.id}/discord-report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ dryRun }),
-      });
-      const body = (await response.json().catch(() => null)) as null | { error?: string; payload?: unknown };
-
-      if (!response.ok) {
-        throw new Error(body?.error ?? `Discord report failed: ${response.status}`);
-      }
-
-      if (dryRun) {
-        setDiscordPreview(JSON.stringify(body?.payload ?? {}, null, 2));
-        setActionMessage("Discord 보고 미리보기를 생성했습니다.");
-      } else {
-        setDiscordPreview("");
-        setActionMessage("Discord로 오케스트레이션 보고를 보냈습니다.");
-      }
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Unknown error");
-    } finally {
-      setIsDiscordLoading(false);
-    }
-  }
-
   React.useEffect(() => {
     void loadSnapshots();
   }, []);
 
   React.useEffect(() => {
     setCommandText("");
-    setDiscordPreview("");
-    if (selected) {
-      void loadProjectDocuments(selected);
-    }
   }, [selected?.id]);
 
   return (
@@ -687,12 +549,11 @@ function App() {
               key={snapshot.id}
             >
               <button className="cardSelect" type="button" onClick={() => setSelectedId(snapshot.id)}>
-                <div className="cardHeader">
-                  <div>
-                    <h3>{displayProjectName(snapshot)}</h3>
-                    <p>{typeLabels[snapshot.type] ?? snapshot.type}</p>
-                  </div>
-                  <RiskBadge level={snapshot.riskLevel} />
+                  <div className="cardHeader">
+                    <div>
+                      <h3>{displayProjectName(snapshot)}</h3>
+                      <p>{typeLabels[snapshot.type] ?? snapshot.type}</p>
+                    </div>
                 </div>
 
                 <p className="pathLine">{displayProjectPath(snapshot)}</p>
@@ -727,7 +588,6 @@ function App() {
                   <h2>{displayProjectName(selected)}</h2>
                   <p className="statusDescription">{selected.files.orchestrationDashboard.phase}</p>
                 </div>
-                <RiskBadge level={selected.riskLevel} />
               </div>
 
               {!selected.exists ? (
@@ -740,20 +600,40 @@ function App() {
                 </section>
               ) : null}
 
+              <section className="generatedDashboardPanel">
+                <div className="sectionTitle">
+                  <h3>프로젝트 대시보드</h3>
+                  <a
+                    className="secondaryButton compactButton"
+                    href={`/api/projects/${selected.id}/orchestration-dashboard`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <ExternalLink size={15} />
+                    새 창
+                  </a>
+                </div>
+                <iframe
+                  className="orchestrationFrame"
+                  key={selected.id}
+                  src={`/api/projects/${selected.id}/orchestration-dashboard`}
+                  title={`${displayProjectName(selected)} 프로젝트 대시보드`}
+                />
+              </section>
+
+              <section className="commandSourcePanel">
+                <iframe
+                  className="commandSourceFrame"
+                  key={`${selected.id}-command`}
+                  src={`/api/projects/${selected.id}/orchestration-command`}
+                  title={`${displayProjectName(selected)} 다음 지시`}
+                />
+              </section>
+
               <section className="workCommandPanel">
                 <div className="sectionTitle">
                   <h3>명령</h3>
-                  <span>문서 기준으로 지시하기</span>
-                </div>
-                <div className="instructionBrief">
-                  <div>
-                    <span>현재 작업</span>
-                    <p>{displayText(summarizeDocument(selected, "currentTask", "CURRENT_TASK.md에 현재 작업이 없습니다."))}</p>
-                  </div>
-                  <div>
-                    <span>다음 지시 기준</span>
-                    <p>{displayText(summarizeDocument(selected, "nextTasks", "NEXT_TASKS.md에 다음 후보가 없습니다."))}</p>
-                  </div>
+                  <span>프로젝트 대시보드 기준으로 지시하기</span>
                 </div>
                 <label className="commandInput">
                   내가 내릴 명령
@@ -780,61 +660,17 @@ function App() {
                 {commandText ? <pre className="commandPreview">{displayText(commandText)}</pre> : null}
               </section>
 
-              <section className="generatedDashboardPanel">
-                <div className="sectionTitle">
-                  <h3>HTML 대시보드</h3>
-                  <a
-                    className="secondaryButton compactButton"
-                    href={`/api/projects/${selected.id}/orchestration-dashboard`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <ExternalLink size={15} />
-                    새 창
-                  </a>
-                </div>
+              <section className="runbookPanel">
                 <iframe
-                  className="orchestrationFrame"
-                  key={selected.id}
-                  src={`/api/projects/${selected.id}/orchestration-dashboard`}
-                  title={`${displayProjectName(selected)} 오케스트레이션 HTML 대시보드`}
+                  className="runbookFrame"
+                  key={`${selected.id}-runbook`}
+                  src={`/api/projects/${selected.id}/orchestration-runbook`}
+                  title={`${displayProjectName(selected)} 운영 절차`}
                 />
               </section>
 
-              <section className="documentBrowserPanel">
-                <div className="sectionTitle">
-                  <h3>개발 문서</h3>
-                  <span>docs/orchestration</span>
-                </div>
-                <div className="documentBrowser">
-                  <div className="documentList">
-                    {documentFiles.length > 0 ? (
-                      documentFiles.map((file) => (
-                        <button
-                          className={selectedDocumentPath === file.path ? "active" : ""}
-                          key={file.path}
-                          type="button"
-                          onClick={() => void loadProjectDocument(selected, file.path)}
-                        >
-                          <span>{file.name}</span>
-                          {file.directory ? <small>{file.directory}</small> : null}
-                        </button>
-                      ))
-                    ) : (
-                      <p>볼 수 있는 개발 문서가 없습니다.</p>
-                    )}
-                  </div>
-                  <div className="documentPreview">
-                    <div>
-                      <strong>{selectedDocumentPath || "문서 미선택"}</strong>
-                      <span>{isDocumentLoading ? "읽는 중" : documentContent?.extension || ""}</span>
-                    </div>
-                    <pre>{documentContent ? displayText(documentContent.content) : "왼쪽에서 문서를 선택하세요."}</pre>
-                  </div>
-                </div>
-              </section>
-
-              <section className="orchestrationPanel">
+              <details className="orchestrationPanel">
+                <summary>인터페이스 구성 확인</summary>
                 <div className="sectionTitle compact">
                   <h3>오케스트레이션 인터페이스</h3>
                   <span>
@@ -885,38 +721,7 @@ function App() {
                     ))}
                   </div>
                 </details>
-              </section>
-
-              <section className="reportPanel">
-                <div className="sectionTitle">
-                  <h3>보고</h3>
-                  <span>오케스트레이터 중앙 전송</span>
-                </div>
-                <p className="promptHelp">
-                  Discord 보고는 각 프로젝트가 아니라 AI Project Orchestrator의 루트 <code>.env</code>에 있는 웹훅으로만 보냅니다.
-                </p>
-                <div className="commandActions">
-                  <button
-                    className="secondaryButton"
-                    type="button"
-                    onClick={() => void sendDiscordReport(selected, true)}
-                    disabled={isDiscordLoading}
-                  >
-                    <MessageSquare size={16} />
-                    미리보기
-                  </button>
-                  <button
-                    className="primaryButton"
-                    type="button"
-                    onClick={() => void sendDiscordReport(selected, false)}
-                    disabled={isDiscordLoading}
-                  >
-                    <MessageSquare size={16} />
-                    Discord 보내기
-                  </button>
-                </div>
-                {discordPreview ? <pre className="commandPreview">{displayText(discordPreview)}</pre> : null}
-              </section>
+              </details>
             </>
           ) : (
             <div className="emptyDetail">
@@ -937,10 +742,6 @@ function Metric({ label, value }: { label: string; value: string }) {
       <strong>{value}</strong>
     </div>
   );
-}
-
-function RiskBadge({ level }: { level: RiskLevel }) {
-  return <span className={`riskBadge ${level}`}>{riskLabels[level]}</span>;
 }
 
 function MarkdownPanel({

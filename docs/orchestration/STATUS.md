@@ -14,6 +14,9 @@
 - The homepage now embeds each selected project's generated `docs/orchestration/index.html` in an `HTML 대시보드` panel.
 - The generated HTML dashboard is now grouped by decision flow: next instruction, current state, verification/blockers, records, reports, and operational commands.
 - The homepage can now browse individual files under each selected project's `docs/orchestration/` folder.
+- Project HTML output is being split into interface pages: `index.html` for the project dashboard, `command.html` for the next instruction block, and `runbook.html` for operating procedures.
+- The homepage now orders the selected project view as project dashboard, next-instruction block, command prompt, runbook, then collapsed interface checklist.
+- Visible risk badges, the report send block, and the document browser were removed from the main operating flow.
 
 ## Latest Verification
 
@@ -31,6 +34,9 @@
 - `npm run orchestration:dashboard -- --all` regenerated the classified HTML dashboards for LETHE_Prototype and Project_Orchestrator.
 - `GET /api/projects/lethe-prototype/orchestration-files` returned LETHE_Prototype's `docs/orchestration` document list with `200 OK`.
 - `GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md` returned LETHE_Prototype's `STATUS.md` content with `200 OK`.
+- `npm run orchestration:dashboard -- --all` generated `index.html`, `command.html`, and `runbook.html` for LETHE_Prototype and Project_Orchestrator.
+- `GET /api/projects/lethe-prototype/orchestration-command` returned LETHE_Prototype's next-instruction HTML with `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-runbook` returned LETHE_Prototype's runbook HTML with `200 OK`.
 
 ## Blockers
 
@@ -39,4 +45,4 @@
 
 ## Next Major Step
 
-Add a homepage action to regenerate the selected project's orchestration HTML before viewing it.
+Formalize `reports/` as the user-facing progress record and add a homepage action to regenerate the selected project's orchestration HTML before viewing it.
