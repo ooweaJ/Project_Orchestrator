@@ -26,6 +26,7 @@ const templatesDir = path.join(repoRoot, "docs", "orchestration", "templates");
 const targetRoot = path.resolve(targetArg);
 const targetOrchestrationDir = path.join(targetRoot, "docs", "orchestration");
 const targetInterfaceDir = path.join(targetOrchestrationDir, "interface");
+const targetReportsDir = path.join(targetOrchestrationDir, "reports");
 const targetStateDir = path.join(targetOrchestrationDir, "state");
 const targetTemplatesDir = path.join(targetOrchestrationDir, "templates");
 
@@ -34,7 +35,7 @@ const requiredDirs = [
   targetInterfaceDir,
   targetStateDir,
   path.join(targetOrchestrationDir, "devlog"),
-  path.join(targetOrchestrationDir, "reports"),
+  targetReportsDir,
   path.join(targetOrchestrationDir, "review_prompts"),
   path.join(targetOrchestrationDir, "review_responses"),
   path.join(targetOrchestrationDir, "evidence"),
@@ -168,6 +169,11 @@ await writeIfMissing(
 await writeIfMissing(
   path.join(targetInterfaceDir, "runbook.html"),
   '<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>운영 절차</title></head><body><main><h1>운영 절차</h1><p>docs/orchestration/state/RUNBOOK.md를 채운 뒤 갱신하세요.</p></main></body></html>\n',
+);
+
+await writeIfMissing(
+  path.join(targetReportsDir, "index.html"),
+  '<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Reports</title></head><body><main><h1>Reports</h1><p>List date journal pages newest-first. Link to reports/YYYYMMDD/index.html pages, not every units/*.html detail page.</p></main></body></html>\n',
 );
 
 if (withAgents) {

@@ -108,10 +108,12 @@ Required sections:
   - project journal eyebrow
   - `보고서 목록`
   - one short explanation
-- Report list:
+- Blog-style date report list:
   - newest first
-  - each item links to an HTML report
-  - include a short date or summary line when available
+  - each item links to `reports/YYYYMMDD/index.html`
+  - each item includes a date, title, short summary, and optionally a compact verification/result line
+  - list date journal pages first, not every `units/` detail page
+  - keep the page scannable like a compact blog archive
 
 Reports can be daily, commit-based, or work-unit based. The recommended default is:
 
@@ -125,6 +127,14 @@ docs/orchestration/reports/
 ```
 
 The host Project Orchestrator dashboard should read date folder `index.html` pages only, such as `reports/20260608/index.html`. Files under `units/` are detail pages or Discord attachments and should be reachable from the date page, but they should not be the primary journal list.
+
+## Discord Report Relationship
+
+- Keep the readable report in `reports/YYYYMMDD/index.html`.
+- Keep `reports/index.html` as the archive of date pages.
+- Use `reports/YYYYMMDD/units/*.html` when a specific work unit needs an attachable or portfolio drill-down page.
+- Submit Discord delivery through Project Orchestrator's central intake when available.
+- Discord should receive a short Korean summary/embed first, then the HTML report attachment when requested.
 
 ## Source Relationship
 

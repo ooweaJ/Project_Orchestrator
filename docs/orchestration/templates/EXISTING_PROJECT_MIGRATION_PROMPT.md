@@ -18,10 +18,11 @@ This should feel like a local personal AI plugin:
 - `docs/orchestration/state/` contains the AI-facing Markdown source of truth.
 - `docs/orchestration/reports/` contains user-facing HTML progress reports. The normal development-journal surface is a date folder `index.html`, for example `reports/20260608/index.html`.
 - `docs/orchestration/reports/YYYYMMDD/units/` may contain detailed unit reports or attachable HTML, but the project dashboard should list the date `index.html` pages first.
+- `docs/orchestration/reports/index.html` is the blog-like report index. It lists date report pages newest-first, links to `reports/YYYYMMDD/index.html`, and should not list every unit report as the main navigation.
 - `docs/orchestration/devlog/` contains AI/internal Markdown process logs, usually appended by date.
 - `docs/orchestration/templates/HTML_INTERFACE_TEMPLATE.md` describes the LETHE-derived HTML format that other projects should follow.
 - Existing docs outside orchestration should be migrated, summarized, or archived so future work can start from `docs/orchestration/`.
-- Discord delivery should be delegated to Project Orchestrator when available. Projects prepare or submit a report payload; Project Orchestrator owns the shared `.env` webhook and sends the Discord summary/HTML attachment.
+- Discord delivery should be delegated to Project Orchestrator when available. Projects prepare or submit a short Korean summary plus a report path; Project Orchestrator owns the shared `.env` webhook and sends the Discord embed first, then the HTML report attachment.
 
 ````text
 You are working inside an existing local project. Adopt the shared personal development-docs plugin for this project.
@@ -95,9 +96,10 @@ Core concept:
   - active task and next task candidates.
 - `reports/` is for people:
   - a date-folder `index.html` journal that reads like a blog page for that day,
+  - a root `reports/index.html` page that lists date journals newest-first like a blog archive,
   - detailed user-facing HTML work-unit reports under `YYYYMMDD/units/` when useful,
   - portfolio-ready summaries,
-  - a root `index.html` report list.
+  - unit pages linked from the relevant date page, not treated as the primary report list.
 - `templates/HTML_INTERFACE_TEMPLATE.md` is the shared human-facing format contract. Use it to make other projects look and behave like the LETHE HTML interface without copying LETHE-specific content.
 - `devlog/` is for AI/internal continuity:
   - date-based Markdown logs,
@@ -105,7 +107,7 @@ Core concept:
   - keep enough detail for AI to resume without reading every HTML report.
 - Existing docs should be migrated into `state/`, `devlog/`, `reports/`, `evidence/`, or `legacy/`.
 - After migration, old docs outside orchestration should not be needed for normal Codex resume.
-- When the project needs Discord notification, do not store per-project Discord webhook secrets by default. Submit the finished report to Project Orchestrator's central intake API or documented CLI/script, then let Project Orchestrator send the Discord message.
+- When the project needs Discord notification, do not store per-project Discord webhook secrets by default. Submit the finished Korean summary and report path to Project Orchestrator's central intake API or documented CLI/script, then let Project Orchestrator send the Discord message and attach the HTML report.
 
 Before editing:
 1. Inspect existing documentation and project files.
@@ -171,7 +173,7 @@ Use orchestration files as follows:
 - `state/SCOPE_GUARD.md`: explicit non-goals and things not to build yet.
 - `state/DECISION_LOG.md`: index of important technical, product, and AI-direction decisions.
 - `devlog/`: AI/internal daily work log.
-- `reports/`: user-facing HTML progress reports. Keep the readable development journal in date folders such as `reports/20260608/index.html`; place detailed unit reports under that date's `units/` folder when useful.
+- `reports/`: user-facing HTML progress reports. Keep the readable development journal in date folders such as `reports/20260608/index.html`; keep `reports/index.html` as a blog-like newest-first date archive; place detailed unit reports under that date's `units/` folder when useful.
 - `evidence/`: useful test outputs, screenshots, logs, benchmark summaries, or links.
 - `review_prompts/`: prompts prepared for Claude/GPT/Codex review.
 - `review_responses/`: saved AI review responses.
@@ -183,6 +185,7 @@ After meaningful work:
 - Update the relevant files under `docs/orchestration/state/`.
 - Append AI/internal process detail to `docs/orchestration/devlog/YYYY-MM-DD.md`.
 - Add or regenerate the user-facing date journal under `docs/orchestration/reports/YYYYMMDD/index.html`.
+- Add or regenerate `docs/orchestration/reports/index.html` so it lists date journal pages newest-first like a compact blog archive.
 - Add detailed unit HTML under `docs/orchestration/reports/YYYYMMDD/units/` only when a separate attachable or portfolio work-unit page is useful.
 - Record durable decisions in `docs/orchestration/state/DECISION_LOG.md`.
 - Keep `state/NEXT_TASKS.md` short, usually no more than five active candidates.
@@ -203,6 +206,7 @@ Migration and adoption rules:
 - `state/DECISION_LOG.md` is an index of durable decisions. Link to reports, reviews, evidence, or legacy archive entries instead of duplicating everything.
 - `devlog/` is AI/internal continuity. Date-based files can be appended in order, but do not let one file become the only source of truth.
 - `reports/` is people-facing. Prefer a date-folder HTML journal at `reports/YYYYMMDD/index.html`. If a generator requires Markdown input, keep that input under `reports/source/`, not as the primary human surface.
+- `reports/index.html` is the blog-like archive page. It should list date report pages newest-first, show a short title/date/summary for each date, and link to `reports/YYYYMMDD/index.html` rather than flattening every `units/` page into the main list.
 - `reports/YYYYMMDD/units/` is optional detail storage for separate work-unit pages, Discord attachments, or portfolio drill-down pages.
 - `evidence/` stores or links useful test outputs, screenshots, logs, benchmark summaries, playtest outputs, generated QA summaries, or other proof.
 - `legacy/` stores migration notes, archived old docs, or pointer files. Legacy docs should not be required for normal resume after migration.
@@ -225,6 +229,15 @@ The migration map should list:
 - whether the old file was moved, summarized, archived, linked, or left in place,
 - whether it is still a source of truth.
 
+Discord reporting rules:
+- Keep detailed records locally in Markdown and HTML first.
+- Keep the user-facing Korean report short and readable.
+- Prefer `docs/orchestration/reports/YYYYMMDD/index.html` as the main report path for a day.
+- Use `docs/orchestration/reports/YYYYMMDD/units/*.html` only for detailed work-unit pages, Discord attachments, or portfolio drill-down pages.
+- Submit Discord delivery through Project Orchestrator's central intake when available, using the project id, report path, optional attachment flag, and a short Korean summary.
+- Project Orchestrator owns `DISCORD_WEBHOOK_URL` in its `.env`; migrated projects should not duplicate webhook secrets by default.
+- Discord should receive a short summary/embed first and the HTML report file as the follow-up attachment when attachment delivery is requested.
+
 Human-facing HTML rule:
 - Use `templates/HTML_INTERFACE_TEMPLATE.md` as the visual and structural reference.
 - `interface/index.html` is a status dashboard. It should be short.
@@ -232,7 +245,7 @@ Human-facing HTML rule:
 - It should not show long explanations, report-send controls, scanner warnings, interface checklists, or broad document navigation unless explicitly requested.
 - `interface/command.html` should show the next instruction, copyable prompt if useful, done criteria, and do-not-touch notes.
 - `interface/runbook.html` should show repeated commands and operating procedures.
-- `reports/index.html` lists date journal pages.
+- `reports/index.html` lists date journal pages newest-first like a compact blog archive, with title, date, short summary, and link to each `reports/YYYYMMDD/index.html`.
 - `reports/YYYYMMDD/index.html` is the human-facing daily development journal page and should be the main report page the host dashboard reads.
 - `reports/YYYYMMDD/units/YYYY-MM-DD-NN-slug.html` is an optional detailed work-unit report or Discord attachment.
 - People should not need to open Markdown for normal review.

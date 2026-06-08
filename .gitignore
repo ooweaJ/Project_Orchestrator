@@ -3,6 +3,7 @@ dist/
 .vite/
 data/snapshots/*.json
 data/activity.jsonl
+data/projects.json
 docs/orchestration/agent_runs/
 .env
 .env.local
