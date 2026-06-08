@@ -149,3 +149,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/08-lethe-html-template-development-journal.md`
 - Summary: Promoted the LETHE HTML shape into `HTML_INTERFACE_TEMPLATE.md`, updated the migration prompt, generated a LETHE-style report index, and added a homepage `개발일지` report browser for `docs/orchestration/reports/*.html`.
 - Verification: `npm run orchestration:dashboard`, `npm run build`, LETHE reports list/report APIs.
+
+#### Homepage Codex CLI Runner
+
+- File: `docs/ai-collaboration/2026-06-08/09-homepage-codex-cli-runner.md`
+- Summary: Added direct Codex CLI execution from the homepage command panel, with local run artifacts, status polling, and final-message/output display.
+- Verification: `npm run build`, `POST /api/projects/project-orchestrator/codex-run`, `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj`.

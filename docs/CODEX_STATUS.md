@@ -69,6 +69,8 @@ Completed orchestration improvements:
 - `HTML_INTERFACE_TEMPLATE.md` documents the LETHE-derived HTML format for reuse across projects.
 - The homepage has a `개발일지` button that lists and previews HTML reports from `docs/orchestration/reports/`.
 - The dashboard generator now writes `reports/index.html` in addition to `index.html`, `command.html`, and `runbook.html`.
+- The homepage command panel can start a non-interactive Codex CLI run for the selected project.
+- Codex run APIs store local prompt/output/status/final-message artifacts under `docs/orchestration/agent_runs/`, which is ignored by Git.
 
 Completed dashboard localization and readability improvements:
 
@@ -170,3 +172,6 @@ Verified on 2026-06-08:
 - `npm run build` passed after adding the development-journal report browser.
 - `GET /api/projects/lethe-prototype/orchestration-reports` returned `200 OK`.
 - `GET /api/projects/lethe-prototype/orchestration-report?path=2026-06-08-08-plugin-oriented-migration-prompt-update.html` returned `200 OK`.
+- `npm run build` passed after adding homepage Codex CLI execution.
+- `POST /api/projects/project-orchestrator/codex-run` returned `202 Accepted`.
+- `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj` returned `complete`, `exitCode: 0`, and `lastMessage: codex runner ok`.

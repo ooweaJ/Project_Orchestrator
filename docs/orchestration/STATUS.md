@@ -19,6 +19,8 @@
 - `HTML_INTERFACE_TEMPLATE.md` now captures the LETHE-derived human-facing HTML format for reuse across projects.
 - The homepage now has a `개발일지` button that lists HTML files from `docs/orchestration/reports/` and opens the selected report as an HTML card.
 - `npm run orchestration:dashboard` now also generates `docs/orchestration/reports/index.html` in the LETHE-style report-list format.
+- The homepage command panel can now start a non-interactive Codex CLI run for the selected project and show run status, exit code, output, and the final Codex message.
+- Codex run artifacts are written under `docs/orchestration/agent_runs/` and ignored by Git.
 
 ## Latest Verification
 
@@ -43,6 +45,9 @@
 - `npm run build` passed after adding the development-journal button and reports preview.
 - `GET /api/projects/lethe-prototype/orchestration-reports` returned LETHE_Prototype's HTML report list with `200 OK`.
 - `GET /api/projects/lethe-prototype/orchestration-report?path=2026-06-08-08-plugin-oriented-migration-prompt-update.html` returned the selected HTML report with `200 OK`.
+- `npm run build` passed after adding homepage Codex CLI execution.
+- `POST /api/projects/project-orchestrator/codex-run` returned `202 Accepted` and created run `20260608-095709-1hluj`.
+- `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj` returned `status: complete`, `exitCode: 0`, and `lastMessage: codex runner ok`.
 
 ## Blockers
 
@@ -51,4 +56,4 @@
 
 ## Next Major Step
 
-Use the LETHE-derived HTML template on another active project and add a homepage action to regenerate the selected project's orchestration HTML before viewing it.
+Add a homepage action to regenerate the selected project's orchestration HTML before viewing it, then apply the LETHE-derived HTML template to another active project.

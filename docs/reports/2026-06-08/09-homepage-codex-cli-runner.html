@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Project Orchestrator 진행 보고서</title>
+    <title>홈페이지 Codex CLI 실행 보고서</title>
     <style>
       :root {
         color: #17211c;
@@ -67,24 +67,24 @@
   </head>
   <body>
     <main>
-      <h1>AI Project Orchestrator 진행 상태</h1>
-      <span class="status">2026-06-08 기준</span>
+      <h1>홈페이지 Codex CLI 실행</h1>
+      <span class="status">2026-06-08 작업 완료</span>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
           <li>홈페이지 명령 칸에서 선택 프로젝트의 Codex CLI를 바로 실행할 수 있게 했습니다.</li>
-          <li>실행 상태, exit code, 출력, 마지막 Codex 답변을 같은 화면에서 확인할 수 있게 했습니다.</li>
+          <li>실행 상태, exit code, 출력, 마지막 Codex 답변을 홈페이지 카드에서 확인할 수 있게 했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>서버에 Codex run 시작, 최근 run 목록, 개별 run 조회 API를 추가했습니다.</li>
-          <li>프론트엔드 명령 블럭에 <code>Codex 실행</code> 버튼과 상태 카드를 추가했습니다.</li>
-          <li>run 기록은 <code>docs/orchestration/agent_runs/</code>에 저장하고 Git에는 올리지 않도록 했습니다.</li>
-          <li>초기 CLI 옵션 문제를 검증하면서 <code>approval_policy="never"</code> 조합으로 정리했습니다.</li>
+          <li><code>POST /api/projects/:id/codex-run</code>으로 Codex 실행을 시작합니다.</li>
+          <li><code>GET /api/projects/:id/codex-runs</code>와 개별 run API로 최근 실행과 상세 로그를 읽습니다.</li>
+          <li>각 실행은 <code>docs/orchestration/agent_runs/</code>에 prompt, status, output, final message를 남깁니다.</li>
+          <li>첫 검증에서 CLI 옵션 위치 문제가 있었고, 최종적으로 <code>approval_policy="never"</code> config override를 사용했습니다.</li>
         </ul>
       </section>
 
@@ -92,18 +92,17 @@
         <h2>결과</h2>
         <ul>
           <li><code>npm run build</code>가 통과했습니다.</li>
-          <li><code>POST /api/projects/project-orchestrator/codex-run</code>이 <code>202 Accepted</code>를 반환했습니다.</li>
-          <li>검증 run <code>20260608-095709-1hluj</code>이 <code>complete</code>, <code>exitCode: 0</code>, <code>lastMessage: codex runner ok</code>로 종료됐습니다.</li>
+          <li>검증 run <code>20260608-095709-1hluj</code>이 <code>complete</code>, <code>exitCode: 0</code>으로 종료됐습니다.</li>
+          <li>마지막 메시지 <code>codex runner ok</code>가 API 응답에 저장되는 것을 확인했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../orchestration/index.html">오케스트레이션 HTML 대시보드</a></li>
-          <li><a href="../orchestration/reports/2026-06-08-09-homepage-codex-cli-runner.html">오케스트레이션 개발일지</a></li>
-          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
-          <li><a href="./2026-06-08/09-homepage-codex-cli-runner.html">작업 단위 보고서</a></li>
+          <li><a href="../../orchestration/CURRENT_TASK.md">현재 작업 문서</a></li>
+          <li><a href="../../orchestration/STATUS.md">오케스트레이션 상태</a></li>
+          <li><a href="../../ai-collaboration/2026-06-08/09-homepage-codex-cli-runner.md">상세 작업 기록</a></li>
         </ul>
       </section>
     </main>

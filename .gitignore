@@ -3,6 +3,7 @@ dist/
 .vite/
 data/snapshots/*.json
 data/activity.jsonl
+docs/orchestration/agent_runs/
 .env
 .env.local
 npm-debug.log*

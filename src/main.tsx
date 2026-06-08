@@ -8,6 +8,7 @@ import {
   GitBranch,
   Plus,
   RefreshCw,
+  Terminal,
   Trash2,
 } from "lucide-react";
 import "./styles.css";
@@ -142,6 +143,24 @@ type OrchestrationReport = {
   sizeBytes: number;
 };
 
+type CodexRun = {
+  runId: string;
+  projectId: string;
+  projectName: string;
+  status: "running" | "complete" | "failed";
+  startedAt: string;
+  finishedAt: string | null;
+  exitCode: number | null;
+  runDir: string;
+  promptPath: string;
+  outputPath: string;
+  lastMessagePath: string;
+  command: string;
+  output?: string;
+  lastMessage?: string;
+  error?: string;
+};
+
 const typeLabels: Record<string, string> = {
   unknown: "미분류",
   web: "웹",
@@ -167,6 +186,9 @@ function App() {
   const [isJournalLoading, setIsJournalLoading] = React.useState(false);
   const [reports, setReports] = React.useState<OrchestrationReport[]>([]);
   const [selectedReportPath, setSelectedReportPath] = React.useState("");
+  const [isCodexStarting, setIsCodexStarting] = React.useState(false);
+  const [codexRuns, setCodexRuns] = React.useState<CodexRun[]>([]);
+  const [activeRun, setActiveRun] = React.useState<CodexRun | null>(null);
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -305,6 +327,70 @@ function App() {
     }
   }
 
+  async function loadCodexRuns(snapshot: ProjectSnapshot) {
+    try {
+      const response = await fetch(`/api/projects/${snapshot.id}/codex-runs`);
+      if (!response.ok) {
+        return;
+      }
+
+      setCodexRuns((await response.json()) as CodexRun[]);
+    } catch {
+      // Recent runs are useful but not critical to the main dashboard.
+    }
+  }
+
+  async function loadCodexRun(snapshot: ProjectSnapshot, runId: string) {
+    const response = await fetch(`/api/projects/${snapshot.id}/codex-runs/${runId}`);
+    const body = (await response.json().catch(() => null)) as null | CodexRun | { error?: string };
+
+    if (!response.ok) {
+      throw new Error((body as { error?: string } | null)?.error ?? `Codex 실행 상태를 읽지 못했습니다: ${response.status}`);
+    }
+
+    const nextRun = body as CodexRun;
+    setActiveRun(nextRun);
+    setCodexRuns((current) => [nextRun, ...current.filter((run) => run.runId !== nextRun.runId)].slice(0, 12));
+    return nextRun;
+  }
+
+  async function startCodexRun(snapshot: ProjectSnapshot) {
+    const instruction = customInstruction.trim();
+
+    if (!instruction) {
+      setError("Codex에 내릴 명령을 먼저 입력하세요.");
+      return;
+    }
+
+    setIsCodexStarting(true);
+    setError("");
+    setActionMessage("");
+
+    try {
+      const response = await fetch(`/api/projects/${snapshot.id}/codex-run`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ instruction }),
+      });
+      const body = (await response.json().catch(() => null)) as null | CodexRun | { error?: string };
+
+      if (!response.ok) {
+        throw new Error((body as { error?: string } | null)?.error ?? `Codex 실행 실패: ${response.status}`);
+      }
+
+      const run = body as CodexRun;
+      setActiveRun(run);
+      setCodexRuns((current) => [run, ...current.filter((item) => item.runId !== run.runId)].slice(0, 12));
+      setActionMessage("Codex CLI 작업을 시작했습니다.");
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Unknown error");
+    } finally {
+      setIsCodexStarting(false);
+    }
+  }
+
   function generateCommandText(snapshot: ProjectSnapshot) {
     const instruction = customInstruction.trim() || "현재 오케스트레이션 문서를 기준으로 다음 작업을 진행해줘.";
     const status = getOrchestrationDoc(snapshot, "status")?.content || "STATUS.md 내용 없음";
@@ -418,7 +504,26 @@ function App() {
     setIsJournalOpen(false);
     setReports([]);
     setSelectedReportPath("");
+    setActiveRun(null);
+    setCodexRuns([]);
+    if (selected) {
+      void loadCodexRuns(selected);
+    }
   }, [selected?.id]);
+
+  React.useEffect(() => {
+    if (!selected || activeRun?.status !== "running") {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      void loadCodexRun(selected, activeRun.runId).catch((nextError) => {
+        setError(nextError instanceof Error ? nextError.message : "Unknown error");
+      });
+    }, 3000);
+
+    return () => window.clearInterval(timer);
+  }, [selected?.id, activeRun?.runId, activeRun?.status]);
 
   return (
     <main className="appShell">
@@ -744,6 +849,15 @@ function App() {
                     명령 만들기
                   </button>
                   <button
+                    className="primaryButton"
+                    type="button"
+                    onClick={() => void startCodexRun(selected)}
+                    disabled={isCodexStarting || !customInstruction.trim()}
+                  >
+                    <Terminal size={16} />
+                    {isCodexStarting ? "실행 준비 중" : "Codex 실행"}
+                  </button>
+                  <button
                     className="secondaryButton"
                     type="button"
                     onClick={() => void copyText(displayText(commandText), selected.id)}
@@ -754,6 +868,49 @@ function App() {
                   </button>
                 </div>
                 {commandText ? <pre className="commandPreview">{displayText(commandText)}</pre> : null}
+                {activeRun ? (
+                  <section className={`codexRunPanel ${activeRun.status}`}>
+                    <div className="codexRunHeader">
+                      <div>
+                        <span>Codex CLI</span>
+                        <strong>{activeRun.status === "running" ? "실행 중" : activeRun.status === "complete" ? "완료" : "실패"}</strong>
+                      </div>
+                      <button
+                        className="secondaryButton compactButton"
+                        type="button"
+                        onClick={() => void loadCodexRun(selected, activeRun.runId)}
+                      >
+                        새로고침
+                      </button>
+                    </div>
+                    <div className="codexRunMeta">
+                      <span>{activeRun.runId}</span>
+                      <span>{new Date(activeRun.startedAt).toLocaleString("ko-KR")}</span>
+                      <span>{activeRun.exitCode === null ? "exit 대기" : `exit ${activeRun.exitCode}`}</span>
+                    </div>
+                    <pre>{displayText(activeRun.lastMessage || activeRun.output || activeRun.error || "출력을 기다리는 중입니다.")}</pre>
+                  </section>
+                ) : codexRuns.length > 0 ? (
+                  <section className="codexRunPanel">
+                    <div className="codexRunHeader">
+                      <div>
+                        <span>최근 Codex CLI</span>
+                        <strong>{codexRuns[0].status}</strong>
+                      </div>
+                      <button
+                        className="secondaryButton compactButton"
+                        type="button"
+                        onClick={() => void loadCodexRun(selected, codexRuns[0].runId)}
+                      >
+                        열기
+                      </button>
+                    </div>
+                    <div className="codexRunMeta">
+                      <span>{codexRuns[0].runId}</span>
+                      <span>{new Date(codexRuns[0].startedAt).toLocaleString("ko-KR")}</span>
+                    </div>
+                  </section>
+                ) : null}
               </section>
 
               <section className="runbookPanel">

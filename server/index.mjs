@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,6 +15,7 @@ const envFile = path.join(rootDir, ".env");
 const port = Number(process.env.PORT ?? 4317);
 
 const app = express();
+const activeCodexRuns = new Map();
 
 app.use(cors());
 app.use(express.json());
@@ -61,6 +62,7 @@ const orchestrationViewerExtensions = new Set([".md", ".html", ".txt", ".json"])
 const maxScannedFiles = 2500;
 const maxTodoFileBytes = 300000;
 const largeFileThresholdBytes = 10 * 1024 * 1024;
+const codexRunTimeoutMs = 20 * 60 * 1000;
 
 const orchestrationRequiredEntries = [
   { label: "README", path: "docs/orchestration/README.md", type: "file" },
@@ -252,7 +254,7 @@ async function listOrchestrationReportFiles(projectPath) {
   const files = [];
 
   for (const entry of entries) {
-    if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== ".html") {
+    if (!entry.isFile() || entry.name.toLowerCase() === "index.html" || path.extname(entry.name).toLowerCase() !== ".html") {
       continue;
     }
 
@@ -318,6 +320,258 @@ async function appendActivity(event) {
     createdAt: new Date().toISOString(),
   };
   await fs.appendFile(activityFile, `${JSON.stringify(record)}\n`, "utf8");
+}
+
+function createRunId(date = new Date()) {
+  const stamp = date
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "")
+    .replace("T", "-");
+  const suffix = Math.random().toString(36).slice(2, 7);
+
+  return `${stamp}-${suffix}`;
+}
+
+function getCodexRunsDir(projectPath) {
+  return path.join(projectPath, "docs", "orchestration", "agent_runs");
+}
+
+function getCodexRunDir(projectPath, runId) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(runId)) {
+    throw new Error("invalid run id");
+  }
+
+  return path.join(getCodexRunsDir(projectPath), runId);
+}
+
+async function writeCodexRunStatus(runDir, status) {
+  await fs.writeFile(path.join(runDir, "status.json"), `${JSON.stringify(status, null, 2)}\n`, "utf8");
+}
+
+async function readCodexRunStatus(projectPath, runId) {
+  const runDir = getCodexRunDir(projectPath, runId);
+  const content = await fs.readFile(path.join(runDir, "status.json"), "utf8");
+  return JSON.parse(content);
+}
+
+async function reconcileCodexRunStatus(project, status) {
+  if (status.status !== "running" || activeCodexRuns.has(`${project.id}:${status.runId}`)) {
+    return status;
+  }
+
+  const runDir = getCodexRunDir(project.path, status.runId);
+  const nextStatus = {
+    ...status,
+    status: "failed",
+    finishedAt: status.finishedAt ?? new Date().toISOString(),
+    exitCode: status.exitCode ?? null,
+    error: status.error ?? "Codex run is no longer attached to the server process.",
+  };
+
+  await writeCodexRunStatus(runDir, nextStatus).catch(() => {});
+  return nextStatus;
+}
+
+async function readProjectCodexRunStatus(project, runId) {
+  const status = await readCodexRunStatus(project.path, runId);
+  return reconcileCodexRunStatus(project, status);
+}
+
+function buildCodexRunPrompt(project, instruction) {
+  const trimmedInstruction = instruction.trim();
+
+  return [
+    `${project.name} 자동 Codex 작업 지시`,
+    "",
+    "사용자 명령:",
+    trimmedInstruction || "현재 오케스트레이션 문서를 기준으로 다음 작업을 진행해줘.",
+    "",
+    "작업 시작 전 읽을 것:",
+    "- AGENTS.md",
+    "- docs/orchestration/README.md",
+    "- docs/orchestration/STATUS.md 또는 docs/orchestration/state/STATUS.md",
+    "- docs/orchestration/CURRENT_TASK.md 또는 docs/orchestration/state/CURRENT_TASK.md",
+    "- docs/orchestration/NEXT_TASKS.md 또는 docs/orchestration/state/NEXT_TASKS.md",
+    "- docs/orchestration/PROMPT_CONTEXT.md 또는 docs/orchestration/state/PROMPT_CONTEXT.md",
+    "- docs/orchestration/SCOPE_GUARD.md 또는 docs/orchestration/state/SCOPE_GUARD.md",
+    "",
+    "작업 규칙:",
+    "- 필요한 변경만 작게 진행해.",
+    "- destructive Git/filesystem 명령은 실행하지 마.",
+    "- 사용자 변경을 되돌리지 마.",
+    "- 검증 가능한 작업은 검증하고, 실패하면 원인과 다음 조치를 남겨.",
+    "- 의미 있는 작업이 끝나면 STATUS, CURRENT_TASK, NEXT_TASKS, devlog, reports를 갱신해.",
+    "- HTML 인터페이스가 있는 프로젝트는 index.html, command.html, runbook.html, reports/index.html 갱신 필요 여부를 확인해.",
+    "",
+    "완료 보고:",
+    "- 변경 파일",
+    "- 수행한 작업",
+    "- 검증 결과",
+    "- 남은 위험 또는 다음 작업",
+  ].join("\n");
+}
+
+function buildRunScript(projectPath, runDir) {
+  const promptPath = path.join(runDir, "prompt.md");
+  const outputPath = path.join(runDir, "output.log");
+  const lastMessagePath = path.join(runDir, "last_message.md");
+
+  return [
+    "$ErrorActionPreference = 'Stop'",
+    `$projectPath = ${JSON.stringify(projectPath)}`,
+    `$promptPath = ${JSON.stringify(promptPath)}`,
+    `$outputPath = ${JSON.stringify(outputPath)}`,
+    `$lastMessagePath = ${JSON.stringify(lastMessagePath)}`,
+    "Get-Content -Raw -LiteralPath $promptPath | codex exec -c 'approval_policy=\"never\"' --cd $projectPath --sandbox workspace-write --output-last-message $lastMessagePath - 2>&1 | Tee-Object -FilePath $outputPath",
+  ].join("\r\n");
+}
+
+function buildOrchestrationDashboard(targetPath) {
+  const scriptPath = path.join(rootDir, "scripts", "build-orchestration-dashboard.mjs");
+
+  return new Promise((resolve, reject) => {
+    execFile(
+      process.execPath,
+      [scriptPath, "--target", targetPath],
+      { cwd: rootDir, windowsHide: true, timeout: 30000 },
+      (error, stdout, stderr) => {
+        const result = {
+          stdout: stdout.trim(),
+          stderr: stderr.trim(),
+        };
+
+        if (error) {
+          reject(Object.assign(error, result));
+          return;
+        }
+
+        resolve(result);
+      },
+    );
+  });
+}
+
+async function startCodexRun(project, instruction) {
+  if (!(await pathExists(project.path))) {
+    throw new Error("project path does not exist");
+  }
+
+  const runId = createRunId();
+  const runsDir = getCodexRunsDir(project.path);
+  const runDir = getCodexRunDir(project.path, runId);
+  const startedAt = new Date().toISOString();
+  const prompt = buildCodexRunPrompt(project, instruction);
+  const lastMessagePath = path.join(runDir, "last_message.md");
+  const command = [
+    "codex",
+    "exec",
+    "-c",
+    'approval_policy="never"',
+    "--cd",
+    project.path,
+    "--sandbox",
+    "workspace-write",
+    "--output-last-message",
+    lastMessagePath,
+    "-",
+  ];
+
+  await fs.mkdir(runsDir, { recursive: true });
+  await fs.mkdir(runDir, { recursive: true });
+  await fs.writeFile(path.join(runDir, "prompt.md"), prompt, "utf8");
+  await fs.writeFile(path.join(runDir, "run.ps1"), buildRunScript(project.path, runDir), "utf8");
+  await fs.writeFile(path.join(runDir, "output.log"), "", "utf8");
+  await fs.writeFile(path.join(runDir, "stderr.log"), "", "utf8");
+
+  const status = {
+    runId,
+    projectId: project.id,
+    projectName: project.name,
+    status: "running",
+    startedAt,
+    finishedAt: null,
+    exitCode: null,
+    runDir,
+    promptPath: path.join(runDir, "prompt.md"),
+    outputPath: path.join(runDir, "output.log"),
+    lastMessagePath,
+    command: command.join(" "),
+  };
+
+  await writeCodexRunStatus(runDir, status);
+
+  const child = spawn(command[0], command.slice(1), {
+    cwd: project.path,
+    windowsHide: true,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  let settled = false;
+
+  const finishRun = (nextStatus) => {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    activeCodexRuns.delete(`${project.id}:${runId}`);
+    void writeCodexRunStatus(runDir, nextStatus);
+  };
+
+  const timeout = setTimeout(() => {
+    const finishedAt = new Date().toISOString();
+    const nextStatus = {
+      ...status,
+      status: "failed",
+      finishedAt,
+      exitCode: null,
+      error: `Codex run timed out after ${Math.round(codexRunTimeoutMs / 60000)} minutes`,
+    };
+    child.kill();
+    finishRun(nextStatus);
+  }, codexRunTimeoutMs);
+
+  activeCodexRuns.set(`${project.id}:${runId}`, child);
+
+  child.stdin.write(prompt);
+  child.stdin.end();
+
+  child.stdout.on("data", (chunk) => {
+    void fs.appendFile(path.join(runDir, "output.log"), chunk);
+  });
+
+  child.stderr.on("data", (chunk) => {
+    void fs.appendFile(path.join(runDir, "stderr.log"), chunk);
+    void fs.appendFile(path.join(runDir, "output.log"), chunk);
+  });
+
+  child.on("error", (error) => {
+    const finishedAt = new Date().toISOString();
+    const nextStatus = {
+      ...status,
+      status: "failed",
+      finishedAt,
+      exitCode: null,
+      error: error.message,
+    };
+    clearTimeout(timeout);
+    finishRun(nextStatus);
+  });
+
+  child.on("close", (exitCode) => {
+    clearTimeout(timeout);
+    const finishedAt = new Date().toISOString();
+    const nextStatus = {
+      ...status,
+      status: exitCode === 0 ? "complete" : "failed",
+      finishedAt,
+      exitCode,
+    };
+    finishRun(nextStatus);
+  });
+
+  await appendActivity({ type: "codex-run-started", projectId: project.id, runId });
+  return status;
 }
 
 async function readEnv() {
@@ -1351,6 +1605,38 @@ app.get("/api/projects/:id/orchestration-dashboard", async (req, res) => {
   }
 });
 
+app.post("/api/projects/:id/orchestration-dashboard", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    if (!(await pathExists(project.path))) {
+      res.status(400).json({ error: "project path does not exist" });
+      return;
+    }
+
+    if (!(await pathExists(path.join(project.path, "docs", "orchestration")))) {
+      res.status(400).json({ error: "docs/orchestration does not exist" });
+      return;
+    }
+
+    const result = await buildOrchestrationDashboard(project.path);
+    await appendActivity({ type: "orchestration-dashboard-built", projectId: project.id });
+    res.json({ built: true, ...result });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stdout: error.stdout ?? "",
+      stderr: error.stderr ?? "",
+    });
+  }
+});
+
 app.get("/api/projects/:id/orchestration-command", async (req, res) => {
   try {
     const projects = await readProjects();
@@ -1447,6 +1733,87 @@ app.get("/api/projects/:id/orchestration-report", async (req, res) => {
     res.type("html").send(html);
   } catch (error) {
     res.status(400).type("html").send(error.message);
+  }
+});
+
+app.post("/api/projects/:id/codex-run", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    const instruction = typeof req.body?.instruction === "string" ? req.body.instruction : "";
+
+    if (!instruction.trim()) {
+      res.status(400).json({ error: "instruction is required" });
+      return;
+    }
+
+    res.status(202).json(await startCodexRun(project, instruction));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/projects/:id/codex-runs", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    const runsDir = getCodexRunsDir(project.path);
+    const entries = await fs.readdir(runsDir, { withFileTypes: true }).catch(() => []);
+    const runs = [];
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      const status = await readProjectCodexRunStatus(project, entry.name).catch(() => null);
+      if (status) {
+        runs.push(status);
+      }
+    }
+
+    runs.sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
+    res.json(runs.slice(0, 12));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/projects/:id/codex-runs/:runId", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    const status = await readProjectCodexRunStatus(project, req.params.runId);
+    const output = await fs.readFile(path.join(getCodexRunDir(project.path, req.params.runId), "output.log"), "utf8").catch(() => "");
+    const lastMessage = await fs
+      .readFile(path.join(getCodexRunDir(project.path, req.params.runId), "last_message.md"), "utf8")
+      .catch(() => "");
+
+    res.json({
+      ...status,
+      output: output.slice(-12000),
+      lastMessage,
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
   }
 });
 

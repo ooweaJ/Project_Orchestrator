@@ -33,32 +33,36 @@
       <div class="grid">
         <article>
           <h2>이번에 끝낼 작업</h2>
-          <div class="markdown"><p>Promote the LETHE HTML format into a reusable template and add report browsing.</p>
+          <div class="markdown"><p>Run Codex CLI directly from the homepage command panel.</p>
 <ul>
-<li>Treat the current LETHE HTML pages as the source format for reusable project dashboard templates.</li>
-<li>Add <code>HTML_INTERFACE_TEMPLATE.md</code> so other projects can follow the same visual and structural rules.</li>
-<li>Update the migration prompt so it references the LETHE-derived HTML template.</li>
-<li>Generate <code>reports/index.html</code> from <code>docs/orchestration/reports/</code>.</li>
-<li>Add a homepage <code>개발일지</code> button that lists report HTML files and previews the selected report as a card.</li>
+<li>Let the user type an instruction in the selected project&#039;s command panel.</li>
+<li>Start a non-interactive <code>codex exec</code> run from the selected project&#039;s local folder.</li>
+<li>Store prompt, output, status, and final message as local run artifacts.</li>
+<li>Show run status and the latest Codex response in the homepage.</li>
 </ul>
 <ul>
-<li>The template explains <code>index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and <code>reports/index.html</code>.</li>
-<li>The migration prompt references the template and explains the root-layout compatibility with current LETHE.</li>
-<li>The homepage can list <code>docs/orchestration/reports/*.html</code> for the selected project.</li>
-<li>Clicking a report opens it inside the dashboard as an HTML card.</li>
-<li>The generator creates a LETHE-style project dashboard and report index for the current project.</li>
+<li>The command panel has a <code>Codex 실행</code> action next to prompt generation/copy.</li>
+<li>The backend exposes APIs to start a run, list recent runs, and read one run.</li>
+<li>The run command uses <code>approval_policy=&quot;never&quot;</code> with <code>workspace-write</code> sandbox mode.</li>
+<li>Runs write artifacts under <code>docs/orchestration/agent_runs/</code>.</li>
+<li><code>agent_runs/</code> is ignored by Git.</li>
+<li>A short no-edit verification run completes and returns a final message in the UI/API.</li>
 </ul></div>
         </article>
         <article>
           <h2>다음 후보</h2>
           <div class="markdown"><ul>
+<li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
+</ul>
+<p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
+<ul>
 <li>Apply the LETHE-derived HTML template to one more active project.</li>
 </ul>
 <p>   - Verify: the project has dashboard, command, runbook, and report-list pages with project-specific content.</p>
 <ul>
-<li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
+<li>Add Codex run controls for cancel/retry/open artifact folder.</li>
 </ul>
-<p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
+<p>   - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</p>
 <ul>
 <li>Decide the report cadence for <code>reports/</code>.</li>
 </ul>
@@ -66,11 +70,7 @@
 <ul>
 <li>Add a scaffold action for missing orchestration files.</li>
 </ul>
-<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p>
-<ul>
-<li>Validate real project paths.</li>
-</ul>
-<p>   - Verify: snapshots succeed for real LETHE and SoulLike paths while portfolio mode hides sensitive details.</p></div>
+<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p></div>
         </article>
       </div>
     </main>

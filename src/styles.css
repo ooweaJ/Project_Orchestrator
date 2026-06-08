@@ -764,6 +764,81 @@ h3 {
   background: #f2f5ef;
 }
 
+.codexRunPanel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.codexRunPanel.running {
+  border-color: #cfe2ff;
+  background: #f3f8ff;
+}
+
+.codexRunPanel.complete {
+  border-color: #c9e8d3;
+  background: #f7fcf8;
+}
+
+.codexRunPanel.failed {
+  border-color: #f0c4bb;
+  background: #fff7f5;
+}
+
+.codexRunHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.codexRunHeader div {
+  display: grid;
+  gap: 3px;
+}
+
+.codexRunHeader span,
+.codexRunMeta span {
+  color: #697873;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.codexRunHeader strong {
+  font-size: 0.98rem;
+}
+
+.codexRunMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.codexRunMeta span {
+  min-height: 24px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #edf2ec;
+}
+
+.codexRunPanel pre {
+  overflow: auto;
+  max-height: 340px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f2f5ef;
+  color: #26342f;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .commandInput {
   display: grid;
   gap: 7px;
