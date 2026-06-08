@@ -31,37 +31,36 @@
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>LETHE의 새 오케스트레이션 구조인 <code>interface/</code>와 <code>state/</code>를 홈페이지에서 바로 읽도록 바꿨습니다.</li>
-          <li>LETHE 작업 완료 파이프라인이 Project Orchestrator에 보고 요청을 보내면, 오케스트레이터가 중앙 Discord 웹훅으로 전송하는 흐름을 추가했습니다.</li>
+          <li><code>docs/orchestration/</code>을 재사용 가능한 개인 개발 문서 플러그인으로 정리했습니다.</li>
+          <li>홈페이지에서 선택 프로젝트에 플러그인 기본 구조를 생성하거나, 기존 프로젝트용 마이그레이션 MD만 생성할 수 있게 했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>대시보드, 다음 지시, 런북 iframe은 <code>docs/orchestration/interface/*.html</code>을 우선합니다.</li>
-          <li>상태 문서 스캔은 <code>docs/orchestration/state/*.md</code>를 우선합니다.</li>
-          <li>개발일지는 <code>reports/YYYYMMDD/index.html</code>과 <code>reports/YYYYMMDD/units/*.html</code>까지 재귀로 표시합니다.</li>
-          <li><code>POST /api/orchestration/discord-report</code>는 LETHE의 <code>projectId</code>, <code>reportPath</code>, 또는 보고서 본문을 받아 embed와 HTML 첨부로 변환합니다.</li>
+          <li>설치 스크립트는 <code>interface/</code> HTML, <code>state/</code> Markdown, <code>reports/</code>, <code>templates/</code> 구조를 만듭니다.</li>
+          <li>개발일지 목록은 날짜별 <code>reports/YYYYMMDD/index.html</code>만 우선 표시합니다.</li>
+          <li>unit HTML 보고서는 Discord 첨부나 상세 링크용으로 계속 사용할 수 있습니다.</li>
+          <li>마이그레이션/AGENTS/HTML 템플릿은 새 플러그인 개념과 중앙 Discord intake 흐름을 설명하도록 갱신했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>결과</h2>
         <ul>
-          <li><code>npm run build</code>와 <code>npm run orchestration:dashboard</code>가 통과했습니다.</li>
-          <li>LETHE 대시보드 API가 <code>interface/index.html</code>을 반환했습니다.</li>
-          <li>LETHE 스냅샷이 <code>state/*.md</code> 문서를 정상 인식했습니다.</li>
-          <li>LETHE가 호출할 intake API dry-run이 최신 unit HTML 보고서를 embed와 첨부로 변환했습니다.</li>
+          <li>다른 프로젝트에서도 홈페이지 버튼이나 설치 명령으로 동일한 개발 문서 플러그인 구조를 시작할 수 있습니다.</li>
+          <li>LETHE처럼 이미 규약을 적용한 프로젝트는 날짜별 개발일지 중심으로 더 깔끔하게 표시됩니다.</li>
+          <li>Discord 웹훅은 계속 Project Orchestrator 중앙 <code>.env</code>가 담당합니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../orchestration/interface/index.html">오케스트레이션 HTML 대시보드</a></li>
-          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
-          <li><a href="./2026-06-08/10-interface-state-layout-central-discord.html">작업 단위 보고서</a></li>
+          <li><a href="../orchestration/interface/index.html">프로젝트 대시보드</a></li>
+          <li><a href="./2026-06-08/11-development-docs-plugin-install-flow.html">작업 단위 보고서</a></li>
+          <li><a href="../orchestration/reports/20260608/index.html">오늘 개발일지</a></li>
         </ul>
       </section>
     </main>

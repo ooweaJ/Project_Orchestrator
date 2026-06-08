@@ -1,19 +1,24 @@
-# Orchestration Interface
+# Development Docs Plugin
 
-This folder is the standard handoff surface for Codex and other AI agents working on this project.
+This folder is the standard development-docs plugin for Codex, the user, and other AI agents working on this project.
+
+Markdown is the AI source of truth. HTML is the human review surface.
 
 ## Required Core
 
-- `PROJECT_BRIEF.md`: what the project is, goals, stack, and portfolio angle
-- `STATUS.md`: whole-project state, latest verification, blockers, and next major step
-- `CURRENT_TASK.md`: the active work unit and what counts as done
-- `NEXT_TASKS.md`: the top upcoming task candidates, usually limited to five
-- `PROMPT_CONTEXT.md`: stable context that Codex should receive often
-- `RUNBOOK.md`: concrete commands and operating procedures
-- `SCOPE_GUARD.md`: explicit non-goals and scope limits
-- `DECISION_LOG.md`: index of important technical and AI-direction decisions
+- `interface/index.html`: human-facing project dashboard
+- `interface/command.html`: human-facing next instruction block
+- `interface/runbook.html`: human-facing operating procedures
+- `state/PROJECT_BRIEF.md`: what the project is, goals, stack, and portfolio angle
+- `state/STATUS.md`: whole-project state, latest verification, blockers, and next major step
+- `state/CURRENT_TASK.md`: the active work unit and what counts as done
+- `state/NEXT_TASKS.md`: the top upcoming task candidates, usually limited to five
+- `state/PROMPT_CONTEXT.md`: stable context that Codex should receive often
+- `state/RUNBOOK.md`: concrete commands and operating procedures
+- `state/SCOPE_GUARD.md`: explicit non-goals and scope limits
+- `state/DECISION_LOG.md`: index of important technical and AI-direction decisions
 - `devlog/`: internal work traces
-- `reports/`: user-facing and portfolio-facing reports
+- `reports/`: user-facing and portfolio-facing reports. Prefer date journals at `reports/YYYYMMDD/index.html`.
 
 ## Recommended Extensions
 
@@ -34,4 +39,8 @@ NEXT_TASKS.md
 SCOPE_GUARD.md
 ```
 
-Read `RUNBOOK.md` when commands, verification, reporting, packaging, or deployment are involved.
+In the split layout, read those files from `state/`.
+
+Read `state/RUNBOOK.md` when commands, verification, reporting, packaging, or deployment are involved.
+
+After meaningful work, update state Markdown, append `devlog/YYYY-MM-DD.md`, update `reports/YYYYMMDD/index.html`, and refresh `interface/*.html` if the project has generated HTML.

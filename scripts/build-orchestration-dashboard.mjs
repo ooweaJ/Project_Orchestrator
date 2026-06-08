@@ -202,12 +202,12 @@ async function listReportFiles(directory, limit = 12) {
         continue;
       }
 
-      if (!entry.isFile() || ![".html", ".md"].includes(path.extname(entry.name).toLowerCase())) {
+      if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== ".html") {
         continue;
       }
 
       const relativePath = path.relative(directory, filePath).replace(/\\/g, "/");
-      if (relativePath.toLowerCase() === "index.html" || relativePath.toLowerCase() === "readme.md") {
+      if (relativePath.toLowerCase() === "index.html" || !relativePath.toLowerCase().endsWith("/index.html")) {
         continue;
       }
 
@@ -217,17 +217,14 @@ async function listReportFiles(directory, limit = 12) {
       }
 
       const content = await readText(filePath);
-      const title =
-        path.extname(entry.name).toLowerCase() === ".html"
-          ? firstHtmlTitle(content, humanizeFileName(entry.name))
-          : firstHeading(content, humanizeFileName(entry.name));
+      const title = firstHtmlTitle(content, humanizeFileName(path.dirname(relativePath)));
 
       files.push({
         name: entry.name,
         path: relativePath,
         title,
         modifiedAt: stats.mtime,
-        isHtml: path.extname(entry.name).toLowerCase() === ".html",
+        isHtml: true,
       });
     }
   }
@@ -403,15 +400,15 @@ async function buildDashboard(targetRoot) {
   const commandOutputPath = path.join(interfaceDir, "command.html");
   const runbookOutputPath = path.join(interfaceDir, "runbook.html");
   const reportsIndexOutputPath = path.join(reportsDir, "index.html");
-  const latestReport = reports.find((report) => report.name !== "index.html");
-  const reportItems = reports.filter((report) => report.name !== "index.html");
+  const latestReport = reports[0] ?? null;
+  const reportItems = reports;
   const reportListHtml =
     reportItems.length > 0
       ? `<ul>${reportItems
           .map(
             (report) => `<li>
             <a href="./${encodeRelativeHref(report.path)}">${escapeHtml(report.title)}</a>
-            <span class="tag">${report.isHtml ? "HTML" : "Markdown"}</span>
+            <span class="tag">일지</span>
             <small>${report.modifiedAt.toLocaleString("ko-KR")}</small>
           </li>`,
           )
@@ -724,7 +721,7 @@ async function buildDashboard(targetRoot) {
       <p class="eyebrow">${escapeHtml(projectName)} 개발일지</p>
       <h1>보고서 목록</h1>
       <p>
-        작업 단위별 사용자 보고서와 포트폴리오용 요약을 모아보는 HTML 목록입니다.
+        날짜별 사용자 개발일지를 모아보는 HTML 목록입니다.
         Markdown/state가 원본이고 HTML은 사람이 빠르게 확인하기 위한 진행 기록입니다.
       </p>
 
@@ -736,7 +733,7 @@ async function buildDashboard(targetRoot) {
         ${reportListHtml}
       </section>
 
-      <footer>이 목록은 <code>docs/orchestration/reports/</code>의 HTML/Markdown 보고서를 기준으로 생성됩니다.</footer>
+      <footer>이 목록은 <code>docs/orchestration/reports/YYYYMMDD/index.html</code> 날짜 개발일지를 기준으로 생성됩니다.</footer>
     </main>
   </body>
 </html>

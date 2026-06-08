@@ -161,3 +161,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/10-interface-state-layout-central-discord.md`
 - Summary: Updated the orchestrator to read `interface/` HTML and `state/` Markdown first, list nested report HTML, and send selected/latest project reports to Discord through the central orchestrator webhook flow.
 - Verification: `npm run build`, `npm run orchestration:dashboard`, LETHE interface APIs, nested report listing, Discord dry-run, LETHE state snapshot.
+
+#### Development Docs Plugin Install Flow
+
+- File: `docs/ai-collaboration/2026-06-08/11-development-docs-plugin-install-flow.md`
+- Summary: Reframed the shared orchestration folder as a reusable personal development-docs plugin, added homepage install/migration actions, and made date-folder `reports/YYYYMMDD/index.html` pages the primary development-journal surface.
+- Verification: `npm run build`, `npm run orchestration:install -- --target . --dry-run`, `npm run orchestration:dashboard`, plugin/migration API dry-runs, LETHE report-list API, central Discord explicit report-path dry-run.

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2026-06-08 개발일지</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(980px, 100%); margin: 0 auto; padding: 36px 22px; }
+      h1 { margin: 0; font-size: 34px; line-height: 1.15; }
+      h2 { margin: 0 0 10px; font-size: 19px; }
+      section { margin: 14px 0; padding: 18px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      p, li { color: #40524b; line-height: 1.7; }
+      ul { margin: 0; padding-left: 20px; }
+      code { font-family: "SFMono-Regular", Consolas, monospace; }
+      a { color: #1f6b4d; font-weight: 800; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .status { display: inline-flex; align-items: center; min-height: 28px; margin: 10px 0 10px; padding: 0 10px; border-radius: 999px; color: #1f6b4d; background: #dff2e5; font-size: 13px; font-weight: 900; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>2026-06-08 개발일지</h1>
+      <span class="status">AI Project Orchestrator</span>
+
+      <section>
+        <h2>오늘의 흐름</h2>
+        <p>
+          Project Orchestrator를 단순 프로젝트 스캐너에서, 여러 프로젝트에 설치할 수 있는 개인 개발 문서 플러그인
+          관리 도구로 확장했습니다. 핵심은 <code>interface/</code> HTML, <code>state/</code> Markdown, 날짜별
+          <code>reports/YYYYMMDD/index.html</code>, 중앙 Discord intake입니다.
+        </p>
+      </section>
+
+      <section>
+        <h2>작업 기록</h2>
+        <ul>
+          <li>
+            <a href="../2026-06-08-09-homepage-codex-cli-runner.html">홈페이지 Codex CLI 실행</a>
+            - 선택 프로젝트에 명령을 보내고 실행 상태를 볼 수 있게 했습니다.
+          </li>
+          <li>
+            <a href="../2026-06-08-10-interface-state-layout-central-discord.html">interface/state 구조와 중앙 Discord</a>
+            - LETHE의 새 구조를 읽고, 완료 보고를 중앙 Discord intake로 받는 흐름을 추가했습니다.
+          </li>
+          <li>
+            <a href="../../../reports/2026-06-08/11-development-docs-plugin-install-flow.html">개발 문서 플러그인 설치 흐름</a>
+            - 홈페이지에서 플러그인 구조 생성과 마이그레이션 MD 생성을 시작할 수 있게 했습니다.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>다음 판단</h2>
+        <ul>
+          <li>LETHE 쪽에 <code>POST /api/orchestration/discord-report</code>를 호출하는 보고 전송 스크립트를 추가합니다.</li>
+          <li>날짜별 개발일지 자동 생성기를 추가해 unit 보고서를 하루 index로 자동 모읍니다.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

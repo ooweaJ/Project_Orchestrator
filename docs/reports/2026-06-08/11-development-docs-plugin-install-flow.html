@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>개발 문서 플러그인 설치 흐름 보고서</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(980px, 100%); margin: 0 auto; padding: 36px 22px; }
+      h1 { margin: 0; font-size: 34px; line-height: 1.15; }
+      h2 { margin: 0 0 12px; font-size: 19px; }
+      section { margin-bottom: 14px; padding: 18px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      ul { margin: 0; padding-left: 20px; line-height: 1.75; }
+      code { font-family: "SFMono-Regular", Consolas, monospace; }
+      a { color: #1f6b4d; font-weight: 800; text-decoration: none; }
+      .status { display: inline-flex; align-items: center; min-height: 28px; margin: 10px 0 22px; padding: 0 10px; border-radius: 999px; color: #1f6b4d; background: #dff2e5; font-size: 13px; font-weight: 900; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>개발 문서 플러그인 설치 흐름</h1>
+      <span class="status">2026-06-08 작업 완료</span>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li><code>docs/orchestration/</code>을 단순 인터페이스가 아니라 재사용 가능한 개인 개발 문서 플러그인으로 정리했습니다.</li>
+          <li>홈페이지에서 선택한 프로젝트에 기본 구조를 생성하거나, 기존 프로젝트용 마이그레이션 MD만 만들 수 있게 했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li><code>문서 플러그인</code> 버튼은 선택 프로젝트에 <code>interface/</code>, <code>state/</code>, <code>reports/</code>, <code>templates/</code> 기본 구조를 생성합니다.</li>
+          <li><code>마이그레이션 MD</code> 버튼은 기존 문서를 새 규약으로 옮기기 위한 <code>MIGRATION_PROMPT.md</code>만 생성합니다.</li>
+          <li>개발일지 목록은 날짜별 <code>reports/YYYYMMDD/index.html</code>만 우선 표시하도록 바꿨습니다.</li>
+          <li>세부 unit HTML은 Discord 첨부나 상세 링크용으로 유지됩니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li>다른 프로젝트도 Project Orchestrator 홈페이지에서 기본 개발 문서 플러그인을 만들 수 있는 흐름이 생겼습니다.</li>
+          <li>LETHE처럼 이미 규약을 적용한 프로젝트는 날짜별 개발일지 중심으로 더 깔끔하게 표시됩니다.</li>
+          <li>중앙 Discord 전송은 계속 Project Orchestrator가 담당하고, 프로젝트는 보고서 경로나 payload만 넘기는 구조를 유지합니다.</li>
+          <li><code>npm run build</code>, 설치 dry-run, 대시보드 생성, API dry-run 검증이 통과했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>참고 문서</h2>
+        <ul>
+          <li><a href="../../ai-collaboration/2026-06-08/11-development-docs-plugin-install-flow.md">상세 작업 기록</a></li>
+          <li><a href="../../orchestration/templates/EXISTING_PROJECT_MIGRATION_PROMPT.md">마이그레이션 프롬프트 템플릿</a></li>
+          <li><a href="../../orchestration/templates/HTML_INTERFACE_TEMPLATE.md">HTML 인터페이스 템플릿</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

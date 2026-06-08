@@ -22,9 +22,14 @@
 - The homepage command panel can now start a non-interactive Codex CLI run for the selected project and show run status, exit code, output, and the final Codex message.
 - Codex run artifacts are written under `docs/orchestration/agent_runs/` and ignored by Git.
 - The dashboard now reads the newer orchestration layout first: human HTML from `docs/orchestration/interface/` and AI state Markdown from `docs/orchestration/state/`.
-- The development-journal browser now reads nested report HTML such as `docs/orchestration/reports/YYYYMMDD/index.html` and `docs/orchestration/reports/YYYYMMDD/units/*.html`.
+- The development-journal browser now reads date journal pages such as `docs/orchestration/reports/YYYYMMDD/index.html`.
+- Unit reports under `docs/orchestration/reports/YYYYMMDD/units/*.html` remain valid explicit report paths for Discord attachments and deep links, but they are not the main homepage journal list.
 - Project Discord reports can now be sent centrally from AI Project Orchestrator using the selected or latest orchestration HTML report as the embed source and HTML attachment.
 - `POST /api/orchestration/discord-report` now acts as a local intake endpoint for registered projects such as LETHE to request central Discord delivery after a work unit finishes.
+- The shared `docs/orchestration/` standard is now described as a reusable personal development-docs plugin rather than only an interface.
+- The homepage now has selected-project actions for `문서 플러그인` scaffold creation and `마이그레이션 MD` creation.
+- `npm run orchestration:install` now scaffolds the split plugin layout: `interface/` for HTML, `state/` for Markdown, and copied templates including `HTML_INTERFACE_TEMPLATE.md`.
+- Migration and HTML templates now document date-folder report journals, optional `units/` pages, and central Project Orchestrator Discord intake.
 
 ## Latest Verification
 
@@ -59,6 +64,15 @@
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord embed payload and HTML attachment metadata for LETHE's latest unit report.
 - `GET /api/projects/lethe-prototype/snapshot` returned document paths under `docs/orchestration/state/*.md` with `hasContent: true`.
 - `POST /api/orchestration/discord-report` with `projectId: lethe-prototype`, a LETHE unit `reportPath`, and `dryRun: true` returned the expected Discord embed payload and attachment metadata.
+- `npm run build` passed after adding the homepage plugin install and migration prompt actions.
+- `npm run orchestration:install -- --target . --dry-run` passed and showed the split `state/` files that would be created for a target missing them.
+- `npm run orchestration:dashboard` regenerated interface pages and `docs/orchestration/reports/index.html`.
+- `GET /api/projects/lethe-prototype/orchestration-reports` returned only LETHE date journal pages such as `20260608/index.html`.
+- `GET /api/projects/project-orchestrator/orchestration-reports` returned this project's `20260608/index.html` date journal.
+- `POST /api/projects/project-orchestrator/dev-doc-plugin/install` with `dryRun: true` returned scaffold output without writing files.
+- `POST /api/projects/project-orchestrator/dev-doc-plugin/migration-prompt` with `dryRun: true` returned `docs/orchestration/MIGRATION_PROMPT.md` as the would-be output path.
+- `POST /api/orchestration/discord-report` with LETHE `projectId`, explicit unit `reportPath`, and `dryRun: true` still returned embed payload and HTML attachment metadata.
+- Generated `docs/orchestration/reports/index.html` contains the `20260608/index.html` daily journal link.
 
 ## Blockers
 
@@ -67,4 +81,4 @@
 
 ## Next Major Step
 
-Add cancel/retry controls for Codex runs, then apply the `interface/` + `state/` orchestration layout to another active project.
+Add a LETHE-side report dispatch script or npm command that calls Project Orchestrator's central Discord intake after report generation.

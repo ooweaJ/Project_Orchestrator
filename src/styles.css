@@ -464,6 +464,13 @@ h3 {
   gap: 12px;
 }
 
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .cardHeader h3 {
   font-size: 1.05rem;
 }

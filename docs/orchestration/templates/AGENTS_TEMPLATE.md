@@ -1,6 +1,6 @@
 # AGENTS.md Template
 
-Use this template as a starting point for projects that adopt the orchestration interface. Customize project-specific sections before use.
+Use this template as a starting point for projects that adopt the personal development-docs plugin. Customize project-specific sections before use.
 
 ## Project Mission
 
@@ -17,19 +17,22 @@ Use this template as a starting point for projects that adopt the orchestration 
 - Before editing files, state what will be edited and why.
 - After implementation, report what changed, how it was verified, and what should happen next.
 
-## Orchestration Documents
+## Development Docs Plugin
 
-Prefer these handoff documents:
+Before meaningful work, prefer these handoff documents:
 
 - `docs/orchestration/README.md`
-- `docs/orchestration/PROJECT_BRIEF.md`
-- `docs/orchestration/STATUS.md`
-- `docs/orchestration/CURRENT_TASK.md`
-- `docs/orchestration/NEXT_TASKS.md`
-- `docs/orchestration/PROMPT_CONTEXT.md`
-- `docs/orchestration/RUNBOOK.md`
-- `docs/orchestration/SCOPE_GUARD.md`
-- `docs/orchestration/DECISION_LOG.md`
+- `docs/orchestration/state/PROJECT_BRIEF.md`
+- `docs/orchestration/state/STATUS.md`
+- `docs/orchestration/state/CURRENT_TASK.md`
+- `docs/orchestration/state/NEXT_TASKS.md`
+- `docs/orchestration/state/PROMPT_CONTEXT.md`
+- `docs/orchestration/state/RUNBOOK.md`
+- `docs/orchestration/state/SCOPE_GUARD.md`
+- `docs/orchestration/state/DECISION_LOG.md`
+- `docs/orchestration/interface/index.html`
+- `docs/orchestration/interface/command.html`
+- `docs/orchestration/interface/runbook.html`
 - `docs/orchestration/devlog/`
 - `docs/orchestration/reports/`
 
@@ -39,6 +42,15 @@ Recommended extensions:
 - `docs/orchestration/review_responses/`
 - `docs/orchestration/evidence/`
 - `docs/orchestration/templates/`
+
+After meaningful work:
+
+- Update the relevant `docs/orchestration/state/*.md` files.
+- Append internal continuity notes to `docs/orchestration/devlog/YYYY-MM-DD.md`.
+- Update the user-facing daily journal at `docs/orchestration/reports/YYYYMMDD/index.html`.
+- Put optional detailed report pages under `docs/orchestration/reports/YYYYMMDD/units/`.
+- Regenerate or update `docs/orchestration/interface/*.html` when state changes.
+- If Discord notification is needed, submit the report to Project Orchestrator's central Discord intake instead of storing a project-specific webhook by default.
 
 ## Command Rules
 

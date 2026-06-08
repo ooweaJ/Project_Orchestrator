@@ -2,25 +2,25 @@
 
 ## Task
 
-Provide a central Discord report intake API for finished project work.
+Turn the orchestration interface into a reusable personal development-docs plugin.
 
 ## Goal
 
-- Read human-facing HTML from `docs/orchestration/interface/`.
-- Read AI-facing state Markdown from `docs/orchestration/state/`.
-- Keep compatibility with the older root-level `docs/orchestration/index.html`, `command.html`, `runbook.html`, and root Markdown files.
-- Show nested report HTML from `docs/orchestration/reports/YYYYMMDD/` and `units/`.
-- Let LETHE or another registered project call AI Project Orchestrator when work is finished.
-- Let AI Project Orchestrator read the submitted report path or report body and send it to Discord using the central `.env` webhook.
+- Treat `docs/orchestration/` as the installable development-docs plugin contract for other projects.
+- Let the homepage create the plugin structure for a selected project.
+- Let the homepage create a migration Markdown prompt for an existing project without forcing a full scaffold.
+- Make the development-journal browser read only date journal pages such as `reports/YYYYMMDD/index.html`.
+- Keep explicit unit report paths available for central Discord intake and attachments.
+- Update migration/template docs so LETHE and other projects can adopt the same standard.
 
 ## Done Criteria
 
-- LETHE dashboard, command, and runbook APIs return the files under `interface/`.
-- LETHE snapshot document summaries resolve to `state/*.md`.
-- The report browser lists nested `reports/YYYYMMDD/units/*.html` files.
-- `POST /api/orchestration/discord-report` accepts a registered project id/name/path and a report path/body.
-- Discord dry-run for LETHE uses the submitted unit HTML report and returns both embed payload and attachment metadata.
-- The dashboard generator writes new HTML to `docs/orchestration/interface/`.
+- Homepage has `문서 플러그인` and `마이그레이션 MD` actions for the selected project.
+- Install action calls the backend scaffold route and refreshes the embedded project interface.
+- Migration action writes only `docs/orchestration/MIGRATION_PROMPT.md` unless it already exists.
+- Report browser and generated `reports/index.html` list date folder `index.html` pages first, not every unit report.
+- Explicit `reportPath` still works for `POST /api/orchestration/discord-report`.
+- Templates describe the plugin, `interface/`, `state/`, date journal pages, optional `units/`, and central Discord intake.
 
 ## Related Files
 
@@ -34,10 +34,9 @@ Provide a central Discord report intake API for finished project work.
 ## Verification
 
 - `npm run build`
+- `npm run orchestration:install -- --target . --dry-run`
 - `npm run orchestration:dashboard`
-- `GET /api/projects/lethe-prototype/orchestration-dashboard`
-- `GET /api/projects/lethe-prototype/orchestration-command`
 - `GET /api/projects/lethe-prototype/orchestration-reports`
-- `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true`
+- `POST /api/projects/project-orchestrator/dev-doc-plugin/install` with `dryRun: true`
+- `POST /api/projects/project-orchestrator/dev-doc-plugin/migration-prompt` with `dryRun: true`
 - `POST /api/orchestration/discord-report` with `projectId`, `reportPath`, and `dryRun: true`
-- `GET /api/projects/lethe-prototype/snapshot`

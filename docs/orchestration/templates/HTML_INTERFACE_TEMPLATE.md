@@ -1,24 +1,28 @@
 # HTML Interface Template
 
-Use this template as the human-facing format contract for project orchestration HTML.
+Use this template as the human-facing format contract for the personal development-docs plugin HTML.
 
 This format is based on the LETHE project dashboard. Other projects should keep the same structure and visual density, but fill the content from their own orchestration state and reports.
 
 ## Interface Pages
 
-Place generated or maintained HTML under `docs/orchestration/`.
+Place generated or maintained HTML under `docs/orchestration/interface/`.
 
 ```text
 docs/orchestration/
-  index.html
-  command.html
-  runbook.html
+  interface/
+    index.html
+    command.html
+    runbook.html
   reports/
     index.html
-    YYYY-MM-DD-NN-slug.html
+    YYYYMMDD/
+      index.html
+      units/
+        YYYY-MM-DD-NN-slug.html
 ```
 
-If a project has adopted the newer split layout, the same page roles may live under `docs/orchestration/interface/`. Keep page roles identical.
+Older projects may still have root-level `docs/orchestration/index.html`, `command.html`, and `runbook.html`. New projects should use the split `interface/` and `state/` layout.
 
 ## index.html - Project Dashboard
 
@@ -114,14 +118,19 @@ Reports can be daily, commit-based, or work-unit based. The recommended default 
 ```text
 docs/orchestration/reports/
   index.html
-  2026-06-08-01-short-slug.html
-  2026-06-08-02-short-slug.html
+  20260608/
+    index.html
+    units/
+      2026-06-08-01-short-slug.html
 ```
+
+The host Project Orchestrator dashboard should read date folder `index.html` pages only, such as `reports/20260608/index.html`. Files under `units/` are detail pages or Discord attachments and should be reachable from the date page, but they should not be the primary journal list.
 
 ## Source Relationship
 
 - AI reads Markdown/state.
 - People open HTML.
 - HTML should be regenerated after meaningful state/report changes.
+- The daily report page is the normal human review surface.
+- Project Orchestrator can use a project's report path or structured payload to send the shared Discord summary and HTML attachment.
 - Do not let HTML become the only source of truth unless the project explicitly chooses that.
-

@@ -72,8 +72,11 @@ Completed orchestration improvements:
 - The homepage command panel can start a non-interactive Codex CLI run for the selected project.
 - Codex run APIs store local prompt/output/status/final-message artifacts under `docs/orchestration/agent_runs/`, which is ignored by Git.
 - Orchestration readers now prefer the newer `docs/orchestration/interface/` HTML layout and `docs/orchestration/state/` Markdown layout, with root-level compatibility fallback.
-- The development-journal browser now supports nested report HTML under `docs/orchestration/reports/YYYYMMDD/` and `units/`.
+- The development-journal browser now lists date-folder pages such as `docs/orchestration/reports/YYYYMMDD/index.html` as the primary journal surface.
+- Unit report HTML under `docs/orchestration/reports/YYYYMMDD/units/` remains usable for explicit Discord attachments and drill-down links.
 - Project Discord reports can now be submitted to `POST /api/orchestration/discord-report` by a registered project pipeline, then sent centrally from AI Project Orchestrator using the orchestrator `.env` webhook and shared report format.
+- The shared `docs/orchestration/` system is now treated as a reusable personal development-docs plugin.
+- The homepage can scaffold the selected project's plugin structure or create only a migration Markdown prompt for active existing projects.
 
 Completed dashboard localization and readability improvements:
 

@@ -328,7 +328,7 @@ async function listOrchestrationReportFiles(projectPath) {
 
       const relativePath = path.relative(reportsDir, fullPath).replace(/\\/g, "/");
 
-      if (relativePath.toLowerCase() === "index.html") {
+      if (relativePath.toLowerCase() === "index.html" || !relativePath.toLowerCase().endsWith("/index.html")) {
         continue;
       }
 
@@ -351,7 +351,7 @@ async function listOrchestrationReportFiles(projectPath) {
         title,
         modifiedAt: stats.mtime.toISOString(),
         sizeBytes: stats.size,
-        isUnit: relativePath.split("/").includes("units"),
+        isDailyIndex: true,
       });
     }
   }
@@ -361,7 +361,7 @@ async function listOrchestrationReportFiles(projectPath) {
 }
 
 function getPreferredDiscordReport(reports) {
-  return reports.find((report) => report.isUnit) ?? reports[0] ?? null;
+  return reports[0] ?? null;
 }
 
 function resolveOrchestrationReportPath(projectPath, requestedPath) {
@@ -482,8 +482,8 @@ function buildCodexRunPrompt(project, instruction) {
     "- destructive Git/filesystem 명령은 실행하지 마.",
     "- 사용자 변경을 되돌리지 마.",
     "- 검증 가능한 작업은 검증하고, 실패하면 원인과 다음 조치를 남겨.",
-    "- 의미 있는 작업이 끝나면 STATUS, CURRENT_TASK, NEXT_TASKS, devlog, reports를 갱신해.",
-    "- HTML 인터페이스가 있는 프로젝트는 index.html, command.html, runbook.html, reports/index.html 갱신 필요 여부를 확인해.",
+    "- 의미 있는 작업이 끝나면 state 문서, devlog, reports/YYYYMMDD/index.html을 갱신해.",
+    "- HTML 인터페이스가 있는 프로젝트는 interface/index.html, interface/command.html, interface/runbook.html, reports/index.html 갱신 필요 여부를 확인해.",
     "",
     "완료 보고:",
     "- 변경 파일",
@@ -531,6 +531,79 @@ function buildOrchestrationDashboard(targetPath) {
       },
     );
   });
+}
+
+function installDevDocsPlugin(targetPath, { dryRun = false, withAgents = false } = {}) {
+  const scriptPath = path.join(rootDir, "scripts", "install-orchestration.mjs");
+  const args = [scriptPath, "--target", targetPath];
+
+  if (dryRun) {
+    args.push("--dry-run");
+  }
+
+  if (withAgents) {
+    args.push("--with-agents");
+  }
+
+  return new Promise((resolve, reject) => {
+    execFile(process.execPath, args, { cwd: rootDir, windowsHide: true, timeout: 30000 }, (error, stdout, stderr) => {
+      const result = {
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+      };
+
+      if (error) {
+        reject(Object.assign(error, result));
+        return;
+      }
+
+      resolve(result);
+    });
+  });
+}
+
+async function createMigrationPromptFile(projectPath, { overwrite = false, dryRun = false } = {}) {
+  const templatePath = path.join(rootDir, "docs", "orchestration", "templates", "EXISTING_PROJECT_MIGRATION_PROMPT.md");
+  const targetDir = path.join(projectPath, "docs", "orchestration");
+  const targetPath = path.join(targetDir, "MIGRATION_PROMPT.md");
+  const exists = await pathExists(targetPath);
+  const relativePath = path.relative(projectPath, targetPath).replace(/\\/g, "/");
+
+  if (dryRun) {
+    return {
+      created: !exists || overwrite,
+      dryRun: true,
+      path: relativePath,
+      message: exists && !overwrite ? "MIGRATION_PROMPT.md already exists" : "MIGRATION_PROMPT.md would be written",
+    };
+  }
+
+  if (exists && !overwrite) {
+    return {
+      created: false,
+      path: relativePath,
+      message: "MIGRATION_PROMPT.md already exists",
+    };
+  }
+
+  const template = await fs.readFile(templatePath, "utf8");
+  await fs.mkdir(targetDir, { recursive: true });
+  await fs.writeFile(
+    targetPath,
+    [
+      "# Development Docs Plugin Migration Prompt",
+      "",
+      "Use this file when this existing project should adopt the shared personal development-docs plugin.",
+      "",
+      template,
+    ].join("\n"),
+    "utf8",
+  );
+
+  return {
+    created: true,
+    path: relativePath,
+  };
 }
 
 async function startCodexRun(project, instruction) {
@@ -1600,9 +1673,7 @@ async function buildDiscordDispatch(project, body) {
 
   const reports = await listOrchestrationReportFiles(project.path);
   const requestedReportPath = typeof body?.reportPath === "string" ? body.reportPath : "";
-  const selectedReport = requestedReportPath
-    ? reports.find((report) => report.path === requestedReportPath)
-    : getPreferredDiscordReport(reports);
+  const selectedReport = requestedReportPath ? { path: requestedReportPath, title: path.basename(requestedReportPath) } : getPreferredDiscordReport(reports);
   const dashboard = await collectOrchestrationDashboard(project.path);
   let payload = buildOrchestrationDiscordPayload(project, dashboard, username);
   let attachment = null;
@@ -1964,6 +2035,72 @@ app.post("/api/projects/:id/orchestration-dashboard", async (req, res) => {
       stdout: error.stdout ?? "",
       stderr: error.stderr ?? "",
     });
+  }
+});
+
+app.post("/api/projects/:id/dev-doc-plugin/install", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    if (!(await pathExists(project.path))) {
+      res.status(400).json({ error: "project path does not exist" });
+      return;
+    }
+
+    const installResult = await installDevDocsPlugin(project.path, {
+      dryRun: Boolean(req.body?.dryRun),
+      withAgents: Boolean(req.body?.withAgents),
+    });
+    let dashboardResult = null;
+
+    if (!req.body?.dryRun && (await pathExists(path.join(project.path, "docs", "orchestration")))) {
+      dashboardResult = await buildOrchestrationDashboard(project.path).catch((error) => ({
+        error: error.message,
+        stdout: error.stdout ?? "",
+        stderr: error.stderr ?? "",
+      }));
+    }
+
+    await appendActivity({ type: "dev-doc-plugin-installed", projectId: project.id, dryRun: Boolean(req.body?.dryRun) });
+    res.json({ installed: !req.body?.dryRun, dryRun: Boolean(req.body?.dryRun), install: installResult, dashboard: dashboardResult });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stdout: error.stdout ?? "",
+      stderr: error.stderr ?? "",
+    });
+  }
+});
+
+app.post("/api/projects/:id/dev-doc-plugin/migration-prompt", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    if (!(await pathExists(project.path))) {
+      res.status(400).json({ error: "project path does not exist" });
+      return;
+    }
+
+    const result = await createMigrationPromptFile(project.path, {
+      overwrite: Boolean(req.body?.overwrite),
+      dryRun: Boolean(req.body?.dryRun),
+    });
+    await appendActivity({ type: "dev-doc-plugin-migration-prompt-created", projectId: project.id, created: result.created });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

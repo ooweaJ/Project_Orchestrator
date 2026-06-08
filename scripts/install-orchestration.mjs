@@ -25,10 +25,14 @@ const repoRoot = process.cwd();
 const templatesDir = path.join(repoRoot, "docs", "orchestration", "templates");
 const targetRoot = path.resolve(targetArg);
 const targetOrchestrationDir = path.join(targetRoot, "docs", "orchestration");
+const targetInterfaceDir = path.join(targetOrchestrationDir, "interface");
+const targetStateDir = path.join(targetOrchestrationDir, "state");
 const targetTemplatesDir = path.join(targetOrchestrationDir, "templates");
 
 const requiredDirs = [
   targetOrchestrationDir,
+  targetInterfaceDir,
+  targetStateDir,
   path.join(targetOrchestrationDir, "devlog"),
   path.join(targetOrchestrationDir, "reports"),
   path.join(targetOrchestrationDir, "review_prompts"),
@@ -39,14 +43,14 @@ const requiredDirs = [
 
 const fileMappings = [
   ["README_TEMPLATE.md", path.join(targetOrchestrationDir, "README.md")],
-  ["PROJECT_BRIEF_TEMPLATE.md", path.join(targetOrchestrationDir, "PROJECT_BRIEF.md")],
-  ["STATUS_TEMPLATE.md", path.join(targetOrchestrationDir, "STATUS.md")],
-  ["CURRENT_TASK_TEMPLATE.md", path.join(targetOrchestrationDir, "CURRENT_TASK.md")],
-  ["NEXT_TASKS_TEMPLATE.md", path.join(targetOrchestrationDir, "NEXT_TASKS.md")],
-  ["PROMPT_CONTEXT_TEMPLATE.md", path.join(targetOrchestrationDir, "PROMPT_CONTEXT.md")],
-  ["RUNBOOK_TEMPLATE.md", path.join(targetOrchestrationDir, "RUNBOOK.md")],
-  ["SCOPE_GUARD_TEMPLATE.md", path.join(targetOrchestrationDir, "SCOPE_GUARD.md")],
-  ["DECISION_LOG_TEMPLATE.md", path.join(targetOrchestrationDir, "DECISION_LOG.md")],
+  ["PROJECT_BRIEF_TEMPLATE.md", path.join(targetStateDir, "PROJECT_BRIEF.md")],
+  ["STATUS_TEMPLATE.md", path.join(targetStateDir, "STATUS.md")],
+  ["CURRENT_TASK_TEMPLATE.md", path.join(targetStateDir, "CURRENT_TASK.md")],
+  ["NEXT_TASKS_TEMPLATE.md", path.join(targetStateDir, "NEXT_TASKS.md")],
+  ["PROMPT_CONTEXT_TEMPLATE.md", path.join(targetStateDir, "PROMPT_CONTEXT.md")],
+  ["RUNBOOK_TEMPLATE.md", path.join(targetStateDir, "RUNBOOK.md")],
+  ["SCOPE_GUARD_TEMPLATE.md", path.join(targetStateDir, "SCOPE_GUARD.md")],
+  ["DECISION_LOG_TEMPLATE.md", path.join(targetStateDir, "DECISION_LOG.md")],
 ];
 
 const templateCopies = [
@@ -55,6 +59,7 @@ const templateCopies = [
   "DECISION_LOG_TEMPLATE.md",
   "DEVLOG_DAY_TEMPLATE.md",
   "EXISTING_PROJECT_MIGRATION_PROMPT.md",
+  "HTML_INTERFACE_TEMPLATE.md",
   "NEXT_TASKS_TEMPLATE.md",
   "PROJECT_BRIEF_TEMPLATE.md",
   "PROMPT_CONTEXT_TEMPLATE.md",
@@ -151,6 +156,19 @@ for (const templateName of templateCopies) {
 for (const keepDir of ["devlog", "reports", "review_prompts", "review_responses", "evidence"]) {
   await writeIfMissing(path.join(targetOrchestrationDir, keepDir, ".gitkeep"), "");
 }
+
+await writeIfMissing(
+  path.join(targetInterfaceDir, "index.html"),
+  '<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>프로젝트 대시보드</title></head><body><main><h1>상태 요약</h1><p>docs/orchestration/state/ 문서를 채운 뒤 대시보드를 생성하세요.</p></main></body></html>\n',
+);
+await writeIfMissing(
+  path.join(targetInterfaceDir, "command.html"),
+  '<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>다음 지시</title></head><body><main><h1>다음 지시</h1><p>docs/orchestration/state/CURRENT_TASK.md를 채운 뒤 갱신하세요.</p></main></body></html>\n',
+);
+await writeIfMissing(
+  path.join(targetInterfaceDir, "runbook.html"),
+  '<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>운영 절차</title></head><body><main><h1>운영 절차</h1><p>docs/orchestration/state/RUNBOOK.md를 채운 뒤 갱신하세요.</p></main></body></html>\n',
+);
 
 if (withAgents) {
   await copyIfMissing(path.join(templatesDir, "AGENTS_TEMPLATE.md"), path.join(targetRoot, "AGENTS.md"));

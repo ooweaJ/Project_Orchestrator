@@ -14,13 +14,17 @@
 
 ## Documentation Rules
 
-- Use `docs/orchestration/*` as the standard handoff interface.
-- Keep `STATUS.md` for whole-project state.
-- Keep `CURRENT_TASK.md` for the active work unit.
-- Keep `NEXT_TASKS.md` short, usually the top five candidates.
+- Use `docs/orchestration/` as the standard development-docs plugin.
+- Keep human-facing HTML in `docs/orchestration/interface/`.
+- Keep AI-facing Markdown in `docs/orchestration/state/`.
+- Keep `state/STATUS.md` for whole-project state.
+- Keep `state/CURRENT_TASK.md` for the active work unit.
+- Keep `state/NEXT_TASKS.md` short, usually the top five candidates.
 - Put internal process notes in `devlog/`.
-- Put user-facing or portfolio summaries in `reports/`.
+- Put the main human development journal in `reports/YYYYMMDD/index.html`.
+- Put optional detailed unit reports in `reports/YYYYMMDD/units/`.
 - Put test output, screenshots, logs, and benchmark artifacts in `evidence/`.
+- If Discord notification is needed, submit the report to Project Orchestrator's central intake instead of storing a project-specific webhook by default.
 
 ## Recurring Commands
 

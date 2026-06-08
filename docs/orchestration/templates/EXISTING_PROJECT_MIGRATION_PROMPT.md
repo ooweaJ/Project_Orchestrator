@@ -1,8 +1,8 @@
-# Existing Project Orchestration Adoption Prompt
+# Existing Project Development Docs Plugin Adoption Prompt
 
-Use this prompt when an existing project should adopt the shared personal AI-orchestration interface.
+Use this prompt when an existing project should adopt the shared personal development-docs plugin.
 
-The goal is not to scatter more documentation across the project. The goal is to install one consistent `docs/orchestration/` interface so the user and Codex can resume, manage, verify, report, and preserve portfolio-ready records across many projects.
+The goal is not to scatter more documentation across the project. The goal is to install one consistent `docs/orchestration/` development-docs plugin so the user and Codex can resume, manage, verify, report, and preserve portfolio-ready records across many projects.
 
 This should feel like a local personal AI plugin:
 
@@ -12,21 +12,23 @@ This should feel like a local personal AI plugin:
 - Legacy docs should eventually stop being required as source-of-truth files.
 - Old files are not deleted blindly; after migration, they should be archived, linked, or replaced by short pointers only when safe.
 
-## Current Interface Rule
+## Current Plugin Rule
 
 - `docs/orchestration/interface/` contains the required human-facing HTML interface.
 - `docs/orchestration/state/` contains the AI-facing Markdown source of truth.
-- `docs/orchestration/reports/` contains user-facing HTML progress reports, usually one file per coherent work unit.
+- `docs/orchestration/reports/` contains user-facing HTML progress reports. The normal development-journal surface is a date folder `index.html`, for example `reports/20260608/index.html`.
+- `docs/orchestration/reports/YYYYMMDD/units/` may contain detailed unit reports or attachable HTML, but the project dashboard should list the date `index.html` pages first.
 - `docs/orchestration/devlog/` contains AI/internal Markdown process logs, usually appended by date.
 - `docs/orchestration/templates/HTML_INTERFACE_TEMPLATE.md` describes the LETHE-derived HTML format that other projects should follow.
 - Existing docs outside orchestration should be migrated, summarized, or archived so future work can start from `docs/orchestration/`.
+- Discord delivery should be delegated to Project Orchestrator when available. Projects prepare or submit a report payload; Project Orchestrator owns the shared `.env` webhook and sends the Discord summary/HTML attachment.
 
 ````text
-You are working inside an existing local project. Adopt the shared personal AI-orchestration interface for this project.
+You are working inside an existing local project. Adopt the shared personal development-docs plugin for this project.
 
 Goal:
-- Create or update `docs/orchestration/` so the project has a reusable local AI plugin-like interface.
-- Add an Orchestration Interface section to the root `AGENTS.md` if it exists, without deleting or replacing existing project-specific agent rules.
+- Create or update `docs/orchestration/` so the project has a reusable local development-docs plugin.
+- Add a Development Docs Plugin section to the root `AGENTS.md` if it exists, without deleting or replacing existing project-specific agent rules.
 - Migrate useful existing project-management documents into the orchestration structure.
 - Preserve existing project meaning, decisions, verification notes, task state, reports, and development history.
 - Make legacy docs outside orchestration no longer necessary for normal project resume.
@@ -56,7 +58,10 @@ docs/orchestration/
     YYYY-MM-DD.md
   reports/
     index.html
-    YYYY-MM-DD-NN-slug.html
+    YYYYMMDD/
+      index.html
+      units/
+        YYYY-MM-DD-NN-slug.html
 
 Recommended extension folders:
 
@@ -77,7 +82,7 @@ docs/orchestration/
 
 Core concept:
 - `AGENTS.md` is still the repository-level rulebook Codex must follow.
-- `docs/orchestration/` is the local plugin-like project-management interface.
+- `docs/orchestration/` is the local development-docs plugin.
 - `interface/` is for people:
   - `interface/index.html`: project status dashboard. It should be short and should not explain the interface.
   - `interface/command.html`: compact next-instruction block. It answers what the user should tell Codex next.
@@ -89,9 +94,10 @@ Core concept:
   - scope guard,
   - active task and next task candidates.
 - `reports/` is for people:
-  - detailed user-facing HTML work-unit reports,
+  - a date-folder `index.html` journal that reads like a blog page for that day,
+  - detailed user-facing HTML work-unit reports under `YYYYMMDD/units/` when useful,
   - portfolio-ready summaries,
-  - an `index.html` report list.
+  - a root `index.html` report list.
 - `templates/HTML_INTERFACE_TEMPLATE.md` is the shared human-facing format contract. Use it to make other projects look and behave like the LETHE HTML interface without copying LETHE-specific content.
 - `devlog/` is for AI/internal continuity:
   - date-based Markdown logs,
@@ -99,6 +105,7 @@ Core concept:
   - keep enough detail for AI to resume without reading every HTML report.
 - Existing docs should be migrated into `state/`, `devlog/`, `reports/`, `evidence/`, or `legacy/`.
 - After migration, old docs outside orchestration should not be needed for normal Codex resume.
+- When the project needs Discord notification, do not store per-project Discord webhook secrets by default. Submit the finished report to Project Orchestrator's central intake API or documented CLI/script, then let Project Orchestrator send the Discord message.
 
 Before editing:
 1. Inspect existing documentation and project files.
@@ -123,7 +130,7 @@ Before editing:
 
 AGENTS.md adoption rule:
 - Do not replace the existing `AGENTS.md`.
-- Add only a concise `## Orchestration Interface` section, unless the file already has an equivalent section.
+- Add only a concise `## Development Docs Plugin` section, unless the file already has an equivalent section.
 - Existing project-specific AGENTS rules still take priority.
 - That section should tell Codex:
   - this project uses `docs/orchestration/` as the shared management interface,
@@ -136,9 +143,9 @@ AGENTS.md adoption rule:
 Suggested `AGENTS.md` section:
 
 ```md
-## Orchestration Interface
+## Development Docs Plugin
 
-This project uses `docs/orchestration/` as the shared personal AI project-management interface. Existing project-specific rules in this `AGENTS.md` remain the top-level rules.
+This project uses `docs/orchestration/` as the shared personal development-docs plugin. Existing project-specific rules in this `AGENTS.md` remain the top-level rules.
 
 Before meaningful work, read:
 
@@ -164,7 +171,7 @@ Use orchestration files as follows:
 - `state/SCOPE_GUARD.md`: explicit non-goals and things not to build yet.
 - `state/DECISION_LOG.md`: index of important technical, product, and AI-direction decisions.
 - `devlog/`: AI/internal daily work log.
-- `reports/`: user-facing HTML progress reports and portfolio-facing work-unit reports.
+- `reports/`: user-facing HTML progress reports. Keep the readable development journal in date folders such as `reports/20260608/index.html`; place detailed unit reports under that date's `units/` folder when useful.
 - `evidence/`: useful test outputs, screenshots, logs, benchmark summaries, or links.
 - `review_prompts/`: prompts prepared for Claude/GPT/Codex review.
 - `review_responses/`: saved AI review responses.
@@ -175,10 +182,12 @@ After meaningful work:
 
 - Update the relevant files under `docs/orchestration/state/`.
 - Append AI/internal process detail to `docs/orchestration/devlog/YYYY-MM-DD.md`.
-- Add or regenerate a user-facing HTML report under `docs/orchestration/reports/`.
+- Add or regenerate the user-facing date journal under `docs/orchestration/reports/YYYYMMDD/index.html`.
+- Add detailed unit HTML under `docs/orchestration/reports/YYYYMMDD/units/` only when a separate attachable or portfolio work-unit page is useful.
 - Record durable decisions in `docs/orchestration/state/DECISION_LOG.md`.
 - Keep `state/NEXT_TASKS.md` short, usually no more than five active candidates.
 - Regenerate or update `interface/` HTML when state changes.
+- If Discord notification is needed, submit the report payload/path to Project Orchestrator's central Discord intake instead of sending directly from this project.
 - Do not depend on legacy docs outside orchestration unless they are explicitly referenced as archived evidence.
 ```
 
@@ -193,7 +202,8 @@ Migration and adoption rules:
 - `state/SCOPE_GUARD.md` contains explicit non-goals, forbidden expansions, and scope boundaries.
 - `state/DECISION_LOG.md` is an index of durable decisions. Link to reports, reviews, evidence, or legacy archive entries instead of duplicating everything.
 - `devlog/` is AI/internal continuity. Date-based files can be appended in order, but do not let one file become the only source of truth.
-- `reports/` is people-facing. Prefer HTML work-unit reports. If a generator requires Markdown input, keep that input under `reports/source/`, not as the primary human surface.
+- `reports/` is people-facing. Prefer a date-folder HTML journal at `reports/YYYYMMDD/index.html`. If a generator requires Markdown input, keep that input under `reports/source/`, not as the primary human surface.
+- `reports/YYYYMMDD/units/` is optional detail storage for separate work-unit pages, Discord attachments, or portfolio drill-down pages.
 - `evidence/` stores or links useful test outputs, screenshots, logs, benchmark summaries, playtest outputs, generated QA summaries, or other proof.
 - `legacy/` stores migration notes, archived old docs, or pointer files. Legacy docs should not be required for normal resume after migration.
 - `templates/HTML_INTERFACE_TEMPLATE.md` should be checked before creating or revising HTML pages.
@@ -222,8 +232,9 @@ Human-facing HTML rule:
 - It should not show long explanations, report-send controls, scanner warnings, interface checklists, or broad document navigation unless explicitly requested.
 - `interface/command.html` should show the next instruction, copyable prompt if useful, done criteria, and do-not-touch notes.
 - `interface/runbook.html` should show repeated commands and operating procedures.
-- `reports/index.html` lists people-facing reports.
-- `reports/YYYY-MM-DD-NN-slug.html` is the detailed work-unit report.
+- `reports/index.html` lists date journal pages.
+- `reports/YYYYMMDD/index.html` is the human-facing daily development journal page and should be the main report page the host dashboard reads.
+- `reports/YYYYMMDD/units/YYYY-MM-DD-NN-slug.html` is an optional detailed work-unit report or Discord attachment.
 - People should not need to open Markdown for normal review.
 - If an existing project already uses root-level `docs/orchestration/index.html`, `command.html`, and `runbook.html`, preserve that layout during migration unless the user explicitly asks to move them into `interface/`. The page roles and format are more important than the folder name during adoption.
 

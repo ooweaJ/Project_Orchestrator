@@ -33,46 +33,46 @@
       <div class="grid">
         <article>
           <h2>이번에 끝낼 작업</h2>
-          <div class="markdown"><p>Provide a central Discord report intake API for finished project work.</p>
+          <div class="markdown"><p>Turn the orchestration interface into a reusable personal development-docs plugin.</p>
 <ul>
-<li>Read human-facing HTML from <code>docs/orchestration/interface/</code>.</li>
-<li>Read AI-facing state Markdown from <code>docs/orchestration/state/</code>.</li>
-<li>Keep compatibility with the older root-level <code>docs/orchestration/index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and root Markdown files.</li>
-<li>Show nested report HTML from <code>docs/orchestration/reports/YYYYMMDD/</code> and <code>units/</code>.</li>
-<li>Let LETHE or another registered project call AI Project Orchestrator when work is finished.</li>
-<li>Let AI Project Orchestrator read the submitted report path or report body and send it to Discord using the central <code>.env</code> webhook.</li>
+<li>Treat <code>docs/orchestration/</code> as the installable development-docs plugin contract for other projects.</li>
+<li>Let the homepage create the plugin structure for a selected project.</li>
+<li>Let the homepage create a migration Markdown prompt for an existing project without forcing a full scaffold.</li>
+<li>Make the development-journal browser read only date journal pages such as <code>reports/YYYYMMDD/index.html</code>.</li>
+<li>Keep explicit unit report paths available for central Discord intake and attachments.</li>
+<li>Update migration/template docs so LETHE and other projects can adopt the same standard.</li>
 </ul>
 <ul>
-<li>LETHE dashboard, command, and runbook APIs return the files under <code>interface/</code>.</li>
-<li>LETHE snapshot document summaries resolve to <code>state/*.md</code>.</li>
-<li>The report browser lists nested <code>reports/YYYYMMDD/units/*.html</code> files.</li>
-<li><code>POST /api/orchestration/discord-report</code> accepts a registered project id/name/path and a report path/body.</li>
-<li>Discord dry-run for LETHE uses the submitted unit HTML report and returns both embed payload and attachment metadata.</li>
-<li>The dashboard generator writes new HTML to <code>docs/orchestration/interface/</code>.</li>
+<li>Homepage has <code>문서 플러그인</code> and <code>마이그레이션 MD</code> actions for the selected project.</li>
+<li>Install action calls the backend scaffold route and refreshes the embedded project interface.</li>
+<li>Migration action writes only <code>docs/orchestration/MIGRATION_PROMPT.md</code> unless it already exists.</li>
+<li>Report browser and generated <code>reports/index.html</code> list date folder <code>index.html</code> pages first, not every unit report.</li>
+<li>Explicit <code>reportPath</code> still works for <code>POST /api/orchestration/discord-report</code>.</li>
+<li>Templates describe the plugin, <code>interface/</code>, <code>state/</code>, date journal pages, optional <code>units/</code>, and central Discord intake.</li>
 </ul></div>
         </article>
         <article>
           <h2>다음 후보</h2>
           <div class="markdown"><ul>
-<li>Add Codex run controls for cancel/retry/open artifact folder.</li>
-</ul>
-<p>   - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</p>
-<ul>
 <li>Add a LETHE-side report dispatch script or npm command.</li>
 </ul>
 <p>   - Verify: LETHE can call <code>POST /api/orchestration/discord-report</code> after report generation and receive dry-run or sent status.</p>
+<ul>
+<li>Add Codex run controls for cancel/retry/open artifact folder.</li>
+</ul>
+<p>   - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</p>
 <ul>
 <li>Apply the <code>interface/</code> + <code>state/</code> orchestration layout to one more active project.</li>
 </ul>
 <p>   - Verify: the project has dashboard, command, runbook, state Markdown, nested reports, and central Discord dry-run.</p>
 <ul>
-<li>Decide the report cadence for <code>reports/</code>.</li>
+<li>Add a daily report index generator for <code>reports/YYYYMMDD/index.html</code>.</li>
 </ul>
-<p>   - Verify: daily, commit-based, or work-unit report naming is documented and generated consistently.</p>
+<p>   - Verify: a day&#039;s unit reports can be collected into one readable date journal page and the homepage lists that date page.</p>
 <ul>
-<li>Add a scaffold action for missing orchestration files.</li>
+<li>Add safer UI options for plugin installation.</li>
 </ul>
-<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p></div>
+<p>   - Verify: the homepage can preview a dry-run, choose whether to update <code>AGENTS.md</code>, and avoid overwriting existing project docs.</p></div>
         </article>
       </div>
     </main>
