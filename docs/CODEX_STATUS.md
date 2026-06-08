@@ -61,6 +61,7 @@ Completed orchestration improvements:
 - The dashboard shows an `오케스트레이션 인터페이스` panel with required completion and recommended extension status.
 - Scanner snapshots now include `files.orchestrationDashboard` with `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, `DECISION_LOG.md`, recent devlog, and recent reports.
 - The dashboard now prioritizes orchestration document content, document-based commands, and centralized Discord reports instead of risk/prompt/auxiliary scan panels.
+- `npm run orchestration:dashboard` generates `docs/orchestration/index.html` as a card-based HTML view of the Markdown orchestration interface.
 
 Completed dashboard localization and readability improvements:
 
@@ -147,3 +148,5 @@ Verified on 2026-06-08:
 - Browser plugin visual QA was attempted, but the browser runtime failed with a Windows sandbox spawn error.
 - `GET /api/snapshots` returned `phase: 진행 중` and document content flags for LETHE_Prototype and Project_Orchestrator.
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord payload and did not send.
+- `npm run orchestration:dashboard` generated Project_Orchestrator's orchestration HTML dashboard.
+- `npm run orchestration:dashboard -- --all` generated dashboards for LETHE_Prototype and Project_Orchestrator.

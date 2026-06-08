@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 오케스트레이션</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1180px, 100%); margin: 0 auto; padding: 32px 22px; }
+      header { margin-bottom: 18px; }
+      .eyebrow { margin: 0 0 8px; color: #60706a; font-size: 13px; font-weight: 900; }
+      h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
+      h2, h3, h4, p { margin-top: 0; }
+      .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+      .metric, .card { border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      .metric { padding: 16px; }
+      .metric span { display: block; color: #697873; font-size: 13px; font-weight: 900; }
+      .metric strong { display: block; margin-top: 8px; font-size: 20px; line-height: 1.35; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .wide { grid-column: 1 / -1; }
+      .card { padding: 18px; min-width: 0; }
+      .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      .cardTitle h2 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .markdown { color: #26342f; font-size: 14px; line-height: 1.65; }
+      .markdown h3 { margin: 14px 0 8px; color: #1f6b4d; font-size: 15px; }
+      .markdown h4 { margin: 12px 0 6px; font-size: 14px; }
+      .markdown p { margin: 0 0 10px; }
+      .markdown ul { margin: 0 0 10px; padding-left: 20px; }
+      .markdown li { margin-bottom: 4px; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      pre { overflow: auto; margin: 0 0 10px; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
+      .listCard ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+      .listCard li { display: grid; gap: 3px; }
+      small, .muted { color: #697873; font-size: 13px; }
+      footer { margin-top: 20px; color: #697873; font-size: 13px; }
+      @media (max-width: 760px) {
+        .summary, .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">오케스트레이션 대시보드</p>
+        <h1>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents.</h1>
+      </header>
+
+      <section class="summary">
+        <div class="metric"><span>현재 단계</span><strong>Current Task</strong></div>
+        <div class="metric"><span>최신 검증</span><strong>- `npm run build` passed after the orchestration dashboard update.</strong></div>
+        <div class="metric"><span>현재 blocker</span><strong>- Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</strong></div>
+      </section>
+
+      <div class="grid">
+        <section class="card">
+    <div class="cardTitle">
+      <h2>현재 프로젝트 상태</h2>
+      <a href="./STATUS.md">STATUS.md</a>
+    </div>
+    <div class="markdown"><h3>Current State</h3>
+<ul>
+<li>MVP app exists with a React dashboard and Express backend.</li>
+<li>Project registration, local Git scanning, scanner signals, risk scoring, prompt generation, portfolio mode, and Discord report prototype are implemented.</li>
+<li>The orchestration interface standard is being expanded from the original six-role document set.</li>
+<li><code>npm run orchestration:install</code> now scaffolds the default orchestration interface into another local project without overwriting existing files.</li>
+<li>The scanner now detects <code>docs/orchestration/*</code> required core and recommended extension paths.</li>
+<li>The dashboard now shows an <code>오케스트레이션 인터페이스</code> panel for the selected project.</li>
+<li>The dashboard now prioritizes orchestration document contents over risk, prompt, and auxiliary scan panels.</li>
+<li>Project Discord reports are sent from AI Project Orchestrator&#039;s central <code>.env</code>, not from each registered project.</li>
+<li><code>npm run orchestration:dashboard</code> now generates <code>docs/orchestration/index.html</code> as a card-based HTML view of the Markdown interface.</li>
+</ul>
+<h3>Latest Verification</h3>
+<ul>
+<li><code>npm run build</code> passed after the orchestration dashboard update.</li>
+<li>Current documentation and install-command updates have been checked by file review.</li>
+<li><code>npm run orchestration:install -- --target . --dry-run</code> passed.</li>
+<li><code>GET /api/snapshots</code> returned <code>requiredPresent: 11</code>, <code>requiredTotal: 11</code>, and <code>complete: true</code> for LETHE_Prototype and Project_Orchestrator.</li>
+<li><code>GET /api/snapshots</code> returned orchestration document content summaries for <code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code>, and <code>DECISION_LOG.md</code>.</li>
+<li><code>POST /api/projects/lethe-prototype/discord-report</code> with <code>dryRun: true</code> returned a Discord payload without sending.</li>
+<li><code>npm run orchestration:dashboard</code> generated this project&#039;s <code>docs/orchestration/index.html</code>.</li>
+<li><code>npm run orchestration:dashboard -- --all</code> generated dashboards for LETHE_Prototype and Project_Orchestrator.</li>
+</ul>
+<h3>Blockers</h3>
+<ul>
+<li>Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</li>
+<li>SoulLike real project path validation is still pending.</li>
+</ul>
+<h3>Next Major Step</h3>
+<p>Use the generated HTML dashboard on real project work and refine generated list pages for <code>reports/</code>, <code>devlog/</code>, and <code>evidence/</code>.</p></div>
+  </section>
+        <section class="card">
+    <div class="cardTitle">
+      <h2>이번 작업</h2>
+      <a href="./CURRENT_TASK.md">CURRENT_TASK.md</a>
+    </div>
+    <div class="markdown"><h3>Task</h3>
+<p>Generate an HTML dashboard from orchestration documents.</p>
+<h3>Goal</h3>
+<ul>
+<li>Add a script that reads <code>docs/orchestration/*</code> Markdown.</li>
+<li>Generate <code>docs/orchestration/index.html</code> as a card-based view.</li>
+<li>Support current project, one target project, and all registered projects.</li>
+<li>Keep Markdown as the source of truth and HTML as a generated view.</li>
+</ul>
+<h3>Done Criteria</h3>
+<ul>
+<li><code>npm run orchestration:dashboard</code> creates <code>docs/orchestration/index.html</code>.</li>
+<li><code>npm run orchestration:dashboard -- --target &quot;C:\path\to\project&quot;</code> works for one project.</li>
+<li><code>npm run orchestration:dashboard -- --all</code> works for registered projects.</li>
+<li>Generated HTML includes current state, current task, next tasks, decisions, devlog, reports, commands, and document links.</li>
+</ul>
+<h3>Related Files</h3>
+<ul>
+<li><code>server/index.mjs</code></li>
+<li><code>src/main.tsx</code></li>
+<li><code>src/styles.css</code></li>
+</ul>
+<h3>Verification</h3>
+<ul>
+<li>Run <code>npm run orchestration:dashboard</code>.</li>
+<li>Run <code>npm run orchestration:dashboard -- --all</code>.</li>
+<li>Inspect generated HTML for the main card sections.</li>
+</ul></div>
+  </section>
+        <section class="card">
+    <div class="cardTitle">
+      <h2>다음 작업 5개</h2>
+      <a href="./NEXT_TASKS.md">NEXT_TASKS.md</a>
+    </div>
+    <div class="markdown"><p>Keep this list to the top upcoming candidates. Move history to <code>devlog/</code>, decisions to <code>DECISION_LOG.md</code>, and evidence to <code>evidence/</code>.</p>
+<h3>Top Candidates</h3>
+<ul>
+<li>Implement interface detection in the scanner.</li>
+</ul>
+<p>   - Verify: dashboard can show required core files and folders as present or missing.</p>
+<ul>
+<li>Add a scaffold action for missing orchestration files.</li>
+</ul>
+<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p>
+<ul>
+<li>Update prompt generation to prefer orchestration documents.</li>
+</ul>
+<p>   - Verify: generated prompts include <code>PROMPT_CONTEXT.md</code>, <code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code>, and <code>SCOPE_GUARD.md</code> when present.</p>
+<ul>
+<li>Validate real project paths.</li>
+</ul>
+<p>   - Verify: snapshots succeed for real LETHE and SoulLike paths while portfolio mode hides sensitive details.</p>
+<ul>
+<li>Complete browser visual QA.</li>
+</ul>
+<p>   - Verify: desktop and mobile dashboard layouts have no broken overflow, overlap, or empty critical panels.</p></div>
+  </section>
+        <section class="card">
+    <div class="cardTitle">
+      <h2>최근 결정</h2>
+      <a href="./DECISION_LOG.md">DECISION_LOG.md</a>
+    </div>
+    <div class="markdown"><p>This file indexes important technical and AI-direction decisions. Use separate ADR files only when a decision needs deeper context.</p>
+<h3>Decisions</h3>
+<h4>2026-06-05: Standard orchestration document interface</h4>
+<ul>
+<li>Decision: Use <code>docs/orchestration/*</code> as the shared document contract for portfolio projects.</li>
+<li>Context: Per-project profile mappings are useful as a migration fallback, but should not be the primary design.</li>
+<li>Reference: <code>docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md</code></li>
+</ul>
+<h4>2026-06-08: Expanded interface with operations and evidence</h4>
+<ul>
+<li>Decision: Expand the interface with <code>README.md</code>, <code>STATUS.md</code>, <code>RUNBOOK.md</code>, <code>SCOPE_GUARD.md</code>, <code>devlog/</code>, and evidence-oriented extension folders.</li>
+<li>Context: LETHE feedback showed that current state, verification, AI handoff, scope limits, and evidence records are essential for reliable continuation.</li>
+<li>Result: Required core documents cover day-to-day operation; recommended extensions improve review quality and automation.</li>
+</ul></div>
+  </section>
+        <section class="card listCard">
+          <div class="cardTitle"><h2>최근 devlog</h2><a href="./devlog/">devlog/</a></div>
+          <ul><li><a href="./devlog/2026-06-08.md">2026-06-08 Devlog</a><small>2026. 6. 8. PM 3:38:39</small></li></ul>
+        </section>
+        <section class="card listCard">
+          <div class="cardTitle"><h2>최근 report</h2><a href="./reports/">reports/</a></div>
+          <p class="muted">아직 report가 없습니다.</p>
+        </section>
+        <section class="card wide">
+          <div class="cardTitle"><h2>자주 쓰는 명령</h2><a href="./RUNBOOK.md">RUNBOOK.md</a></div>
+          <pre><code>git status --short
+git diff --stat</code></pre><pre><code>npm run build</code></pre><pre><code>npm run lint</code></pre><pre><code>npm run test</code></pre><pre><code>npm run report:discord:unit:dry</code></pre><pre><code>npm run orchestration:install -- --target &quot;C:\path\to\project&quot; --dry-run</code></pre>
+        </section>
+        <section class="card wide">
+          <div class="cardTitle"><h2>관련 문서 링크</h2><span class="muted">Markdown 원본</span></div>
+          <div class="markdown">
+            <ul>
+              <li><a href="./PROJECT_BRIEF.md">PROJECT_BRIEF.md</a></li>
+              <li><a href="./STATUS.md">STATUS.md</a></li>
+              <li><a href="./CURRENT_TASK.md">CURRENT_TASK.md</a></li>
+              <li><a href="./NEXT_TASKS.md">NEXT_TASKS.md</a></li>
+              <li><a href="./PROMPT_CONTEXT.md">PROMPT_CONTEXT.md</a></li>
+              <li><a href="./RUNBOOK.md">RUNBOOK.md</a></li>
+              <li><a href="./SCOPE_GUARD.md">SCOPE_GUARD.md</a></li>
+              <li><a href="./DECISION_LOG.md">DECISION_LOG.md</a></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 3:38:55</footer>
+    </main>
+  </body>
+</html>

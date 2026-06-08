@@ -51,3 +51,28 @@ Use `--with-agents` only when the target project should receive a new root `AGEN
 The installer creates missing files and folders only. It does not overwrite existing documents.
 
 For active projects with existing docs, use `templates/EXISTING_PROJECT_MIGRATION_PROMPT.md` instead of only copying empty templates. That prompt tells AI how to map old docs into the orchestration interface.
+
+## Generated Dashboard
+
+`index.html` is a generated view of the Markdown source files in this folder.
+
+Source of truth:
+
+```text
+PROJECT_BRIEF.md
+STATUS.md
+CURRENT_TASK.md
+NEXT_TASKS.md
+DECISION_LOG.md
+devlog/
+reports/
+RUNBOOK.md
+```
+
+Generate or refresh the dashboard from the AI Project Orchestrator repository:
+
+```powershell
+npm run orchestration:dashboard -- --target "C:\path\to\project"
+```
+
+Use `--all` to refresh every project registered in the orchestrator.

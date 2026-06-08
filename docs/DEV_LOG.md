@@ -119,3 +119,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/03-document-first-orchestration-dashboard.md`
 - Summary: Reworked the dashboard around `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, document-based commands, and central Discord reporting.
 - Verification: `npm run build`, `GET /api/snapshots`, Discord report dry-run API.
+
+#### Generated Orchestration HTML Dashboard
+
+- File: `docs/ai-collaboration/2026-06-08/04-generated-orchestration-dashboard.md`
+- Summary: Added a generator that turns `docs/orchestration/*` Markdown into `docs/orchestration/index.html` card dashboards for one project or every registered project.
+- Verification: `npm run orchestration:dashboard`, `npm run orchestration:dashboard -- --all`, generated HTML section checks.

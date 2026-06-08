@@ -68,3 +68,25 @@ For a project that already has documentation and work history:
 3. Paste the prompt and let Codex inspect existing docs before editing.
 4. Review the proposed mapping before allowing broad changes.
 5. Keep old docs until the migrated interface is verified.
+
+## Build Orchestration HTML Dashboard
+
+Build this project's generated dashboard:
+
+```powershell
+npm run orchestration:dashboard
+```
+
+Build a dashboard for one registered or external project:
+
+```powershell
+npm run orchestration:dashboard -- --target "C:\path\to\project"
+```
+
+Build dashboards for every project registered in `data/projects.json`:
+
+```powershell
+npm run orchestration:dashboard -- --all
+```
+
+The generated file is `docs/orchestration/index.html` inside each target project. Markdown remains the source of truth; regenerate the HTML after meaningful Markdown updates.

@@ -2,21 +2,21 @@
 
 ## Task
 
-Make the dashboard operate from orchestration documents.
+Generate an HTML dashboard from orchestration documents.
 
 ## Goal
 
-- Read `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, and `DECISION_LOG.md` for each registered project.
-- Make the dashboard prioritize current state, current task, next tasks, commands, and reporting.
-- Remove the old risk/prompt/auxiliary scan panels from the primary detail view.
-- Send Discord project reports from the orchestrator's central `.env`.
+- Add a script that reads `docs/orchestration/*` Markdown.
+- Generate `docs/orchestration/index.html` as a card-based view.
+- Support current project, one target project, and all registered projects.
+- Keep Markdown as the source of truth and HTML as a generated view.
 
 ## Done Criteria
 
-- `GET /api/snapshots` includes `files.orchestrationDashboard`.
-- Dashboard shows document content cards for status, current task, and next tasks.
-- Dashboard command generation uses the orchestration documents.
-- Dashboard has Discord preview/send actions backed by the orchestrator server.
+- `npm run orchestration:dashboard` creates `docs/orchestration/index.html`.
+- `npm run orchestration:dashboard -- --target "C:\path\to\project"` works for one project.
+- `npm run orchestration:dashboard -- --all` works for registered projects.
+- Generated HTML includes current state, current task, next tasks, decisions, devlog, reports, commands, and document links.
 
 ## Related Files
 
@@ -26,6 +26,6 @@ Make the dashboard operate from orchestration documents.
 
 ## Verification
 
-- Run `npm run build`.
-- Run `GET /api/snapshots` and confirm `files.orchestrationDashboard`.
-- Run Discord report dry-run for LETHE without sending.
+- Run `npm run orchestration:dashboard`.
+- Run `npm run orchestration:dashboard -- --all`.
+- Inspect generated HTML for the main card sections.
