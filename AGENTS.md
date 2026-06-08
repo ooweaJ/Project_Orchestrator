@@ -185,6 +185,29 @@ Use these defaults unless the codebase establishes a stronger local convention:
 
 ## Documentation System
 
+Prefer the shared orchestration interface for project handoff documents:
+
+- `docs/orchestration/README.md`: how to read and maintain the interface
+- `docs/orchestration/PROJECT_BRIEF.md`: project identity, goals, stack, and portfolio angle
+- `docs/orchestration/STATUS.md`: current project state, latest verification, blockers, and next major step
+- `docs/orchestration/CURRENT_TASK.md`: active work unit, done criteria, related files, and verification commands
+- `docs/orchestration/NEXT_TASKS.md`: top upcoming task candidates, usually limited to five
+- `docs/orchestration/PROMPT_CONTEXT.md`: stable Codex context, rules, workflow, and recurring commands
+- `docs/orchestration/RUNBOOK.md`: command and operating procedures
+- `docs/orchestration/SCOPE_GUARD.md`: explicit non-goals and scope limits
+- `docs/orchestration/DECISION_LOG.md`: index of important technical and AI-direction decisions
+- `docs/orchestration/devlog/`: internal work traces
+- `docs/orchestration/reports/`: external/user-facing or portfolio-facing reports
+
+Recommended orchestration extensions:
+
+- `docs/orchestration/review_prompts/`: prompts sent to other AI reviewers
+- `docs/orchestration/review_responses/`: responses received from AI reviewers
+- `docs/orchestration/evidence/`: test output, screenshots, logs, benchmark results, and QA artifacts
+- `docs/orchestration/templates/`: reusable report, task, review, and AGENTS templates
+
+Treat AGENTS.md templates as repository templates first. Promote them to a reusable Codex skill only after the workflow is stable across multiple projects.
+
 Keep these documents current:
 
 - `docs/CODEX_STATUS.md`: current implementation state, known issues, and verification notes
@@ -193,6 +216,8 @@ Keep these documents current:
 - `docs/AI_USAGE_PORTFOLIO.md`: curated portfolio narrative about AI collaboration
 - `docs/PROMPT_DECISION_LOG.md`: index of prompt and decision records
 - `docs/ai-collaboration/YYYY-MM-DD/*.md`: detailed AI collaboration records by task
+
+These existing documents remain valid as compatibility documents until their contents are migrated or mirrored into `docs/orchestration/*`.
 
 Do not dump every conversation into portfolio docs. Curate only decisions that show useful AI collaboration skill.
 

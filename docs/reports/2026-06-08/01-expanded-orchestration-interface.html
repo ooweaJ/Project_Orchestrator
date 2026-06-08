@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>확장 오케스트레이션 인터페이스 보고서</title>
+    <style>
+      body {
+        margin: 0;
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(900px, 100%);
+        margin: 0 auto;
+        padding: 36px 22px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+      }
+
+      section {
+        margin: 14px 0;
+        padding: 18px;
+        border: 1px solid #d9e1d7;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 19px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.7;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      a {
+        color: #1f6b4d;
+        font-weight: 800;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>확장 오케스트레이션 인터페이스</h1>
+      <p>2026-06-08 작업 단위 보고서</p>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li>LETHE 피드백을 반영해 <code>docs/orchestration/*</code> 표준을 확장했습니다.</li>
+          <li>운영에 필요한 필수 코어와 판단 근거를 남기는 권장 확장을 분리했습니다.</li>
+          <li>다른 프로젝트에 기본 구조를 설치하는 <code>npm run orchestration:install</code> 명령을 추가했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li><code>STATUS.md</code>와 <code>CURRENT_TASK.md</code>의 역할 경계를 명확히 했습니다.</li>
+          <li><code>reports/</code>는 외부 공유용, <code>devlog/</code>는 내부 블랙박스로 분리했습니다.</li>
+          <li>공통 <code>AGENTS.md</code> 양식은 먼저 템플릿으로 두고 나중에 Codex skill로 승격하기로 했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li>새 표준 문서와 이 저장소용 초기 스캐폴드가 추가됐습니다.</li>
+          <li><code>--dry-run</code> 검증으로 설치 명령 실행을 확인했습니다.</li>
+          <li>다음 구현 기준은 대시보드의 인터페이스 감지와 스캐폴드 액션입니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>참고 문서</h2>
+        <ul>
+          <li><a href="../../ORCHESTRATION_INTERFACE.md">오케스트레이션 인터페이스 표준</a></li>
+          <li><a href="../../orchestration/README.md">오케스트레이션 폴더 안내</a></li>
+          <li><a href="../../PROMPT_DECISION_LOG.md">프롬프트/의사결정 인덱스</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

@@ -74,3 +74,13 @@ Skip:
 - Key decision: Use standard `docs/orchestration/*` interface files as the primary design.
 - User refinement: Per-project profile mappings are useful as a compatibility layer, but should not replace a shared interface because all projects have a common portfolio purpose.
 - Portfolio value: Demonstrates system design judgment around reusable AI context interfaces and cross-project portfolio operations.
+
+### 2026-06-08
+
+#### Expanded Orchestration Interface
+
+- File: `docs/ai-collaboration/2026-06-08/01-expanded-orchestration-interface.md`
+- User intent: Refine the shared interface using LETHE feedback about what actually helped Codex continue work reliably.
+- Key decision: Treat `STATUS.md`, `RUNBOOK.md`, `SCOPE_GUARD.md`, `devlog/`, and `reports/` as required core, while keeping review and evidence folders as recommended extensions.
+- User refinement: Separate `STATUS.md` from `CURRENT_TASK.md`, keep `NEXT_TASKS.md` limited to the top candidates, and treat AGENTS templates as reusable project templates before promoting them to a Codex skill.
+- Portfolio value: Shows that the orchestration system is being improved from real project operations, not only abstract document design.

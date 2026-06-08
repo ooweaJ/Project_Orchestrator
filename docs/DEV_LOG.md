@@ -99,3 +99,11 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-05/03-project-document-interface-profile-mapping.md`
 - Summary: Recorded the updated decision to make `docs/orchestration/*` a common interface for every portfolio project, with project-specific profile mappings only as a migration fallback.
 - Verification: Documentation-only design note.
+
+### 2026-06-08
+
+#### Expanded Orchestration Interface
+
+- File: `docs/ai-collaboration/2026-06-08/01-expanded-orchestration-interface.md`
+- Summary: Expanded the orchestration document standard with status, runbook, scope guard, devlog, reports, evidence folders, and a reusable AGENTS template path.
+- Verification: Documentation-only change. Markdown files and report links reviewed.

@@ -142,64 +142,65 @@
       <header>
         <p class="eyebrow">사용자용 진행 보고서</p>
         <h1>AI Project Orchestrator 진행 상태</h1>
-        <span class="status">2026-06-05 기준</span>
+        <span class="status">2026-06-08 기준</span>
       </header>
 
       <div class="grid">
         <div class="metric">
           <span>현재 단계</span>
-          <strong>작업 지휘</strong>
+          <strong>문서 표준</strong>
         </div>
         <div class="metric">
-          <span>기본 프로젝트</span>
-          <strong>2개</strong>
+          <span>오케스트레이션 코어</span>
+          <strong>11개</strong>
         </div>
         <div class="metric">
           <span>검증</span>
-          <strong>Build/API</strong>
+          <strong>문서 리뷰</strong>
         </div>
       </div>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>선택된 프로젝트 상세 화면을 <code>작업 지휘</code> 중심으로 재구성했습니다.</li>
-          <li>현재 작업, 진행 상태, 다음 작업 후보가 먼저 보이도록 했습니다.</li>
-          <li>사용자가 직접 명령을 입력하면 현재 상태와 합쳐진 Codex 프롬프트를 만들 수 있게 했습니다.</li>
-          <li>파일 신호는 접히는 보조 스캔 정보로 내려서 화면 우선순위를 낮췄습니다.</li>
+          <li><code>docs/orchestration/*</code> 표준을 LETHE 피드백 기준으로 확장했습니다.</li>
+          <li><code>STATUS.md</code>, <code>RUNBOOK.md</code>, <code>SCOPE_GUARD.md</code>, <code>devlog/</code>, <code>reports/</code>를 필수 코어에 포함했습니다.</li>
+          <li>AI 리뷰 기록, 증거, 템플릿 폴더는 권장 확장으로 분리했습니다.</li>
+          <li>공통 <code>AGENTS.md</code> 양식은 먼저 템플릿으로 두고, 반복 검증 후 Codex skill로 승격하는 방향으로 정했습니다.</li>
+          <li>다른 프로젝트에 기본 구조를 설치하는 <code>npm run orchestration:install</code> 명령을 추가했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>프롬프트 메뉴가 보이지 않는 경우는 선택된 프로젝트가 없을 때라서, 빈 상태 안내를 더 명확하게 바꿨습니다.</li>
-          <li>프롬프트 메뉴는 템플릿이고, 최종 명령은 사용자가 입력한 문장과 프로젝트 상태를 합쳐 만드는 구조로 바꿨습니다.</li>
-          <li>사용자 프로젝트 목록 파일 변경은 로컬 데이터로 보고 커밋에 포함하지 않았습니다.</li>
+          <li><code>STATUS.md</code>는 전체 프로젝트 상태, <code>CURRENT_TASK.md</code>는 현재 작업 단위로 역할을 분리했습니다.</li>
+          <li><code>NEXT_TASKS.md</code>는 상위 후보 중심으로 유지하고, 히스토리는 <code>devlog/</code>, 결정은 <code>DECISION_LOG.md</code>, 증거는 <code>evidence/</code>로 보내도록 정리했습니다.</li>
+          <li>기존 루트 문서들은 바로 삭제하지 않고 호환 문서로 유지하는 방식을 선택했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>결과</h2>
         <ul>
-          <li><code>npm run build</code>가 통과했습니다.</li>
-          <li>대시보드 오른쪽 패널에서 현재 작업과 다음 작업을 먼저 볼 수 있습니다.</li>
-          <li>직접 입력한 명령을 포함한 Codex 프롬프트를 생성하고 복사할 수 있습니다.</li>
-          <li>대시보드는 <code>http://127.0.0.1:5173</code>에서 바로 확인할 수 있습니다.</li>
-          <li>다음 작업은 실제 LETHE/SoulLike 경로를 연결해서 진짜 프로젝트 상태를 보는 것입니다.</li>
+          <li><code>docs/ORCHESTRATION_INTERFACE.md</code>가 새 표준을 설명합니다.</li>
+          <li><code>docs/orchestration/</code> 아래에 이 저장소의 초기 스캐폴드가 생겼습니다.</li>
+          <li><code>AGENTS.md</code>가 새 오케스트레이션 문서 흐름을 안내합니다.</li>
+          <li><code>npm run orchestration:install -- --target . --dry-run</code> 검증이 통과했습니다.</li>
+          <li>다음 작업은 대시보드에서 이 인터페이스의 존재 여부를 감지하고 누락 파일을 스캐폴드하는 기능입니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../AI_USAGE_PORTFOLIO.md">AI 활용 능력 정리본</a></li>
+          <li><a href="../ORCHESTRATION_INTERFACE.md">오케스트레이션 인터페이스 표준</a></li>
+          <li><a href="../orchestration/README.md">오케스트레이션 폴더 안내</a></li>
           <li><a href="../PROMPT_DECISION_LOG.md">프롬프트/의사결정 인덱스</a></li>
           <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
           <li><a href="../NEXT_TASKS.md">다음 작업 목록</a></li>
-          <li><a href="../DEV_LOG.md">개발 로그 인덱스</a></li>
         </ul>
-        <p class="note">이 HTML 보고서는 너한테 보여주기 위한 요약본이고, Codex가 참조하는 상세 운영 문서는 Markdown으로 유지합니다.</p>
+        <p class="note">이 HTML 보고서는 사용자용 요약이고, 내부 작업 흔적은 <code>docs/orchestration/devlog/</code>에 분리해 둡니다.</p>
       </section>
     </main>
   </body>

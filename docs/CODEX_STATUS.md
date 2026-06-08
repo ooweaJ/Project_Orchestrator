@@ -54,6 +54,8 @@ Completed orchestration improvements:
 - Discord snapshot report commands:
   - `npm run report:discord:snapshot:dry`
   - `npm run report:discord:snapshot`
+- Expanded `docs/orchestration/*` interface standard with required core documents, recommended evidence extensions, devlog/report separation, and a reusable AGENTS template.
+- `npm run orchestration:install` can scaffold the default interface into another local project without overwriting existing files.
 
 Completed dashboard localization and readability improvements:
 
@@ -127,3 +129,10 @@ Verified on 2026-06-05:
 - `GET /api/folders` returned local drive roots and folders.
 - `GET /api/folders?path=<local-path>` returned child folders for a selected path.
 - Command-centered dashboard build passed.
+
+Verified on 2026-06-08:
+
+- Expanded orchestration interface Markdown files were reviewed.
+- `docs/orchestration/*` required core files and folders were scaffolded for this repository.
+- `AGENTS.md`, `docs/ORCHESTRATION_INTERFACE.md`, `docs/NEXT_TASKS.md`, decision logs, and user-facing reports were updated for the new standard.
+- `npm run orchestration:install -- --target . --dry-run` passed.

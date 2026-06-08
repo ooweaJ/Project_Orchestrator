@@ -11,7 +11,8 @@
     "report:discord": "node scripts/send-discord-report.mjs",
     "report:discord:dry": "node scripts/send-discord-report.mjs --dry-run",
     "report:discord:snapshot": "node scripts/send-discord-report.mjs --from-snapshots --no-attach",
-    "report:discord:snapshot:dry": "node scripts/send-discord-report.mjs --from-snapshots --no-attach --dry-run"
+    "report:discord:snapshot:dry": "node scripts/send-discord-report.mjs --from-snapshots --no-attach --dry-run",
+    "orchestration:install": "node scripts/install-orchestration.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

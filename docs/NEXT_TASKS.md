@@ -74,15 +74,17 @@
 
 Goal:
 
-- Define standard `docs/orchestration/*` documents for every portfolio project.
-- Add templates for project brief, current task, next tasks, prompt context, decision log, and reports.
+- Define the expanded standard `docs/orchestration/*` interface for every portfolio project.
+- Separate required core documents from recommended evidence and template extensions.
+- Add templates for project brief, status, current task, next tasks, prompt context, runbook, scope guard, decision log, devlog, reports, and reusable AGENTS guidance.
 - Add a scaffold action that creates missing interface files in a selected project.
 - Keep legacy profile mappings only as a migration fallback.
 
 Verification:
 
-- dashboard shows which interface documents exist or are missing
-- generated command prompt can include `PROMPT_CONTEXT.md`, `CURRENT_TASK.md`, and `NEXT_TASKS.md`
+- dashboard shows which required core documents and folders exist or are missing
+- generated command prompt can include `PROMPT_CONTEXT.md`, `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, and `SCOPE_GUARD.md`
+- command workflows can reference `RUNBOOK.md`
 - LETHE can be scaffolded from existing docs without losing current documentation
 
 ### Validate Real Project Paths
