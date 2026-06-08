@@ -76,6 +76,7 @@
 <li>The dashboard now prioritizes orchestration document contents over risk, prompt, and auxiliary scan panels.</li>
 <li>Project Discord reports are sent from AI Project Orchestrator&#039;s central <code>.env</code>, not from each registered project.</li>
 <li><code>npm run orchestration:dashboard</code> now generates <code>docs/orchestration/index.html</code> as a card-based HTML view of the Markdown interface.</li>
+<li>The homepage now embeds each selected project&#039;s generated <code>docs/orchestration/index.html</code> in an <code>HTML 대시보드</code> panel.</li>
 </ul>
 <h3>Latest Verification</h3>
 <ul>
@@ -87,6 +88,9 @@
 <li><code>POST /api/projects/lethe-prototype/discord-report</code> with <code>dryRun: true</code> returned a Discord payload without sending.</li>
 <li><code>npm run orchestration:dashboard</code> generated this project&#039;s <code>docs/orchestration/index.html</code>.</li>
 <li><code>npm run orchestration:dashboard -- --all</code> generated dashboards for LETHE_Prototype and Project_Orchestrator.</li>
+<li><code>npm run build</code> passed after embedding generated HTML dashboards in the homepage.</li>
+<li><code>GET /api/projects/lethe-prototype/orchestration-dashboard</code> returned LETHE_Prototype&#039;s generated HTML with <code>200 OK</code>.</li>
+<li><code>GET http://127.0.0.1:5173</code> returned the homepage Vite HTML with <code>200 OK</code>.</li>
 </ul>
 <h3>Blockers</h3>
 <ul>
@@ -94,7 +98,7 @@
 <li>SoulLike real project path validation is still pending.</li>
 </ul>
 <h3>Next Major Step</h3>
-<p>Use the generated HTML dashboard on real project work and refine generated list pages for <code>reports/</code>, <code>devlog/</code>, and <code>evidence/</code>.</p></div>
+<p>Use the homepage embedded dashboard on real project work and refine generated list pages for <code>reports/</code>, <code>devlog/</code>, and <code>evidence/</code>.</p></div>
   </section>
         <section class="card">
     <div class="cardTitle">
@@ -102,20 +106,19 @@
       <a href="./CURRENT_TASK.md">CURRENT_TASK.md</a>
     </div>
     <div class="markdown"><h3>Task</h3>
-<p>Generate an HTML dashboard from orchestration documents.</p>
+<p>Show each generated orchestration HTML dashboard inside the homepage.</p>
 <h3>Goal</h3>
 <ul>
-<li>Add a script that reads <code>docs/orchestration/*</code> Markdown.</li>
-<li>Generate <code>docs/orchestration/index.html</code> as a card-based view.</li>
-<li>Support current project, one target project, and all registered projects.</li>
-<li>Keep Markdown as the source of truth and HTML as a generated view.</li>
+<li>Serve <code>docs/orchestration/index.html</code> for a selected registered project.</li>
+<li>Embed that generated HTML view in the dashboard detail panel.</li>
+<li>Keep Markdown as the source of truth and HTML as the generated view.</li>
 </ul>
 <h3>Done Criteria</h3>
 <ul>
-<li><code>npm run orchestration:dashboard</code> creates <code>docs/orchestration/index.html</code>.</li>
-<li><code>npm run orchestration:dashboard -- --target &quot;C:\path\to\project&quot;</code> works for one project.</li>
-<li><code>npm run orchestration:dashboard -- --all</code> works for registered projects.</li>
-<li>Generated HTML includes current state, current task, next tasks, decisions, devlog, reports, commands, and document links.</li>
+<li>The selected project detail view includes an <code>HTML 대시보드</code> panel.</li>
+<li>The panel loads <code>/api/projects/:id/orchestration-dashboard</code> in the homepage.</li>
+<li>A <code>새 창</code> link opens the same generated view directly.</li>
+<li>Missing generated HTML returns a clear fallback message instead of breaking the homepage.</li>
 </ul>
 <h3>Related Files</h3>
 <ul>
@@ -125,9 +128,9 @@
 </ul>
 <h3>Verification</h3>
 <ul>
-<li>Run <code>npm run orchestration:dashboard</code>.</li>
-<li>Run <code>npm run orchestration:dashboard -- --all</code>.</li>
-<li>Inspect generated HTML for the main card sections.</li>
+<li><code>npm run build</code></li>
+<li><code>GET /api/projects/lethe-prototype/orchestration-dashboard</code></li>
+<li><code>GET http://127.0.0.1:5173</code></li>
 </ul></div>
   </section>
         <section class="card">
@@ -138,17 +141,17 @@
     <div class="markdown"><p>Keep this list to the top upcoming candidates. Move history to <code>devlog/</code>, decisions to <code>DECISION_LOG.md</code>, and evidence to <code>evidence/</code>.</p>
 <h3>Top Candidates</h3>
 <ul>
-<li>Implement interface detection in the scanner.</li>
+<li>Add generated list pages for <code>reports/</code>, <code>devlog/</code>, and <code>evidence/</code>.</li>
 </ul>
-<p>   - Verify: dashboard can show required core files and folders as present or missing.</p>
+<p>   - Verify: each folder has an index page linked from the generated dashboard.</p>
+<ul>
+<li>Add a homepage action to regenerate a selected project&#039;s orchestration HTML.</li>
+</ul>
+<p>   - Verify: clicking the action runs the generator and refreshes the embedded dashboard.</p>
 <ul>
 <li>Add a scaffold action for missing orchestration files.</li>
 </ul>
 <p>   - Verify: selected project receives missing files without overwriting existing documentation.</p>
-<ul>
-<li>Update prompt generation to prefer orchestration documents.</li>
-</ul>
-<p>   - Verify: generated prompts include <code>PROMPT_CONTEXT.md</code>, <code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code>, and <code>SCOPE_GUARD.md</code> when present.</p>
 <ul>
 <li>Validate real project paths.</li>
 </ul>
@@ -180,7 +183,7 @@
   </section>
         <section class="card listCard">
           <div class="cardTitle"><h2>최근 devlog</h2><a href="./devlog/">devlog/</a></div>
-          <ul><li><a href="./devlog/2026-06-08.md">2026-06-08 Devlog</a><small>2026. 6. 8. PM 3:38:39</small></li></ul>
+          <ul><li><a href="./devlog/2026-06-08.md">2026-06-08 Devlog</a><small>2026. 6. 8. PM 3:53:19</small></li></ul>
         </section>
         <section class="card listCard">
           <div class="cardTitle"><h2>최근 report</h2><a href="./reports/">reports/</a></div>
@@ -207,7 +210,7 @@ git diff --stat</code></pre><pre><code>npm run build</code></pre><pre><code>npm 
           </div>
         </section>
       </div>
-      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 3:38:55</footer>
+      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 3:53:32</footer>
     </main>
   </body>
 </html>

@@ -2,21 +2,20 @@
 
 ## Task
 
-Generate an HTML dashboard from orchestration documents.
+Show each generated orchestration HTML dashboard inside the homepage.
 
 ## Goal
 
-- Add a script that reads `docs/orchestration/*` Markdown.
-- Generate `docs/orchestration/index.html` as a card-based view.
-- Support current project, one target project, and all registered projects.
-- Keep Markdown as the source of truth and HTML as a generated view.
+- Serve `docs/orchestration/index.html` for a selected registered project.
+- Embed that generated HTML view in the dashboard detail panel.
+- Keep Markdown as the source of truth and HTML as the generated view.
 
 ## Done Criteria
 
-- `npm run orchestration:dashboard` creates `docs/orchestration/index.html`.
-- `npm run orchestration:dashboard -- --target "C:\path\to\project"` works for one project.
-- `npm run orchestration:dashboard -- --all` works for registered projects.
-- Generated HTML includes current state, current task, next tasks, decisions, devlog, reports, commands, and document links.
+- The selected project detail view includes an `HTML 대시보드` panel.
+- The panel loads `/api/projects/:id/orchestration-dashboard` in the homepage.
+- A `새 창` link opens the same generated view directly.
+- Missing generated HTML returns a clear fallback message instead of breaking the homepage.
 
 ## Related Files
 
@@ -26,6 +25,6 @@ Generate an HTML dashboard from orchestration documents.
 
 ## Verification
 
-- Run `npm run orchestration:dashboard`.
-- Run `npm run orchestration:dashboard -- --all`.
-- Inspect generated HTML for the main card sections.
+- `npm run build`
+- `GET /api/projects/lethe-prototype/orchestration-dashboard`
+- `GET http://127.0.0.1:5173`

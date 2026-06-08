@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import {
   Clipboard,
+  ExternalLink,
   FileText,
   FolderOpen,
   GitBranch,
@@ -670,6 +671,27 @@ function App() {
                     title="다음 작업"
                   />
                 </div>
+              </section>
+
+              <section className="generatedDashboardPanel">
+                <div className="sectionTitle">
+                  <h3>HTML 대시보드</h3>
+                  <a
+                    className="secondaryButton compactButton"
+                    href={`/api/projects/${selected.id}/orchestration-dashboard`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <ExternalLink size={15} />
+                    새 창
+                  </a>
+                </div>
+                <iframe
+                  className="orchestrationFrame"
+                  key={selected.id}
+                  src={`/api/projects/${selected.id}/orchestration-dashboard`}
+                  title={`${displayProjectName(selected)} 오케스트레이션 HTML 대시보드`}
+                />
               </section>
 
               <section className="workCommandPanel">

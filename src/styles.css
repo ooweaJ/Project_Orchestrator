@@ -572,6 +572,7 @@ h3 {
 }
 
 .orchestrationDesk,
+.generatedDashboardPanel,
 .reportPanel,
 .workCommandPanel,
 .orchestrationPanel {
@@ -589,11 +590,27 @@ h3 {
 }
 
 .orchestrationDesk h3,
+.generatedDashboardPanel h3,
 .reportPanel h3,
 .workCommandPanel h3,
 .orchestrationPanel h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+.compactButton {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 0.8rem;
+}
+
+.orchestrationFrame {
+  display: block;
+  width: 100%;
+  min-height: 620px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .docBoard {

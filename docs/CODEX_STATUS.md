@@ -62,6 +62,7 @@ Completed orchestration improvements:
 - Scanner snapshots now include `files.orchestrationDashboard` with `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, `DECISION_LOG.md`, recent devlog, and recent reports.
 - The dashboard now prioritizes orchestration document content, document-based commands, and centralized Discord reports instead of risk/prompt/auxiliary scan panels.
 - `npm run orchestration:dashboard` generates `docs/orchestration/index.html` as a card-based HTML view of the Markdown orchestration interface.
+- The homepage embeds the selected project's generated orchestration HTML dashboard through `GET /api/projects/:id/orchestration-dashboard`.
 
 Completed dashboard localization and readability improvements:
 
@@ -150,3 +151,6 @@ Verified on 2026-06-08:
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord payload and did not send.
 - `npm run orchestration:dashboard` generated Project_Orchestrator's orchestration HTML dashboard.
 - `npm run orchestration:dashboard -- --all` generated dashboards for LETHE_Prototype and Project_Orchestrator.
+- `npm run build` passed after adding the homepage embedded HTML dashboard panel.
+- `GET /api/projects/lethe-prototype/orchestration-dashboard` returned LETHE_Prototype's generated HTML with `200 OK`.
+- `GET http://127.0.0.1:5173` returned the homepage Vite HTML with `200 OK`.

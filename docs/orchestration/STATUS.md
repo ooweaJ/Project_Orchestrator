@@ -11,6 +11,7 @@
 - The dashboard now prioritizes orchestration document contents over risk, prompt, and auxiliary scan panels.
 - Project Discord reports are sent from AI Project Orchestrator's central `.env`, not from each registered project.
 - `npm run orchestration:dashboard` now generates `docs/orchestration/index.html` as a card-based HTML view of the Markdown interface.
+- The homepage now embeds each selected project's generated `docs/orchestration/index.html` in an `HTML 대시보드` panel.
 
 ## Latest Verification
 
@@ -22,6 +23,9 @@
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord payload without sending.
 - `npm run orchestration:dashboard` generated this project's `docs/orchestration/index.html`.
 - `npm run orchestration:dashboard -- --all` generated dashboards for LETHE_Prototype and Project_Orchestrator.
+- `npm run build` passed after embedding generated HTML dashboards in the homepage.
+- `GET /api/projects/lethe-prototype/orchestration-dashboard` returned LETHE_Prototype's generated HTML with `200 OK`.
+- `GET http://127.0.0.1:5173` returned the homepage Vite HTML with `200 OK`.
 
 ## Blockers
 
@@ -30,4 +34,4 @@
 
 ## Next Major Step
 
-Use the generated HTML dashboard on real project work and refine generated list pages for `reports/`, `devlog/`, and `evidence/`.
+Use the homepage embedded dashboard on real project work and refine generated list pages for `reports/`, `devlog/`, and `evidence/`.

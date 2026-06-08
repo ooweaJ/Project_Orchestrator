@@ -125,3 +125,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/04-generated-orchestration-dashboard.md`
 - Summary: Added a generator that turns `docs/orchestration/*` Markdown into `docs/orchestration/index.html` card dashboards for one project or every registered project.
 - Verification: `npm run orchestration:dashboard`, `npm run orchestration:dashboard -- --all`, generated HTML section checks.
+
+#### Homepage Embedded HTML Dashboard
+
+- File: `docs/ai-collaboration/2026-06-08/05-homepage-generated-dashboard-embed.md`
+- Summary: Added a homepage panel that embeds each selected project's generated `docs/orchestration/index.html` and exposes a direct new-window link.
+- Verification: `npm run build`, `GET /api/projects/lethe-prototype/orchestration-dashboard`, homepage HTTP `200 OK`.

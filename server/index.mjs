@@ -1198,6 +1198,35 @@ app.get("/api/projects/:id/snapshot", async (req, res) => {
   }
 });
 
+app.get("/api/projects/:id/orchestration-dashboard", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).type("html").send("project not found");
+      return;
+    }
+
+    const dashboardPath = path.join(project.path, "docs", "orchestration", "index.html");
+    const html = await fs.readFile(dashboardPath, "utf8").catch(() => "");
+
+    if (!html) {
+      res
+        .status(404)
+        .type("html")
+        .send(
+          "<!doctype html><html><body><p>docs/orchestration/index.html이 아직 생성되지 않았습니다.</p></body></html>",
+        );
+      return;
+    }
+
+    res.type("html").send(html);
+  } catch (error) {
+    res.status(500).type("html").send(error.message);
+  }
+});
+
 app.get("/api/snapshots", async (_req, res) => {
   try {
     const projects = await readProjects();
