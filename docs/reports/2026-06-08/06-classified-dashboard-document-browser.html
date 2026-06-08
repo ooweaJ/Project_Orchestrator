@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Project Orchestrator 진행 보고서</title>
+    <title>분류형 대시보드와 개발 문서 브라우저 보고서</title>
     <style>
       :root {
         color: #17211c;
@@ -30,10 +30,6 @@
       h2 {
         margin: 0 0 12px;
         font-size: 19px;
-      }
-      p {
-        margin: 0;
-        line-height: 1.65;
       }
       section {
         margin-bottom: 14px;
@@ -71,23 +67,23 @@
   </head>
   <body>
     <main>
-      <h1>AI Project Orchestrator 진행 상태</h1>
-      <span class="status">2026-06-08 기준</span>
+      <h1>분류형 대시보드와 개발 문서 브라우저</h1>
+      <span class="status">2026-06-08 완료</span>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>생성 HTML 대시보드를 문서 나열 방식에서 판단 흐름 중심 구조로 다시 분류했습니다.</li>
-          <li>홈페이지에서 프로젝트별 <code>docs/orchestration</code> 파일을 하나씩 열어볼 수 있는 개발 문서 브라우저를 추가했습니다.</li>
+          <li>생성 HTML을 판단 흐름에 맞게 다시 분류했습니다.</li>
+          <li>홈페이지에서 각 프로젝트의 오케스트레이션 문서를 하나씩 열어보는 브라우저를 추가했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>홈페이지의 중복 Markdown 카드 영역을 제거하고, 현재 작업/다음 지시 요약을 명령 박스에 합쳤습니다.</li>
-          <li>생성 HTML은 다음 지시, 현재 상태, 검증/블로커, 작업 기록, 공유 보고서, 운영 명령으로 분류됩니다.</li>
-          <li>개발 문서 브라우저는 각 프로젝트의 <code>docs/orchestration</code> 내부 파일만 안전하게 읽습니다.</li>
+          <li>중복 Markdown 카드 영역은 제거하고, 현재 작업/다음 지시는 명령 영역에 합쳤습니다.</li>
+          <li>생성 HTML은 다음 지시, 현재 상태, 검증/블로커, 기록, 보고서, 운영 명령으로 정리됩니다.</li>
+          <li>문서 미리보기는 각 프로젝트의 <code>docs/orchestration</code> 내부 파일로 제한했습니다.</li>
         </ul>
       </section>
 
@@ -96,18 +92,17 @@
         <ul>
           <li><code>npm run build</code>가 통과했습니다.</li>
           <li><code>npm run orchestration:dashboard -- --all</code>로 LETHE와 Project_Orchestrator HTML을 재생성했습니다.</li>
-          <li>LETHE의 문서 목록, <code>STATUS.md</code> 내용, 생성 HTML API가 모두 <code>200 OK</code>로 응답했습니다.</li>
-          <li>다음 작업은 선택 프로젝트 HTML을 홈페이지에서 바로 재생성하는 버튼입니다.</li>
+          <li>LETHE 문서 목록, 개별 문서, 생성 HTML API가 모두 <code>200 OK</code>로 응답했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>참고 문서</h2>
         <ul>
-          <li><a href="../orchestration/index.html">오케스트레이션 HTML 대시보드</a></li>
-          <li><a href="../orchestration/RUNBOOK.md">Runbook</a></li>
-          <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
-          <li><a href="./2026-06-08/06-classified-dashboard-document-browser.html">작업 단위 보고서</a></li>
+          <li><a href="../../orchestration/CURRENT_TASK.md">CURRENT_TASK.md</a></li>
+          <li><a href="../../orchestration/STATUS.md">STATUS.md</a></li>
+          <li><a href="../../CODEX_STATUS.md">CODEX_STATUS.md</a></li>
+          <li><a href="../../ai-collaboration/2026-06-08/06-classified-dashboard-document-browser.md">AI 협업 기록</a></li>
         </ul>
       </section>
     </main>

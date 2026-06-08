@@ -56,6 +56,8 @@ const textFileExtensions = new Set([
   ".yml",
 ]);
 
+const orchestrationViewerExtensions = new Set([".md", ".html", ".txt", ".json"]);
+
 const maxScannedFiles = 2500;
 const maxTodoFileBytes = 300000;
 const largeFileThresholdBytes = 10 * 1024 * 1024;
@@ -176,6 +178,72 @@ async function pathExists(targetPath) {
   } catch {
     return false;
   }
+}
+
+function resolveOrchestrationViewerPath(projectPath, requestedPath) {
+  const baseDir = path.resolve(projectPath, "docs", "orchestration");
+  const normalizedPath = requestedPath.replace(/\\/g, "/");
+
+  if (!normalizedPath || normalizedPath.includes("\0") || path.isAbsolute(normalizedPath)) {
+    throw new Error("invalid document path");
+  }
+
+  const fullPath = path.resolve(baseDir, normalizedPath);
+
+  if (fullPath !== baseDir && !fullPath.startsWith(`${baseDir}${path.sep}`)) {
+    throw new Error("document path is outside docs/orchestration");
+  }
+
+  return { baseDir, fullPath };
+}
+
+async function listOrchestrationViewerFiles(projectPath) {
+  const baseDir = path.resolve(projectPath, "docs", "orchestration");
+  const files = [];
+
+  async function visit(directory) {
+    if (files.length >= 240) {
+      return;
+    }
+
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+
+    for (const entry of entries) {
+      if (files.length >= 240) {
+        return;
+      }
+
+      const fullPath = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        await visit(fullPath);
+        continue;
+      }
+
+      if (!entry.isFile() || !orchestrationViewerExtensions.has(path.extname(entry.name).toLowerCase())) {
+        continue;
+      }
+
+      const stats = await fs.stat(fullPath).catch(() => null);
+
+      if (!stats) {
+        continue;
+      }
+
+      const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
+      files.push({
+        path: relativePath,
+        name: entry.name,
+        directory: path.dirname(relativePath) === "." ? "" : path.dirname(relativePath).replace(/\\/g, "/"),
+        extension: path.extname(entry.name).toLowerCase(),
+        sizeBytes: stats.size,
+        modifiedAt: stats.mtime.toISOString(),
+      });
+    }
+  }
+
+  await visit(baseDir);
+  return files.sort((a, b) => a.path.localeCompare(b.path, "ko"));
 }
 
 async function readProjects() {
@@ -1224,6 +1292,69 @@ app.get("/api/projects/:id/orchestration-dashboard", async (req, res) => {
     res.type("html").send(html);
   } catch (error) {
     res.status(500).type("html").send(error.message);
+  }
+});
+
+app.get("/api/projects/:id/orchestration-files", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    if (!(await pathExists(path.join(project.path, "docs", "orchestration")))) {
+      res.json([]);
+      return;
+    }
+
+    res.json(await listOrchestrationViewerFiles(project.path));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/projects/:id/orchestration-file", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    const requestedPath = typeof req.query.path === "string" ? req.query.path : "";
+    const { fullPath } = resolveOrchestrationViewerPath(project.path, requestedPath);
+    const extension = path.extname(fullPath).toLowerCase();
+
+    if (!orchestrationViewerExtensions.has(extension)) {
+      res.status(400).json({ error: "unsupported document type" });
+      return;
+    }
+
+    const stats = await fs.stat(fullPath).catch(() => null);
+
+    if (!stats?.isFile()) {
+      res.status(404).json({ error: "document not found" });
+      return;
+    }
+
+    if (stats.size > 500000) {
+      res.status(413).json({ error: "document is too large to preview" });
+      return;
+    }
+
+    res.json({
+      path: requestedPath.replace(/\\/g, "/"),
+      extension,
+      modifiedAt: stats.mtime.toISOString(),
+      content: await fs.readFile(fullPath, "utf8"),
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

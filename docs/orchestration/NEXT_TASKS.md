@@ -4,11 +4,11 @@ Keep this list to the top upcoming candidates. Move history to `devlog/`, decisi
 
 ## Top Candidates
 
-1. Add generated list pages for `reports/`, `devlog/`, and `evidence/`.
-   - Verify: each folder has an index page linked from the generated dashboard.
-
-2. Add a homepage action to regenerate a selected project's orchestration HTML.
+1. Add a homepage action to regenerate a selected project's orchestration HTML.
    - Verify: clicking the action runs the generator and refreshes the embedded dashboard.
+
+2. Add generated list pages for `reports/`, `devlog/`, and `evidence/`.
+   - Verify: each folder has an index page linked from the generated dashboard.
 
 3. Add a scaffold action for missing orchestration files.
    - Verify: selected project receives missing files without overwriting existing documentation.

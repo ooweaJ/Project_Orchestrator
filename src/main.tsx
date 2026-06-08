@@ -135,6 +135,22 @@ type FolderBrowser = {
   }>;
 };
 
+type OrchestrationFile = {
+  path: string;
+  name: string;
+  directory: string;
+  extension: string;
+  sizeBytes: number;
+  modifiedAt: string;
+};
+
+type OrchestrationFileContent = {
+  path: string;
+  extension: string;
+  modifiedAt: string;
+  content: string;
+};
+
 const riskLabels: Record<RiskLevel, string> = {
   low: "정상",
   medium: "주의",
@@ -165,6 +181,10 @@ function App() {
   const [customInstruction, setCustomInstruction] = React.useState("");
   const [commandText, setCommandText] = React.useState("");
   const [discordPreview, setDiscordPreview] = React.useState("");
+  const [documentFiles, setDocumentFiles] = React.useState<OrchestrationFile[]>([]);
+  const [selectedDocumentPath, setSelectedDocumentPath] = React.useState("");
+  const [documentContent, setDocumentContent] = React.useState<OrchestrationFileContent | null>(null);
+  const [isDocumentLoading, setIsDocumentLoading] = React.useState(false);
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -270,6 +290,77 @@ function App() {
 
   function getOrchestrationDoc(snapshot: ProjectSnapshot, key: OrchestrationDocKey) {
     return snapshot.files.orchestrationDashboard.documents.find((doc) => doc.key === key);
+  }
+
+  function summarizeDocument(snapshot: ProjectSnapshot, key: OrchestrationDocKey, fallback: string) {
+    const content = getOrchestrationDoc(snapshot, key)?.content || "";
+    const lines = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#"))
+      .map((line) => line.replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""))
+      .filter((line) => line && line !== "-")
+      .slice(0, 4);
+
+    return lines.join("\n") || fallback;
+  }
+
+  async function loadProjectDocument(snapshot: ProjectSnapshot, documentPath: string) {
+    if (!documentPath) {
+      setDocumentContent(null);
+      return;
+    }
+
+    setIsDocumentLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/projects/${snapshot.id}/orchestration-file?path=${encodeURIComponent(documentPath)}`,
+      );
+      const body = (await response.json().catch(() => null)) as null | OrchestrationFileContent | { error?: string };
+
+      if (!response.ok) {
+        throw new Error((body as { error?: string } | null)?.error ?? `문서를 읽지 못했습니다: ${response.status}`);
+      }
+
+      setSelectedDocumentPath(documentPath);
+      setDocumentContent(body as OrchestrationFileContent);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Unknown error");
+    } finally {
+      setIsDocumentLoading(false);
+    }
+  }
+
+  async function loadProjectDocuments(snapshot: ProjectSnapshot) {
+    setDocumentFiles([]);
+    setDocumentContent(null);
+    setSelectedDocumentPath("");
+
+    try {
+      const response = await fetch(`/api/projects/${snapshot.id}/orchestration-files`);
+      const body = (await response.json().catch(() => null)) as null | OrchestrationFile[] | { error?: string };
+
+      if (!response.ok) {
+        throw new Error((body as { error?: string } | null)?.error ?? `문서 목록을 읽지 못했습니다: ${response.status}`);
+      }
+
+      const files = (body as OrchestrationFile[]).filter((file) => file.extension !== ".html");
+      const defaultPath =
+        files.find((file) => file.path === "STATUS.md")?.path ||
+        files.find((file) => file.path === "CURRENT_TASK.md")?.path ||
+        files[0]?.path ||
+        "";
+
+      setDocumentFiles(files);
+
+      if (defaultPath) {
+        await loadProjectDocument(snapshot, defaultPath);
+      }
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Unknown error");
+    }
   }
 
   function generateCommandText(snapshot: ProjectSnapshot) {
@@ -416,6 +507,9 @@ function App() {
   React.useEffect(() => {
     setCommandText("");
     setDiscordPreview("");
+    if (selected) {
+      void loadProjectDocuments(selected);
+    }
   }, [selected?.id]);
 
   return (
@@ -646,58 +740,20 @@ function App() {
                 </section>
               ) : null}
 
-              <section className="orchestrationDesk">
-                <div className="sectionTitle">
-                  <h3>오케스트레이션 문서</h3>
-                  <span>Markdown 기준</span>
-                </div>
-                <div className="docBoard">
-                  <MarkdownPanel
-                    doc={getOrchestrationDoc(selected, "status")}
-                    portfolioMode={portfolioMode}
-                    project={selected}
-                    title="현재 상태"
-                  />
-                  <MarkdownPanel
-                    doc={getOrchestrationDoc(selected, "currentTask")}
-                    portfolioMode={portfolioMode}
-                    project={selected}
-                    title="현재 작업"
-                  />
-                  <MarkdownPanel
-                    doc={getOrchestrationDoc(selected, "nextTasks")}
-                    portfolioMode={portfolioMode}
-                    project={selected}
-                    title="다음 작업"
-                  />
-                </div>
-              </section>
-
-              <section className="generatedDashboardPanel">
-                <div className="sectionTitle">
-                  <h3>HTML 대시보드</h3>
-                  <a
-                    className="secondaryButton compactButton"
-                    href={`/api/projects/${selected.id}/orchestration-dashboard`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <ExternalLink size={15} />
-                    새 창
-                  </a>
-                </div>
-                <iframe
-                  className="orchestrationFrame"
-                  key={selected.id}
-                  src={`/api/projects/${selected.id}/orchestration-dashboard`}
-                  title={`${displayProjectName(selected)} 오케스트레이션 HTML 대시보드`}
-                />
-              </section>
-
               <section className="workCommandPanel">
                 <div className="sectionTitle">
                   <h3>명령</h3>
                   <span>문서 기준으로 지시하기</span>
+                </div>
+                <div className="instructionBrief">
+                  <div>
+                    <span>현재 작업</span>
+                    <p>{displayText(summarizeDocument(selected, "currentTask", "CURRENT_TASK.md에 현재 작업이 없습니다."))}</p>
+                  </div>
+                  <div>
+                    <span>다음 지시 기준</span>
+                    <p>{displayText(summarizeDocument(selected, "nextTasks", "NEXT_TASKS.md에 다음 후보가 없습니다."))}</p>
+                  </div>
                 </div>
                 <label className="commandInput">
                   내가 내릴 명령
@@ -722,6 +778,60 @@ function App() {
                   </button>
                 </div>
                 {commandText ? <pre className="commandPreview">{displayText(commandText)}</pre> : null}
+              </section>
+
+              <section className="generatedDashboardPanel">
+                <div className="sectionTitle">
+                  <h3>HTML 대시보드</h3>
+                  <a
+                    className="secondaryButton compactButton"
+                    href={`/api/projects/${selected.id}/orchestration-dashboard`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <ExternalLink size={15} />
+                    새 창
+                  </a>
+                </div>
+                <iframe
+                  className="orchestrationFrame"
+                  key={selected.id}
+                  src={`/api/projects/${selected.id}/orchestration-dashboard`}
+                  title={`${displayProjectName(selected)} 오케스트레이션 HTML 대시보드`}
+                />
+              </section>
+
+              <section className="documentBrowserPanel">
+                <div className="sectionTitle">
+                  <h3>개발 문서</h3>
+                  <span>docs/orchestration</span>
+                </div>
+                <div className="documentBrowser">
+                  <div className="documentList">
+                    {documentFiles.length > 0 ? (
+                      documentFiles.map((file) => (
+                        <button
+                          className={selectedDocumentPath === file.path ? "active" : ""}
+                          key={file.path}
+                          type="button"
+                          onClick={() => void loadProjectDocument(selected, file.path)}
+                        >
+                          <span>{file.name}</span>
+                          {file.directory ? <small>{file.directory}</small> : null}
+                        </button>
+                      ))
+                    ) : (
+                      <p>볼 수 있는 개발 문서가 없습니다.</p>
+                    )}
+                  </div>
+                  <div className="documentPreview">
+                    <div>
+                      <strong>{selectedDocumentPath || "문서 미선택"}</strong>
+                      <span>{isDocumentLoading ? "읽는 중" : documentContent?.extension || ""}</span>
+                    </div>
+                    <pre>{documentContent ? displayText(documentContent.content) : "왼쪽에서 문서를 선택하세요."}</pre>
+                  </div>
+                </div>
               </section>
 
               <section className="orchestrationPanel">

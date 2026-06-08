@@ -131,3 +131,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/05-homepage-generated-dashboard-embed.md`
 - Summary: Added a homepage panel that embeds each selected project's generated `docs/orchestration/index.html` and exposes a direct new-window link.
 - Verification: `npm run build`, `GET /api/projects/lethe-prototype/orchestration-dashboard`, homepage HTTP `200 OK`.
+
+#### Classified HTML Dashboard And Document Browser
+
+- File: `docs/ai-collaboration/2026-06-08/06-classified-dashboard-document-browser.md`
+- Summary: Reclassified the generated HTML dashboard, removed duplicated Markdown cards from the homepage, merged current/next instructions into the command panel, and added project-specific `docs/orchestration` file browsing.
+- Verification: `npm run build`, `npm run orchestration:dashboard -- --all`, LETHE document list/content/dashboard APIs.

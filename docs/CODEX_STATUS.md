@@ -63,6 +63,8 @@ Completed orchestration improvements:
 - The dashboard now prioritizes orchestration document content, document-based commands, and centralized Discord reports instead of risk/prompt/auxiliary scan panels.
 - `npm run orchestration:dashboard` generates `docs/orchestration/index.html` as a card-based HTML view of the Markdown orchestration interface.
 - The homepage embeds the selected project's generated orchestration HTML dashboard through `GET /api/projects/:id/orchestration-dashboard`.
+- The generated HTML dashboard is grouped into decision-oriented sections rather than raw Markdown document cards.
+- The homepage includes a project-specific `docs/orchestration` document browser with safe per-file preview endpoints.
 
 Completed dashboard localization and readability improvements:
 
@@ -154,3 +156,6 @@ Verified on 2026-06-08:
 - `npm run build` passed after adding the homepage embedded HTML dashboard panel.
 - `GET /api/projects/lethe-prototype/orchestration-dashboard` returned LETHE_Prototype's generated HTML with `200 OK`.
 - `GET http://127.0.0.1:5173` returned the homepage Vite HTML with `200 OK`.
+- `npm run orchestration:dashboard -- --all` regenerated classified dashboards for LETHE_Prototype and Project_Orchestrator.
+- `GET /api/projects/lethe-prototype/orchestration-files` returned LETHE_Prototype's document list with `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-file?path=STATUS.md` returned LETHE_Prototype's document content with `200 OK`.

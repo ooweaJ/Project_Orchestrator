@@ -186,16 +186,89 @@ function renderDocCard(title, fileName, markdown, fallback) {
 }
 
 function renderCommandList(runbook) {
-  const codeBlocks = [...runbook.matchAll(/```(?:\w+)?\s*([\s\S]*?)```/gu)]
-    .map((match) => match[1].trim())
-    .filter(Boolean)
-    .slice(0, 6);
+  const commands = [];
+  const lines = runbook.split(/\r?\n/);
+  let currentHeading = "명령";
+  let codeLines = [];
+  let inCode = false;
 
-  if (codeBlocks.length === 0) {
+  for (const line of lines) {
+    if (!inCode && line.startsWith("## ")) {
+      currentHeading = line.slice(3).trim();
+      continue;
+    }
+
+    if (line.startsWith("```")) {
+      if (inCode) {
+        const command = codeLines.join("\n").trim();
+        if (command) {
+          commands.push({ title: currentHeading, command });
+        }
+        codeLines = [];
+        inCode = false;
+      } else {
+        inCode = true;
+      }
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+    }
+  }
+
+  const visibleCommands = commands.slice(0, 6);
+
+  if (visibleCommands.length === 0) {
     return '<p class="muted">RUNBOOK.md에 명령이 아직 정리되지 않았습니다.</p>';
   }
 
-  return codeBlocks.map((command) => `<pre><code>${escapeHtml(command)}</code></pre>`).join("");
+  return `<div class="commandManual">${visibleCommands
+    .map(
+      (item) => `<article>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(getCommandDescription(item.title))}</p>
+        <pre><code>${escapeHtml(item.command)}</code></pre>
+      </article>`,
+    )
+    .join("")}</div>`;
+}
+
+function getCommandDescription(title) {
+  const normalized = title.toLowerCase();
+
+  if (normalized.includes("preflight")) {
+    return "작업 전 변경 상태와 영향 범위를 확인합니다.";
+  }
+
+  if (normalized.includes("build")) {
+    return "프론트엔드와 타입 검사를 포함해 배포 가능한지 확인합니다.";
+  }
+
+  if (normalized.includes("discord")) {
+    return "중앙 오케스트레이터 설정으로 보고 메시지를 미리 확인하거나 전송합니다.";
+  }
+
+  if (normalized.includes("install")) {
+    return "다른 프로젝트에 오케스트레이션 문서 구조를 설치합니다.";
+  }
+
+  if (normalized.includes("migrate")) {
+    return "기존 프로젝트의 문서와 작업 흔적을 새 인터페이스로 옮길 때 사용합니다.";
+  }
+
+  if (normalized.includes("dashboard")) {
+    return "Markdown 원본을 사람이 보기 좋은 HTML 대시보드로 다시 생성합니다.";
+  }
+
+  return "프로젝트 운영 중 반복해서 쓰는 절차입니다.";
+}
+
+function renderMarkdownCard(title, markdown, fallback) {
+  return `<section class="card">
+    <h2>${escapeHtml(title)}</h2>
+    <div class="markdown">${normalizeSnippet(markdown, fallback)}</div>
+  </section>`;
 }
 
 async function buildDashboard(targetRoot) {
@@ -214,6 +287,17 @@ async function buildDashboard(targetRoot) {
   const phase = extractSection(docs.status, "Current State") || extractSection(docs.status, "현재 상태");
   const blockers = extractSection(docs.status, "Blockers") || extractSection(docs.status, "블로커");
   const verification = extractSection(docs.status, "Latest Verification") || extractSection(docs.status, "최신 검증");
+  const currentTaskSummary =
+    [
+      extractSection(docs.currentTask, "Task") || extractSection(docs.currentTask, "작업"),
+      extractSection(docs.currentTask, "Goal") || extractSection(docs.currentTask, "목표"),
+      extractSection(docs.currentTask, "Done Criteria") || extractSection(docs.currentTask, "완료 기준"),
+    ]
+      .filter(Boolean)
+      .join("\n\n") || docs.currentTask;
+  const nextInstructionSummary =
+    extractSection(docs.nextTasks, "Top Candidates") || extractSection(docs.nextTasks, "다음 후보") || docs.nextTasks;
+  const decisionSummary = extractSection(docs.decisionLog, "Decisions") || docs.decisionLog;
   const outputPath = path.join(orchestrationDir, "index.html");
 
   await fs.mkdir(orchestrationDir, { recursive: true });
@@ -246,6 +330,9 @@ async function buildDashboard(targetRoot) {
       .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
       .wide { grid-column: 1 / -1; }
       .card { padding: 18px; min-width: 0; }
+      .focusCard { border-color: #addfc0; background: #f7fcf8; }
+      .focusGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .focusGrid article { padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
       .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
       .cardTitle h2 { margin: 0; font-size: 18px; }
       a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
@@ -258,12 +345,16 @@ async function buildDashboard(targetRoot) {
       .markdown li { margin-bottom: 4px; }
       code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
       pre { overflow: auto; margin: 0 0 10px; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
+      .commandManual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .commandManual article { min-width: 0; padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #f8faf7; }
+      .commandManual h3 { margin: 0 0 6px; color: #1f6b4d; font-size: 15px; }
+      .commandManual p { margin: 0 0 10px; color: #60706a; font-size: 13px; line-height: 1.55; }
       .listCard ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
       .listCard li { display: grid; gap: 3px; }
       small, .muted { color: #697873; font-size: 13px; }
       footer { margin-top: 20px; color: #697873; font-size: 13px; }
       @media (max-width: 760px) {
-        .summary, .grid { grid-template-columns: 1fr; }
+        .summary, .grid, .focusGrid, .commandManual { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -281,36 +372,33 @@ async function buildDashboard(targetRoot) {
       </section>
 
       <div class="grid">
-        ${renderDocCard("현재 프로젝트 상태", "STATUS.md", docs.status, "STATUS.md가 아직 작성되지 않았습니다.")}
-        ${renderDocCard("이번 작업", "CURRENT_TASK.md", docs.currentTask, "CURRENT_TASK.md가 아직 작성되지 않았습니다.")}
-        ${renderDocCard("다음 작업 5개", "NEXT_TASKS.md", docs.nextTasks, "NEXT_TASKS.md가 아직 작성되지 않았습니다.")}
-        ${renderDocCard("최근 결정", "DECISION_LOG.md", docs.decisionLog, "DECISION_LOG.md가 아직 작성되지 않았습니다.")}
+        <section class="card wide focusCard">
+          <div class="cardTitle"><h2>다음 지시와 명령 기준</h2><a href="./CURRENT_TASK.md">CURRENT_TASK.md</a></div>
+          <div class="focusGrid">
+            <article>
+              <h3>이번에 끝낼 작업</h3>
+              <div class="markdown">${normalizeSnippet(currentTaskSummary, "CURRENT_TASK.md가 아직 작성되지 않았습니다.")}</div>
+            </article>
+            <article>
+              <h3>다음 후보</h3>
+              <div class="markdown">${normalizeSnippet(nextInstructionSummary, "NEXT_TASKS.md가 아직 작성되지 않았습니다.")}</div>
+            </article>
+          </div>
+        </section>
+        ${renderMarkdownCard("현재 상태", phase, "STATUS.md에 현재 상태가 아직 정리되지 않았습니다.")}
+        ${renderMarkdownCard("검증과 블로커", [verification, blockers].filter(Boolean).join("\n\n"), "검증 기록이나 블로커가 없습니다.")}
+        ${renderMarkdownCard("최근 결정", decisionSummary, "DECISION_LOG.md가 아직 작성되지 않았습니다.")}
         <section class="card listCard">
-          <div class="cardTitle"><h2>최근 devlog</h2><a href="./devlog/">devlog/</a></div>
+          <div class="cardTitle"><h2>작업 기록</h2><a href="./devlog/">devlog/</a></div>
           ${renderRecentList(devlog, "devlog", "아직 devlog가 없습니다.")}
         </section>
         <section class="card listCard">
-          <div class="cardTitle"><h2>최근 report</h2><a href="./reports/">reports/</a></div>
+          <div class="cardTitle"><h2>공유 보고서</h2><a href="./reports/">reports/</a></div>
           ${renderRecentList(reports, "reports", "아직 report가 없습니다.")}
         </section>
         <section class="card wide">
-          <div class="cardTitle"><h2>자주 쓰는 명령</h2><a href="./RUNBOOK.md">RUNBOOK.md</a></div>
+          <div class="cardTitle"><h2>운영 명령 매뉴얼</h2><a href="./RUNBOOK.md">RUNBOOK.md</a></div>
           ${renderCommandList(docs.runbook)}
-        </section>
-        <section class="card wide">
-          <div class="cardTitle"><h2>관련 문서 링크</h2><span class="muted">Markdown 원본</span></div>
-          <div class="markdown">
-            <ul>
-              <li><a href="./PROJECT_BRIEF.md">PROJECT_BRIEF.md</a></li>
-              <li><a href="./STATUS.md">STATUS.md</a></li>
-              <li><a href="./CURRENT_TASK.md">CURRENT_TASK.md</a></li>
-              <li><a href="./NEXT_TASKS.md">NEXT_TASKS.md</a></li>
-              <li><a href="./PROMPT_CONTEXT.md">PROMPT_CONTEXT.md</a></li>
-              <li><a href="./RUNBOOK.md">RUNBOOK.md</a></li>
-              <li><a href="./SCOPE_GUARD.md">SCOPE_GUARD.md</a></li>
-              <li><a href="./DECISION_LOG.md">DECISION_LOG.md</a></li>
-            </ul>
-          </div>
         </section>
       </div>
       <footer>Generated from Markdown. Markdown remains the source of truth. ${new Date().toLocaleString("ko-KR")}</footer>
