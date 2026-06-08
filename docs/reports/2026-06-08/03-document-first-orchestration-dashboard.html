@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>문서 중심 오케스트레이션 대시보드 보고서</title>
+    <style>
+      body {
+        margin: 0;
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(900px, 100%);
+        margin: 0 auto;
+        padding: 36px 22px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+      }
+
+      section {
+        margin: 14px 0;
+        padding: 18px;
+        border: 1px solid #d9e1d7;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 19px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.7;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>문서 중심 오케스트레이션 대시보드</h1>
+      <p>2026-06-08 작업 단위 보고서</p>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li>대시보드를 오케스트레이션 Markdown 문서 중심으로 재구성했습니다.</li>
+          <li>프로젝트별 Discord 보고를 오케스트레이터 중앙 <code>.env</code> 기준으로 보내도록 했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li><code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code> 내용을 화면에서 직접 볼 수 있게 했습니다.</li>
+          <li>기존 프롬프트/위험/보조 스캔 패널은 기본 화면에서 제거했습니다.</li>
+          <li>Discord 전송은 dry-run 미리보기와 실제 전송으로 나눴습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li><code>npm run build</code> 통과.</li>
+          <li><code>GET /api/snapshots</code>에서 오케스트레이션 문서 내용 확인.</li>
+          <li>LETHE Discord 보고 dry-run API 통과.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

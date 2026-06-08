@@ -1,12 +1,11 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import {
-  AlertTriangle,
-  CheckCircle2,
   Clipboard,
   FileText,
   FolderOpen,
   GitBranch,
+  MessageSquare,
   Plus,
   RefreshCw,
   Trash2,
@@ -14,7 +13,7 @@ import {
 import "./styles.css";
 
 type RiskLevel = "low" | "medium" | "high" | "blocked";
-type PromptKind = "diagnose" | "commit" | "docs" | "review" | "continue" | "verification" | "cleanup" | "push";
+type OrchestrationDocKey = "status" | "currentTask" | "nextTasks" | "decisionLog";
 
 type ProjectSnapshot = {
   id: string;
@@ -63,6 +62,25 @@ type ProjectSnapshot = {
       recommendedTotal: number;
       missingRequired: string[];
       complete: boolean;
+    };
+    orchestrationDashboard: {
+      phase: string;
+      documents: Array<{
+        key: OrchestrationDocKey;
+        label: string;
+        path: string;
+        exists: boolean;
+        hasContent: boolean;
+        content: string;
+      }>;
+      recentDevlog: Array<{
+        path: string;
+        modifiedAt: string;
+      }>;
+      recentReports: Array<{
+        path: string;
+        modifiedAt: string;
+      }>;
     };
     recentFiles: Array<{
       path: string;
@@ -123,36 +141,6 @@ const riskLabels: Record<RiskLevel, string> = {
   blocked: "확인 필요",
 };
 
-const riskDescriptions: Record<RiskLevel, string> = {
-  low: "지금 바로 이어서 작업해도 괜찮아 보입니다.",
-  medium: "커밋, 문서, 파일 상태를 한 번 확인하는 게 좋습니다.",
-  high: "push, pull, 대용량 파일, LFS 같은 위험을 먼저 확인해야 합니다.",
-  blocked: "등록된 폴더를 찾지 못해서 실제 스캔을 진행하지 못했습니다.",
-};
-
-const promptKindLabels: Record<PromptKind, string> = {
-  diagnose: "상태 진단",
-  commit: "커밋 준비",
-  docs: "문서 정리",
-  review: "리뷰",
-  continue: "다음 구현",
-  verification: "검증",
-  cleanup: "정리",
-  push: "푸시 준비",
-};
-
-const actionLabels: Array<[keyof ProjectSnapshot["actionCategories"], string]> = [
-  ["blocked", "경로 확인"],
-  ["needsCommit", "커밋"],
-  ["needsDocs", "문서"],
-  ["needsPush", "푸시"],
-  ["needsPull", "풀"],
-  ["needsReview", "리뷰"],
-  ["needsLfs", "LFS"],
-  ["needsTest", "테스트"],
-  ["needsCleanup", "정리"],
-];
-
 const typeLabels: Record<string, string> = {
   unknown: "미분류",
   web: "웹",
@@ -164,35 +152,18 @@ const typeLabels: Record<string, string> = {
   docs: "문서",
 };
 
-function riskRank(level: RiskLevel) {
-  return ["low", "medium", "high", "blocked"].indexOf(level);
-}
-
-function formatBytes(value: number) {
-  if (value >= 1024 * 1024 * 1024) {
-    return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  }
-
-  if (value >= 1024 * 1024) {
-    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  return `${Math.max(1, Math.round(value / 1024))} KB`;
-}
-
 function App() {
   const [snapshots, setSnapshots] = React.useState<ProjectSnapshot[]>([]);
   const [selectedId, setSelectedId] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [isPromptLoading, setIsPromptLoading] = React.useState(false);
+  const [isDiscordLoading, setIsDiscordLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [copied, setCopied] = React.useState("");
   const [actionMessage, setActionMessage] = React.useState("");
-  const [promptKind, setPromptKind] = React.useState<PromptKind>("diagnose");
-  const [promptText, setPromptText] = React.useState("");
   const [customInstruction, setCustomInstruction] = React.useState("");
-  const [commandPrompt, setCommandPrompt] = React.useState("");
+  const [commandText, setCommandText] = React.useState("");
+  const [discordPreview, setDiscordPreview] = React.useState("");
   const [portfolioMode, setPortfolioMode] = React.useState(false);
   const [folderBrowser, setFolderBrowser] = React.useState<FolderBrowser | null>(null);
   const [isFolderPickerOpen, setIsFolderPickerOpen] = React.useState(false);
@@ -205,11 +176,8 @@ function App() {
   });
 
   const selected = snapshots.find((snapshot) => snapshot.id === selectedId) ?? snapshots[0];
-  const riskyProjects = snapshots.filter((snapshot) => riskRank(snapshot.riskLevel) >= riskRank("medium")).length;
-  const needsCommit = snapshots.filter((snapshot) => snapshot.actionCategories?.needsCommit).length;
-  const needsDocs = snapshots.filter((snapshot) => snapshot.actionCategories?.needsDocs).length;
-  const needsPush = snapshots.filter((snapshot) => snapshot.actionCategories?.needsPush).length;
   const orchestrationReady = snapshots.filter((snapshot) => snapshot.files?.orchestration?.complete).length;
+  const activeProjects = snapshots.filter((snapshot) => snapshot.files?.orchestrationDashboard?.phase === "진행 중").length;
   async function loadSnapshots() {
     setIsLoading(true);
     setError("");
@@ -234,8 +202,8 @@ function App() {
     }
   }
 
-  async function copyPrompt(prompt: string, id: string) {
-    await navigator.clipboard.writeText(prompt);
+  async function copyText(value: string, id: string) {
+    await navigator.clipboard.writeText(value);
     setCopied(id);
     window.setTimeout(() => setCopied(""), 1600);
   }
@@ -289,11 +257,7 @@ function App() {
     return portfolioMode ? "로컬 경로 숨김" : snapshot.path;
   }
 
-  function displayFilePath(value: string, index: number) {
-    return portfolioMode ? `파일 ${index + 1}` : value;
-  }
-
-  function displayPrompt(value: string) {
+  function displayText(value: string) {
     if (!portfolioMode || !selected) {
       return value;
     }
@@ -303,128 +267,40 @@ function App() {
       .replaceAll(selected.name, displayProjectName(selected));
   }
 
-  function getProjectStatusText(snapshot: ProjectSnapshot) {
-    if (!snapshot.exists) {
-      return "경로 없음";
-    }
-
-    if (!snapshot.git.isRepo) {
-      return "Git 아님";
-    }
-
-    if (snapshot.git.dirty) {
-      return "변경 있음";
-    }
-
-    return "정상";
+  function getOrchestrationDoc(snapshot: ProjectSnapshot, key: OrchestrationDocKey) {
+    return snapshot.files.orchestrationDashboard.documents.find((doc) => doc.key === key);
   }
 
-  function getCurrentWork(snapshot: ProjectSnapshot) {
-    if (!snapshot.exists) {
-      return "프로젝트 경로 연결";
-    }
+  function generateCommandText(snapshot: ProjectSnapshot) {
+    const instruction = customInstruction.trim() || "현재 오케스트레이션 문서를 기준으로 다음 작업을 진행해줘.";
+    const status = getOrchestrationDoc(snapshot, "status")?.content || "STATUS.md 내용 없음";
+    const currentTask = getOrchestrationDoc(snapshot, "currentTask")?.content || "CURRENT_TASK.md 내용 없음";
+    const nextTasks = getOrchestrationDoc(snapshot, "nextTasks")?.content || "NEXT_TASKS.md 내용 없음";
+    const scopeGuard = snapshot.files.orchestration.required.find((entry) => entry.label === "SCOPE_GUARD")?.exists
+      ? "docs/orchestration/SCOPE_GUARD.md를 확인하고 범위를 넘기지 마."
+      : "SCOPE_GUARD.md가 없으니 범위가 애매하면 먼저 확인해.";
 
-    if (snapshot.actionCategories.needsPull) {
-      return "원격 변경사항 확인";
-    }
-
-    if (snapshot.actionCategories.needsCommit) {
-      return "변경사항 정리와 커밋 준비";
-    }
-
-    if (snapshot.actionCategories.needsPush) {
-      return "푸시 준비";
-    }
-
-    if (snapshot.actionCategories.needsDocs) {
-      return "문서 정리";
-    }
-
-    if (snapshot.actionCategories.needsReview) {
-      return "위험 신호 리뷰";
-    }
-
-    return "다음 구현 준비";
-  }
-
-  function getProgressText(snapshot: ProjectSnapshot) {
-    if (!snapshot.exists) {
-      return "등록된 경로를 찾지 못해서 아직 실제 작업 상태를 읽지 못했습니다.";
-    }
-
-    if (!snapshot.git.isRepo) {
-      return "폴더는 찾았지만 Git 저장소가 아니라 작업 이력을 읽을 수 없습니다.";
-    }
-
-    if (snapshot.git.dirty) {
-      return `진행 중인 변경사항이 있습니다. 수정 ${snapshot.git.modified.length}개, 스테이징 ${snapshot.git.staged.length}개, 추적 안 됨 ${snapshot.git.untracked.length}개입니다.`;
-    }
-
-    if (snapshot.git.ahead > 0 || snapshot.git.behind > 0) {
-      return `원격과 차이가 있습니다. ahead ${snapshot.git.ahead}, behind ${snapshot.git.behind} 상태입니다.`;
-    }
-
-    return "Git 기준으로는 깨끗합니다. 다음 작업을 바로 지시할 수 있습니다.";
-  }
-
-  function getNextTasks(snapshot: ProjectSnapshot) {
-    if (!snapshot.exists) {
-      return ["찾아보기로 실제 프로젝트 폴더 선택", "프로젝트를 추가한 뒤 다시 스캔", "스캔 결과 기준으로 첫 작업 프롬프트 생성"];
-    }
-
-    const tasks = [];
-
-    if (snapshot.actionCategories.needsPull) {
-      tasks.push("원격 변경사항을 먼저 확인");
-    }
-
-    if (snapshot.actionCategories.needsCommit) {
-      tasks.push("변경 파일을 기능 단위로 요약하고 커밋 준비");
-    }
-
-    if (snapshot.actionCategories.needsDocs) {
-      tasks.push("README, AGENTS, 상태 문서 최신화");
-    }
-
-    if (snapshot.actionCategories.needsReview) {
-      tasks.push("TODO, 대용량 파일, 스캔 제한 신호 리뷰");
-    }
-
-    if (snapshot.actionCategories.needsPush) {
-      tasks.push("push 전 검증 목록 확인");
-    }
-
-    return tasks.length > 0 ? tasks.slice(0, 4) : ["다음 구현 단위를 정하고 Codex에게 작업 지시"];
-  }
-
-  function generateCommandPrompt(snapshot: ProjectSnapshot) {
-    const instruction = customInstruction.trim() || "현재 상태를 기준으로 다음 작업을 진행해줘.";
-    const nextTasks = getNextTasks(snapshot);
-    const basePrompt = promptText || snapshot.recommendedActions[0]?.prompt || "";
-
-    setCommandPrompt(
+    setCommandText(
       [
-        `${displayProjectName(snapshot)} 작업 지시`,
+        `${displayProjectName(snapshot)} 오케스트레이션 작업 지시`,
         "",
         "사용자 명령:",
         `- ${instruction}`,
         "",
+        "프로젝트 현재 상태:",
+        status,
+        "",
         "현재 작업:",
-        `- ${getCurrentWork(snapshot)}`,
+        currentTask,
         "",
-        "진행 상태:",
-        `- ${getProgressText(snapshot)}`,
-        "",
-        "다음 작업 후보:",
-        ...nextTasks.map((task) => `- ${task}`),
+        "다음 작업:",
+        nextTasks,
         "",
         "작업 규칙:",
-        "- 먼저 상태와 가정을 짧게 요약해줘",
-        "- 필요한 변경만 작게 진행해줘",
-        "- 검증 결과와 다음 작업을 마지막에 보고해줘",
-        "",
-        "참고용 상태 프롬프트:",
-        basePrompt || "선택된 프로젝트 상태 프롬프트가 없습니다.",
+        "- 먼저 STATUS/CURRENT_TASK/NEXT_TASKS 기준으로 현재 판단을 요약해줘.",
+        "- 필요한 변경만 작게 진행해줘.",
+        "- 검증 후 STATUS, CURRENT_TASK, NEXT_TASKS, devlog/reports를 갱신해줘.",
+        `- ${scopeGuard}`,
       ].join("\n"),
     );
   }
@@ -499,30 +375,36 @@ function App() {
     }
   }
 
-  async function loadPrompt(projectId: string, kind: PromptKind) {
-    setIsPromptLoading(true);
+  async function sendDiscordReport(snapshot: ProjectSnapshot, dryRun: boolean) {
+    setIsDiscordLoading(true);
     setError("");
+    setActionMessage("");
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/prompt`, {
+      const response = await fetch(`/api/projects/${snapshot.id}/discord-report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ kind }),
+        body: JSON.stringify({ dryRun }),
       });
+      const body = (await response.json().catch(() => null)) as null | { error?: string; payload?: unknown };
 
       if (!response.ok) {
-        throw new Error(`Prompt failed: ${response.status}`);
+        throw new Error(body?.error ?? `Discord report failed: ${response.status}`);
       }
 
-      const data = (await response.json()) as { prompt: string };
-      setPromptText(data.prompt);
+      if (dryRun) {
+        setDiscordPreview(JSON.stringify(body?.payload ?? {}, null, 2));
+        setActionMessage("Discord 보고 미리보기를 생성했습니다.");
+      } else {
+        setDiscordPreview("");
+        setActionMessage("Discord로 오케스트레이션 보고를 보냈습니다.");
+      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Unknown error");
-      setPromptText("");
     } finally {
-      setIsPromptLoading(false);
+      setIsDiscordLoading(false);
     }
   }
 
@@ -531,15 +413,9 @@ function App() {
   }, []);
 
   React.useEffect(() => {
-    if (!selected) {
-      setPromptText("");
-      setCommandPrompt("");
-      return;
-    }
-
-    void loadPrompt(selected.id, promptKind);
-    setCommandPrompt("");
-  }, [selected?.id, promptKind]);
+    setCommandText("");
+    setDiscordPreview("");
+  }, [selected?.id]);
 
   return (
     <main className="appShell">
@@ -547,7 +423,7 @@ function App() {
         <div>
           <p className="eyebrow">로컬 AI 개발 관제실</p>
           <h1>AI Project Orchestrator</h1>
-          <p className="topDescription">여러 프로젝트의 Git 상태, 파일 신호, 다음 Codex 작업을 한 화면에서 정리합니다.</p>
+          <p className="topDescription">여러 프로젝트의 오케스트레이션 문서를 읽고 현재 작업, 다음 작업, 보고 흐름을 한 화면에서 관리합니다.</p>
         </div>
         <div className="topActions">
           <label className="toggleControl">
@@ -567,10 +443,7 @@ function App() {
 
       <section className="summaryGrid" aria-label="Project summary">
         <Metric label="등록 프로젝트" value={snapshots.length.toString()} />
-        <Metric label="확인 필요" value={riskyProjects.toString()} />
-        <Metric label="커밋 필요" value={needsCommit.toString()} />
-        <Metric label="문서 필요" value={needsDocs.toString()} />
-        <Metric label="푸시 필요" value={needsPush.toString()} />
+        <Metric label="진행 중" value={activeProjects.toString()} />
         <Metric label="인터페이스 완료" value={`${orchestrationReady}/${snapshots.length}`} />
       </section>
 
@@ -734,8 +607,8 @@ function App() {
                     <GitBranch size={14} />
                     {snapshot.git.branch || "브랜치 없음"}
                   </span>
-                  <span>{snapshot.git.dirty ? "변경 있음" : "깨끗함"}</span>
-                  <span>{getProjectStatusText(snapshot)}</span>
+                  <span>{snapshot.files.orchestrationDashboard.phase}</span>
+                  <span>인터페이스 {snapshot.files.orchestration.requiredPresent}/{snapshot.files.orchestration.requiredTotal}</span>
                 </div>
               </button>
               <button className="iconButton danger" type="button" onClick={() => void deleteProject(snapshot)}>
@@ -757,7 +630,7 @@ function App() {
                 <div>
                   <p className="eyebrow">선택된 프로젝트</p>
                   <h2>{displayProjectName(selected)}</h2>
-                  <p className="statusDescription">{riskDescriptions[selected.riskLevel]}</p>
+                  <p className="statusDescription">{selected.files.orchestrationDashboard.phase}</p>
                 </div>
                 <RiskBadge level={selected.riskLevel} />
               </div>
@@ -772,72 +645,61 @@ function App() {
                 </section>
               ) : null}
 
-              <div className="detailGrid">
-                <InfoBlock label="브랜치" value={selected.git.branch || "알 수 없음"} />
-                <InfoBlock label="최근 커밋" value={selected.git.latestCommit?.message ?? "없음"} />
-                <InfoBlock label="원격 연결" value={selected.git.hasUpstream ? "연결됨" : "없음"} />
-                <InfoBlock label="앞섬 / 뒤처짐" value={`${selected.git.ahead} / ${selected.git.behind}`} />
-              </div>
+              <section className="orchestrationDesk">
+                <div className="sectionTitle">
+                  <h3>오케스트레이션 문서</h3>
+                  <span>Markdown 기준</span>
+                </div>
+                <div className="docBoard">
+                  <MarkdownPanel
+                    doc={getOrchestrationDoc(selected, "status")}
+                    portfolioMode={portfolioMode}
+                    project={selected}
+                    title="현재 상태"
+                  />
+                  <MarkdownPanel
+                    doc={getOrchestrationDoc(selected, "currentTask")}
+                    portfolioMode={portfolioMode}
+                    project={selected}
+                    title="현재 작업"
+                  />
+                  <MarkdownPanel
+                    doc={getOrchestrationDoc(selected, "nextTasks")}
+                    portfolioMode={portfolioMode}
+                    project={selected}
+                    title="다음 작업"
+                  />
+                </div>
+              </section>
 
               <section className="workCommandPanel">
                 <div className="sectionTitle">
-                  <h3>작업 지휘</h3>
-                  <span>현재 상태에서 바로 명령 만들기</span>
-                </div>
-                <div className="workSummaryGrid">
-                  <div>
-                    <span>현재 작업</span>
-                    <strong>{getCurrentWork(selected)}</strong>
-                  </div>
-                  <div>
-                    <span>진행 상태</span>
-                    <p>{getProgressText(selected)}</p>
-                  </div>
-                  <div>
-                    <span>다음 작업</span>
-                    <ul>
-                      {getNextTasks(selected).map((task) => (
-                        <li key={task}>{task}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  <h3>명령</h3>
+                  <span>문서 기준으로 지시하기</span>
                 </div>
                 <label className="commandInput">
                   내가 내릴 명령
                   <textarea
                     value={customInstruction}
                     onChange={(event) => setCustomInstruction(event.target.value)}
-                    placeholder="예: LETHE 전투 시스템 다음 구현 단위를 정하고, 필요한 파일만 수정한 뒤 검증까지 해줘"
+                    placeholder="예: CURRENT_TASK의 완료 기준까지 진행하고, 검증 후 STATUS와 devlog를 갱신해줘"
                   />
                 </label>
                 <div className="commandActions">
-                  <button className="primaryButton" type="button" onClick={() => generateCommandPrompt(selected)}>
-                    명령 프롬프트 생성
+                  <button className="primaryButton" type="button" onClick={() => generateCommandText(selected)}>
+                    명령 만들기
                   </button>
                   <button
                     className="secondaryButton"
                     type="button"
-                    onClick={() => void copyPrompt(displayPrompt(commandPrompt || promptText || ""), selected.id)}
-                    disabled={!commandPrompt && !promptText}
+                    onClick={() => void copyText(displayText(commandText), selected.id)}
+                    disabled={!commandText}
                   >
                     <Clipboard size={16} />
                     {copied === selected.id ? "복사됨" : "복사"}
                   </button>
                 </div>
-              </section>
-
-              <section className="actionPanel">
-                <div className="sectionTitle compact">
-                  <h3>작업 분류</h3>
-                  <span>켜진 항목이 필요한 작업입니다</span>
-                </div>
-                <div className="actionChips">
-                  {actionLabels.map(([key, label]) => (
-                    <span className={selected.actionCategories[key] ? "active" : ""} key={key}>
-                      {label}
-                    </span>
-                  ))}
-                </div>
+                {commandText ? <pre className="commandPreview">{displayText(commandText)}</pre> : null}
               </section>
 
               <section className="orchestrationPanel">
@@ -893,114 +755,41 @@ function App() {
                 </details>
               </section>
 
-              <div className="panelRow">
-                <StatusGroup title="Git 상태">
-                  <Signal label="스테이징" value={selected.git.staged.length} />
-                  <Signal label="수정됨" value={selected.git.modified.length} />
-                  <Signal label="추적 안 됨" value={selected.git.untracked.length} />
-                </StatusGroup>
-
-                <StatusGroup title="중요 문서">
-                  <DocSignal label="AGENTS.md" ok={selected.files.hasAgentsMd} />
-                  <DocSignal label="README.md" ok={selected.files.hasReadme} />
-                  <DocSignal label="CODEX_STATUS" ok={selected.files.hasDocsStatus} />
-                </StatusGroup>
-              </div>
-
-              <section className="riskPanel">
-                <h3>위험 신호</h3>
-                {selected.risks.length > 0 ? (
-                  selected.risks.map((risk) => (
-                    <div className="riskItem" key={`${risk.type}-${risk.message}`}>
-                      <AlertTriangle size={16} />
-                      <span>{risk.message}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="riskItem calm">
-                    <CheckCircle2 size={16} />
-                    <span>큰 위험 신호가 없습니다.</span>
-                  </div>
-                )}
-              </section>
-
-              <section className="promptPanel">
+              <section className="reportPanel">
                 <div className="sectionTitle">
-                  <h3>Codex 작업 프롬프트</h3>
-                  <span>{commandPrompt ? "사용자 명령 포함" : isPromptLoading ? "생성 중" : promptKindLabels[promptKind]}</span>
+                  <h3>보고</h3>
+                  <span>오케스트레이터 중앙 전송</span>
                 </div>
-                <p className="promptHelp">아래 메뉴는 프롬프트 템플릿입니다. 원하는 메뉴를 누른 뒤 위의 명령을 섞어서 최종 프롬프트를 만들 수 있습니다.</p>
-                <div className="segmentedControl" aria-label="Prompt type">
-                  {(Object.keys(promptKindLabels) as PromptKind[]).map((kind) => (
-                    <button
-                      className={promptKind === kind ? "active" : ""}
-                      key={kind}
-                      type="button"
-                      onClick={() => setPromptKind(kind)}
-                    >
-                      {promptKindLabels[kind]}
-                    </button>
-                  ))}
+                <p className="promptHelp">
+                  Discord 보고는 각 프로젝트가 아니라 AI Project Orchestrator의 루트 <code>.env</code>에 있는 웹훅으로만 보냅니다.
+                </p>
+                <div className="commandActions">
+                  <button
+                    className="secondaryButton"
+                    type="button"
+                    onClick={() => void sendDiscordReport(selected, true)}
+                    disabled={isDiscordLoading}
+                  >
+                    <MessageSquare size={16} />
+                    미리보기
+                  </button>
+                  <button
+                    className="primaryButton"
+                    type="button"
+                    onClick={() => void sendDiscordReport(selected, false)}
+                    disabled={isDiscordLoading}
+                  >
+                    <MessageSquare size={16} />
+                    Discord 보내기
+                  </button>
                 </div>
-                <pre>{displayPrompt(commandPrompt || promptText || selected.recommendedActions[0]?.prompt || "생성된 프롬프트가 없습니다.")}</pre>
-                <button
-                  className="secondaryButton"
-                  type="button"
-                  onClick={() =>
-                    void copyPrompt(
-                      displayPrompt(commandPrompt || promptText || selected.recommendedActions[0]?.prompt || ""),
-                      selected.id,
-                    )
-                  }
-                >
-                  <Clipboard size={16} />
-                  {copied === selected.id ? "복사됨" : "프롬프트 복사"}
-                </button>
+                {discordPreview ? <pre className="commandPreview">{displayText(discordPreview)}</pre> : null}
               </section>
-
-              <details className="fileSignalsPanel">
-                <summary>
-                  <span>보조 스캔 정보</span>
-                  <small>{selected.files.scannedFiles}개 파일 스캔</small>
-                </summary>
-                <div className="fileSignalGrid">
-                  <Signal label="TODO/FIXME/BUG" value={selected.files.todoCount} />
-                  <Signal label="대용량 파일" value={selected.files.largeFiles.length} />
-                  <Signal label="최근 파일" value={selected.files.recentFiles.length} />
-                </div>
-                {selected.files.truncated ? (
-                  <p className="signalNote">너무 많은 파일을 읽지 않도록 스캔을 제한했습니다.</p>
-                ) : null}
-                <FileList
-                  emptyText="최근 파일이 없습니다."
-                  items={selected.files.recentFiles.slice(0, 5).map((file, index) => ({
-                    label: displayFilePath(file.path, index),
-                    meta: new Date(file.modifiedAt).toLocaleString("ko-KR"),
-                  }))}
-                  title="최근 파일"
-                />
-                <FileList
-                  emptyText="대용량 파일이 없습니다."
-                  items={selected.files.largeFiles.slice(0, 5).map((file, index) => ({
-                    label: displayFilePath(file.path, index),
-                    meta: formatBytes(file.sizeBytes),
-                  }))}
-                  title="대용량"
-                />
-                <FileList
-                  emptyText="TODO/FIXME/BUG 주석이 없습니다."
-                  items={selected.files.todoItems.slice(0, 5).map((item, index) => ({
-                    label: portfolioMode ? `TODO ${index + 1}` : `${item.path}:${item.line}`,
-                    meta: portfolioMode ? "주석 내용 숨김" : item.text,
-                  }))}
-                  title="TODO"
-                />
-              </details>
             </>
           ) : (
             <div className="emptyDetail">
               <h2>프로젝트를 먼저 추가하세요</h2>
-              <p>프로젝트가 선택되어야 현재 작업, 다음 작업, Codex 프롬프트 메뉴가 표시됩니다.</p>
+              <p>프로젝트가 선택되어야 오케스트레이션 문서와 보고 메뉴가 표시됩니다.</p>
             </div>
           )}
         </div>
@@ -1022,59 +811,29 @@ function RiskBadge({ level }: { level: RiskLevel }) {
   return <span className={`riskBadge ${level}`}>{riskLabels[level]}</span>;
 }
 
-function InfoBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="infoBlock">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
+function MarkdownPanel({
+  title,
+  doc,
+  portfolioMode,
+  project,
+}: {
+  title: string;
+  doc: ProjectSnapshot["files"]["orchestrationDashboard"]["documents"][number] | undefined;
+  portfolioMode: boolean;
+  project: ProjectSnapshot;
+}) {
+  const content = doc?.content || "아직 기록된 내용이 없습니다.";
+  const displayContent = portfolioMode
+    ? content.replaceAll(project.path, "[로컬 경로 숨김]").replaceAll(project.name, "프로젝트 예시")
+    : content;
 
-function StatusGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="statusGroup">
-      <h3>{title}</h3>
-      <div>{children}</div>
-    </section>
-  );
-}
-
-function Signal({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="signal">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function DocSignal({ label, ok }: { label: string; ok: boolean }) {
-  return (
-    <div className="docSignal">
-      <FileText size={15} />
-      <span>{label}</span>
-      <strong>{ok ? "있음" : "없음"}</strong>
-    </div>
-  );
-}
-
-function FileList({ title, items, emptyText }: { title: string; items: Array<{ label: string; meta: string }>; emptyText: string }) {
-  return (
-    <div className="fileList">
-      <h4>{title}</h4>
-      {items.length > 0 ? (
-        <ul>
-          {items.map((item) => (
-            <li key={`${item.label}-${item.meta}`}>
-              <span>{item.label}</span>
-              <small>{item.meta}</small>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>{emptyText}</p>
-      )}
+    <div className="markdownPanel">
+      <div>
+        <span>{title}</span>
+        <strong>{doc?.hasContent ? doc.label : "미작성"}</strong>
+      </div>
+      <pre>{displayContent}</pre>
     </div>
   );
 }

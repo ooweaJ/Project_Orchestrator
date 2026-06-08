@@ -162,16 +162,12 @@ h3 {
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 18px;
 }
 
 .metric,
-.infoBlock,
-.statusGroup,
-.riskPanel,
-.promptPanel,
 .emptyBox,
 .emptyDetail,
 .errorBox {
@@ -186,8 +182,7 @@ h3 {
   box-shadow: 0 1px 2px rgba(23, 33, 28, 0.04);
 }
 
-.metric span,
-.infoBlock span {
+.metric span {
   display: block;
   color: #697873;
   font-size: 0.82rem;
@@ -576,35 +571,10 @@ h3 {
   line-height: 1.6;
 }
 
-.detailGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.infoBlock {
-  min-height: 80px;
-  padding: 13px;
-}
-
-.infoBlock strong {
-  display: block;
-  overflow: hidden;
-  margin-top: 7px;
-  font-size: 0.95rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.panelRow {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.actionPanel {
+.orchestrationDesk,
+.reportPanel,
+.workCommandPanel,
+.orchestrationPanel {
   margin-bottom: 14px;
   padding: 16px;
   border: 1px solid #d9e1d7;
@@ -613,63 +583,71 @@ h3 {
 }
 
 .workCommandPanel {
-  margin-bottom: 14px;
   padding: 18px;
   border: 1px solid #c9e8d3;
-  border-radius: 8px;
   background: #f7fcf8;
 }
 
-.workCommandPanel h3 {
+.orchestrationDesk h3,
+.reportPanel h3,
+.workCommandPanel h3,
+.orchestrationPanel h3 {
   margin: 0;
   font-size: 1rem;
 }
 
-.workSummaryGrid {
+.docBoard {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr) minmax(0, 1.2fr);
-  gap: 10px;
-  margin-bottom: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.workSummaryGrid > div {
+.markdownPanel {
   min-width: 0;
-  padding: 13px;
   border: 1px solid #d9e1d7;
   border-radius: 8px;
-  background: #ffffff;
+  background: #f8faf7;
 }
 
-.workSummaryGrid span {
-  display: block;
-  margin-bottom: 7px;
+.markdownPanel > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-bottom: 1px solid #edf2ec;
+}
+
+.markdownPanel span {
   color: #697873;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
-.workSummaryGrid strong {
-  display: block;
+.markdownPanel strong {
   color: #1f6b4d;
-  font-size: 1rem;
-  line-height: 1.4;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
-.workSummaryGrid p {
+.markdownPanel pre,
+.commandPreview {
+  overflow: auto;
+  max-height: 320px;
   margin: 0;
-  color: #40524b;
-  font-size: 0.88rem;
+  padding: 12px;
+  color: #26342f;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
   line-height: 1.55;
+  white-space: pre-wrap;
 }
 
-.workSummaryGrid ul {
-  display: grid;
-  gap: 5px;
-  margin: 0;
-  padding-left: 18px;
-  color: #40524b;
-  font-size: 0.86rem;
-  line-height: 1.45;
+.commandPreview {
+  margin-top: 12px;
+  border-radius: 8px;
+  background: #f2f5ef;
 }
 
 .commandInput {
@@ -699,24 +677,6 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.actionPanel h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.orchestrationPanel {
-  margin-bottom: 14px;
-  padding: 16px;
-  border: 1px solid #d9e1d7;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.orchestrationPanel h3 {
-  margin: 0;
-  font-size: 1rem;
 }
 
 .interfaceMeter {
@@ -808,213 +768,11 @@ h3 {
   font-weight: 900;
 }
 
-.actionChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.actionChips span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  color: #697873;
-  border-radius: 999px;
-  background: #edf2ec;
-  font-size: 0.78rem;
-  font-weight: 900;
-  border: 1px solid transparent;
-}
-
-.actionChips span.active {
-  color: #1f6b4d;
-  background: #dff2e5;
-  border-color: #addfc0;
-}
-
-.statusGroup,
-.fileSignalsPanel,
-.riskPanel,
-.promptPanel {
-  padding: 16px;
-}
-
-.statusGroup h3,
-.fileSignalsPanel h3,
-.riskPanel h3,
-.promptPanel h3 {
-  margin: 0 0 12px;
-  font-size: 1rem;
-}
-
-.fileSignalsPanel {
-  margin-bottom: 14px;
-  border: 1px solid #d9e1d7;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.fileSignalsPanel summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 16px;
-  cursor: pointer;
-  font-weight: 900;
-}
-
-.fileSignalsPanel summary small {
-  color: #697873;
-  font-size: 0.78rem;
-}
-
-.fileSignalsPanel[open] summary {
-  border-bottom: 1px solid #edf2ec;
-}
-
-.fileSignalGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.signalNote {
-  margin: 0 0 12px;
-  color: #7b5200;
-  font-size: 0.86rem;
-  font-weight: 800;
-}
-
-.fileList {
-  padding: 12px 0;
-  border-top: 1px solid #edf2ec;
-}
-
-.fileList h4 {
-  margin: 0 0 8px;
-  color: #60706a;
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.fileList ul {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.fileList li {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.fileList span,
-.fileList small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fileList span {
-  color: #26342f;
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.82rem;
-}
-
-.fileList small,
-.fileList p {
-  margin: 0;
-  color: #697873;
-  font-size: 0.82rem;
-}
-
-.signal,
-.docSignal,
-.riskItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 34px;
-  color: #43544f;
-  font-size: 0.9rem;
-}
-
-.docSignal {
-  justify-content: flex-start;
-}
-
-.docSignal strong {
-  margin-left: auto;
-}
-
-.riskItem {
-  justify-content: flex-start;
-  color: #694034;
-}
-
-.riskItem.calm {
-  color: #1f6b4d;
-}
-
-.promptPanel {
-  margin-top: 14px;
-}
-
 .promptHelp {
   margin: -4px 0 12px;
   color: #60706a;
   font-size: 0.86rem;
   line-height: 1.55;
-}
-
-.promptPanel pre {
-  overflow: auto;
-  max-height: 290px;
-  margin: 0 0 12px;
-  padding: 14px;
-  color: #26342f;
-  border-radius: 8px;
-  background: #f2f5ef;
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.83rem;
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
-
-.segmentedControl {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 4px;
-  border-radius: 8px;
-  background: #edf2ec;
-}
-
-.segmentedControl button {
-  min-height: 34px;
-  padding: 0 6px;
-  color: #50615b;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 900;
-}
-
-.segmentedControl button.active {
-  color: #1f6b4d;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(23, 33, 28, 0.1);
 }
 
 .emptyBox,
@@ -1055,19 +813,12 @@ h3 {
   }
 
   .workspace,
-  .detailGrid,
-  .panelRow,
-  .fileSignalGrid,
   .formRow,
   .pathInputGroup,
-  .workSummaryGrid,
+  .docBoard,
   .orchestrationGrid,
   .orchestrationGrid.compact {
     grid-template-columns: 1fr;
-  }
-
-  .segmentedControl {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

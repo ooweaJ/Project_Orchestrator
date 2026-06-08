@@ -26,17 +26,6 @@
         padding: 36px 22px;
       }
 
-      header {
-        margin-bottom: 22px;
-      }
-
-      .eyebrow {
-        margin: 0 0 8px;
-        color: #60706a;
-        font-size: 13px;
-        font-weight: 800;
-      }
-
       h1 {
         margin: 0;
         font-size: 34px;
@@ -53,40 +42,12 @@
         line-height: 1.65;
       }
 
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 18px;
-      }
-
-      .metric,
-      section {
-        border: 1px solid #d9e1d7;
-        border-radius: 8px;
-        background: #fff;
-      }
-
-      .metric {
-        padding: 16px;
-      }
-
-      .metric span {
-        display: block;
-        color: #60706a;
-        font-size: 13px;
-        font-weight: 800;
-      }
-
-      .metric strong {
-        display: block;
-        margin-top: 7px;
-        font-size: 24px;
-      }
-
       section {
         margin-bottom: 14px;
         padding: 18px;
+        border: 1px solid #d9e1d7;
+        border-radius: 8px;
+        background: #fff;
       }
 
       ul {
@@ -105,15 +66,11 @@
         text-decoration: none;
       }
 
-      a:hover {
-        text-decoration: underline;
-      }
-
       .status {
         display: inline-flex;
         align-items: center;
         min-height: 28px;
-        margin-top: 10px;
+        margin: 10px 0 22px;
         padding: 0 10px;
         border-radius: 999px;
         color: #1f6b4d;
@@ -121,60 +78,29 @@
         font-size: 13px;
         font-weight: 900;
       }
-
-      .note {
-        color: #5b6a65;
-      }
-
-      @media (max-width: 760px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
-
-        h1 {
-          font-size: 28px;
-        }
-      }
     </style>
   </head>
   <body>
     <main>
-      <header>
-        <p class="eyebrow">사용자용 진행 보고서</p>
-        <h1>AI Project Orchestrator 진행 상태</h1>
-        <span class="status">2026-06-08 기준</span>
-      </header>
-
-      <div class="grid">
-        <div class="metric">
-          <span>현재 단계</span>
-          <strong>인터페이스 표시</strong>
-        </div>
-        <div class="metric">
-          <span>검증</span>
-          <strong>Build/API</strong>
-        </div>
-        <div class="metric">
-          <span>확인 결과</span>
-          <strong>11/11</strong>
-        </div>
-      </div>
+      <h1>AI Project Orchestrator 진행 상태</h1>
+      <span class="status">2026-06-08 기준</span>
 
       <section>
         <h2>어떤 작업</h2>
         <ul>
-          <li>스캐너가 <code>docs/orchestration/*</code> 필수 코어와 권장 확장 상태를 읽도록 했습니다.</li>
-          <li>홈페이지 상세 패널에 <code>오케스트레이션 인터페이스</code> 상태 패널을 추가했습니다.</li>
-          <li>필수 문서 완료 수와 개별 문서/폴더의 있음/없음을 볼 수 있게 했습니다.</li>
+          <li>홈페이지를 오케스트레이션 문서 중심으로 재구성했습니다.</li>
+          <li><code>STATUS.md</code>, <code>CURRENT_TASK.md</code>, <code>NEXT_TASKS.md</code> 내용을 대시보드에서 바로 볼 수 있게 했습니다.</li>
+          <li>기존의 <code>Codex 작업 프롬프트</code>, <code>위험 신호</code>, <code>보조 스캔 정보</code> 패널은 기본 화면에서 제거했습니다.</li>
+          <li>Discord 보고는 각 프로젝트가 아니라 오케스트레이터의 중앙 <code>.env</code>에서 보내도록 API를 추가했습니다.</li>
         </ul>
       </section>
 
       <section>
         <h2>진행 내용</h2>
         <ul>
-          <li>기존 <code>AGENTS.md</code>, <code>README.md</code>, <code>CODEX_STATUS</code> 체크는 호환 신호로 유지했습니다.</li>
-          <li>새 필수 코어가 빠진 프로젝트는 <code>문서 필요</code> 작업 분류에 포함되도록 했습니다.</li>
-          <li>브라우저 시각 검증은 Windows 샌드박스 오류로 실패해 빌드와 API 응답으로 검증했습니다.</li>
+          <li>대시보드의 판단 기준을 스캐너 신호에서 오케스트레이션 Markdown 문서로 옮겼습니다.</li>
+          <li>명령 생성도 현재 상태, 현재 작업, 다음 작업 문서를 기준으로 만들도록 바꿨습니다.</li>
+          <li>Discord 전송은 실제 전송 전에 dry-run 미리보기를 볼 수 있습니다.</li>
         </ul>
       </section>
 
@@ -182,9 +108,9 @@
         <h2>결과</h2>
         <ul>
           <li><code>npm run build</code>가 통과했습니다.</li>
-          <li><code>GET /api/snapshots</code>에서 <code>files.orchestration</code> 상태가 내려옵니다.</li>
-          <li>LETHE_Prototype과 Project_Orchestrator 모두 필수 코어 <code>11/11</code>로 확인됐습니다.</li>
-          <li>다음 작업은 설치 명령 또는 기존 프로젝트 마이그레이션 프롬프트를 대시보드에서 복사할 수 있게 만드는 것입니다.</li>
+          <li><code>GET /api/snapshots</code>에서 오케스트레이션 문서 내용이 내려옵니다.</li>
+          <li><code>POST /api/projects/lethe-prototype/discord-report</code> dry-run이 통과했습니다.</li>
+          <li>다음 작업은 실제 Discord 전송 후 보고서 포맷을 다듬는 것입니다.</li>
         </ul>
       </section>
 
@@ -195,9 +121,7 @@
           <li><a href="../orchestration/CURRENT_TASK.md">현재 작업</a></li>
           <li><a href="../CODEX_STATUS.md">현재 구현 상태</a></li>
           <li><a href="../DEV_LOG.md">개발 로그 인덱스</a></li>
-          <li><a href="./2026-06-08/02-orchestration-dashboard-status.html">작업 단위 보고서</a></li>
         </ul>
-        <p class="note">이 HTML 보고서는 사용자용 요약이고, 내부 작업 흔적은 <code>docs/orchestration/devlog/</code>에 분리해 둡니다.</p>
       </section>
     </main>
   </body>

@@ -113,3 +113,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/02-orchestration-dashboard-status.md`
 - Summary: Added scanner output for `docs/orchestration/*` required and recommended paths, then surfaced the status in the dashboard detail panel.
 - Verification: `npm run build`, `GET /api/snapshots` returned orchestration completion fields.
+
+#### Document-First Orchestration Dashboard
+
+- File: `docs/ai-collaboration/2026-06-08/03-document-first-orchestration-dashboard.md`
+- Summary: Reworked the dashboard around `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, document-based commands, and central Discord reporting.
+- Verification: `npm run build`, `GET /api/snapshots`, Discord report dry-run API.

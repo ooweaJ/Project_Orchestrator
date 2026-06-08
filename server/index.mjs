@@ -11,6 +11,7 @@ const dataDir = path.join(rootDir, "data");
 const projectsFile = path.join(dataDir, "projects.json");
 const snapshotsDir = path.join(dataDir, "snapshots");
 const activityFile = path.join(dataDir, "activity.jsonl");
+const envFile = path.join(rootDir, ".env");
 const port = Number(process.env.PORT ?? 4317);
 
 const app = express();
@@ -78,6 +79,13 @@ const orchestrationRecommendedEntries = [
   { label: "review_responses", path: "docs/orchestration/review_responses", type: "directory" },
   { label: "evidence", path: "docs/orchestration/evidence", type: "directory" },
   { label: "templates", path: "docs/orchestration/templates", type: "directory" },
+];
+
+const orchestrationDashboardDocs = [
+  { key: "status", label: "STATUS.md", path: "docs/orchestration/STATUS.md" },
+  { key: "currentTask", label: "CURRENT_TASK.md", path: "docs/orchestration/CURRENT_TASK.md" },
+  { key: "nextTasks", label: "NEXT_TASKS.md", path: "docs/orchestration/NEXT_TASKS.md" },
+  { key: "decisionLog", label: "DECISION_LOG.md", path: "docs/orchestration/DECISION_LOG.md" },
 ];
 
 async function ensureDataFiles() {
@@ -188,6 +196,30 @@ async function appendActivity(event) {
   await fs.appendFile(activityFile, `${JSON.stringify(record)}\n`, "utf8");
 }
 
+async function readEnv() {
+  const env = { ...process.env };
+  const content = await fs.readFile(envFile, "utf8").catch(() => "");
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, "");
+    env[key] = value;
+  }
+
+  return env;
+}
+
 function slugify(value) {
   return value
     .toLowerCase()
@@ -285,6 +317,78 @@ async function collectOrchestrationSignals(projectPath) {
     recommendedTotal: recommended.length,
     missingRequired: required.filter((entry) => !entry.exists).map((entry) => entry.path),
     complete: requiredPresent === required.length,
+  };
+}
+
+function trimMarkdownContent(value, maxLength = 4200) {
+  const trimmed = value.trim();
+
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, maxLength - 1)}…`;
+}
+
+function hasMeaningfulMarkdown(value) {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .some((line) => !/^[-*]\s*$/.test(line) && line !== "-");
+}
+
+async function readOrchestrationDocument(projectPath, doc) {
+  const fullPath = path.join(projectPath, doc.path);
+  const content = await fs.readFile(fullPath, "utf8").catch(() => "");
+
+  return {
+    key: doc.key,
+    label: doc.label,
+    path: doc.path,
+    exists: content.length > 0,
+    hasContent: hasMeaningfulMarkdown(content),
+    content: trimMarkdownContent(content),
+  };
+}
+
+async function listRecentMarkdownFiles(projectPath, relativeDir) {
+  const fullDir = path.join(projectPath, relativeDir);
+  const entries = await fs.readdir(fullDir, { withFileTypes: true }).catch(() => []);
+  const files = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.toLowerCase().endsWith(".md")) {
+      continue;
+    }
+
+    const fullPath = path.join(fullDir, entry.name);
+    const stats = await fs.stat(fullPath).catch(() => null);
+
+    if (!stats) {
+      continue;
+    }
+
+    files.push({
+      path: path.join(relativeDir, entry.name).replace(/\\/g, "/"),
+      modifiedAt: stats.mtime.toISOString(),
+    });
+  }
+
+  return files.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()).slice(0, 5);
+}
+
+async function collectOrchestrationDashboard(projectPath) {
+  const documents = await Promise.all(
+    orchestrationDashboardDocs.map((doc) => readOrchestrationDocument(projectPath, doc)),
+  );
+  const currentTask = documents.find((doc) => doc.key === "currentTask");
+
+  return {
+    phase: currentTask?.hasContent ? "진행 중" : "현재 작업 미정",
+    documents,
+    recentDevlog: await listRecentMarkdownFiles(projectPath, "docs/orchestration/devlog"),
+    recentReports: await listRecentMarkdownFiles(projectPath, "docs/orchestration/reports"),
   };
 }
 
@@ -809,6 +913,58 @@ function buildReportFromSnapshots(snapshots) {
   };
 }
 
+function truncate(value, maxLength) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength - 1)}…`;
+}
+
+function getDiscordField(doc, fallback) {
+  if (!doc?.content) {
+    return fallback;
+  }
+
+  return truncate(doc.content.replace(/\r?\n{3,}/g, "\n\n"), 1000);
+}
+
+function buildOrchestrationDiscordPayload(project, dashboard, username) {
+  const docByKey = Object.fromEntries(dashboard.documents.map((doc) => [doc.key, doc]));
+
+  return {
+    username,
+    embeds: [
+      {
+        title: `${project.name} 오케스트레이션 보고`,
+        description: `현재 단계: ${dashboard.phase}`,
+        color: 2050893,
+        fields: [
+          {
+            name: "현재 상태",
+            value: getDiscordField(docByKey.status, "STATUS.md에 기록된 상태가 없습니다."),
+            inline: false,
+          },
+          {
+            name: "현재 작업",
+            value: getDiscordField(docByKey.currentTask, "CURRENT_TASK.md에 진행 중인 작업이 없습니다."),
+            inline: false,
+          },
+          {
+            name: "다음 작업",
+            value: getDiscordField(docByKey.nextTasks, "NEXT_TASKS.md에 다음 작업이 없습니다."),
+            inline: false,
+          },
+        ],
+        footer: {
+          text: "AI Project Orchestrator 중앙 .env 기준으로 전송됨",
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+}
+
 async function scanProject(project) {
   const exists = await pathExists(project.path);
   const blankGit = {
@@ -839,6 +995,17 @@ async function scanProject(project) {
       scannedFiles: 0,
       truncated: false,
       orchestration: emptyOrchestrationSignals(),
+      orchestrationDashboard: {
+        phase: "경로 없음",
+        documents: orchestrationDashboardDocs.map((doc) => ({
+          ...doc,
+          exists: false,
+          hasContent: false,
+          content: "",
+        })),
+        recentDevlog: [],
+        recentReports: [],
+      },
     };
     const risks = scoreRisks(project, blankGit, files, false);
     const actionCategories = getActionCategories(blankGit, files, false);
@@ -909,6 +1076,7 @@ async function scanProject(project) {
     hasDocsNextTasks: await hasFile(project.path, "docs/NEXT_TASKS.md"),
     hasGitAttributes: await hasFile(project.path, ".gitattributes"),
     orchestration: await collectOrchestrationSignals(project.path),
+    orchestrationDashboard: await collectOrchestrationDashboard(project.path),
     ...fileSignals,
   };
 
@@ -1083,6 +1251,59 @@ app.get("/api/report", async (_req, res) => {
     const report = buildReportFromSnapshots(snapshots);
     await appendActivity({ type: "report-generated", count: snapshots.length });
     res.json(report);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/projects/:id/discord-report", async (req, res) => {
+  try {
+    const projects = await readProjects();
+    const project = projects.find((item) => item.id === req.params.id);
+
+    if (!project) {
+      res.status(404).json({ error: "project not found" });
+      return;
+    }
+
+    if (!(await pathExists(project.path))) {
+      res.status(400).json({ error: "project path does not exist" });
+      return;
+    }
+
+    const dashboard = await collectOrchestrationDashboard(project.path);
+    const env = await readEnv();
+    const payload = buildOrchestrationDiscordPayload(
+      project,
+      dashboard,
+      env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator",
+    );
+
+    if (req.body?.dryRun) {
+      res.json({ dryRun: true, payload });
+      return;
+    }
+
+    if (!env.DISCORD_WEBHOOK_URL) {
+      res.status(400).json({ error: "DISCORD_WEBHOOK_URL is missing in orchestrator .env" });
+      return;
+    }
+
+    const response = await fetch(env.DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      res.status(502).json({ error: `Discord webhook failed: ${response.status} ${response.statusText}` });
+      return;
+    }
+
+    await appendActivity({ type: "discord-report-sent", projectId: project.id });
+    res.json({ sent: true, payload });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

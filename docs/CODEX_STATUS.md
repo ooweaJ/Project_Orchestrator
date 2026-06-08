@@ -59,6 +59,8 @@ Completed orchestration improvements:
 - `EXISTING_PROJECT_MIGRATION_PROMPT.md` supports active projects that need AI-assisted migration from legacy docs into the new interface.
 - Scanner snapshots now include `files.orchestration` for required core and recommended extension status.
 - The dashboard shows an `오케스트레이션 인터페이스` panel with required completion and recommended extension status.
+- Scanner snapshots now include `files.orchestrationDashboard` with `STATUS.md`, `CURRENT_TASK.md`, `NEXT_TASKS.md`, `DECISION_LOG.md`, recent devlog, and recent reports.
+- The dashboard now prioritizes orchestration document content, document-based commands, and centralized Discord reports instead of risk/prompt/auxiliary scan panels.
 
 Completed dashboard localization and readability improvements:
 
@@ -143,3 +145,5 @@ Verified on 2026-06-08:
 - `npm run build` passed after adding scanner and dashboard support for orchestration interface status.
 - `GET /api/snapshots` returned `requiredPresent: 11`, `requiredTotal: 11`, and `complete: true` for LETHE_Prototype and Project_Orchestrator.
 - Browser plugin visual QA was attempted, but the browser runtime failed with a Windows sandbox spawn error.
+- `GET /api/snapshots` returned `phase: 진행 중` and document content flags for LETHE_Prototype and Project_Orchestrator.
+- `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord payload and did not send.
