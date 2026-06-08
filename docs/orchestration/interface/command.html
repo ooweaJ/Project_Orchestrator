@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 다음 지시</title>
+    <style>
+      :root { color: #17211c; background: #f7fcf8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { padding: 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      h1 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      article { min-width: 0; padding: 12px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      h2 { margin: 0 0 8px; color: #1f6b4d; font-size: 14px; }
+      .markdown { color: #26342f; font-size: 13px; line-height: 1.55; }
+      .markdown h3, .markdown h4 { margin: 10px 0 6px; font-size: 13px; }
+      .markdown p { margin: 0 0 8px; }
+      .markdown ul { margin: 0; padding-left: 18px; }
+      .markdown li { margin-bottom: 3px; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>다음 지시</h1>
+        <a href="./CURRENT_TASK.md">CURRENT_TASK.md</a>
+      </header>
+      <div class="grid">
+        <article>
+          <h2>이번에 끝낼 작업</h2>
+          <div class="markdown"><p>Support the LETHE <code>interface/</code> + <code>state/</code> orchestration layout and central Discord report sending.</p>
+<ul>
+<li>Read human-facing HTML from <code>docs/orchestration/interface/</code>.</li>
+<li>Read AI-facing state Markdown from <code>docs/orchestration/state/</code>.</li>
+<li>Keep compatibility with the older root-level <code>docs/orchestration/index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and root Markdown files.</li>
+<li>Show nested report HTML from <code>docs/orchestration/reports/YYYYMMDD/</code> and <code>units/</code>.</li>
+<li>Let AI Project Orchestrator send a selected or latest project report to Discord using the central <code>.env</code> webhook.</li>
+</ul>
+<ul>
+<li>LETHE dashboard, command, and runbook APIs return the files under <code>interface/</code>.</li>
+<li>LETHE snapshot document summaries resolve to <code>state/*.md</code>.</li>
+<li>The report browser lists nested <code>reports/YYYYMMDD/units/*.html</code> files.</li>
+<li>Discord dry-run for LETHE uses the latest unit HTML report and returns both embed payload and attachment metadata.</li>
+<li>The dashboard generator writes new HTML to <code>docs/orchestration/interface/</code>.</li>
+</ul></div>
+        </article>
+        <article>
+          <h2>다음 후보</h2>
+          <div class="markdown"><ul>
+<li>Add Codex run controls for cancel/retry/open artifact folder.</li>
+</ul>
+<p>   - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</p>
+<ul>
+<li>Add a Discord dry-run preview panel before actual send.</li>
+</ul>
+<p>   - Verify: the homepage shows the selected report title, embed fields, and attachment path without sending externally.</p>
+<ul>
+<li>Apply the <code>interface/</code> + <code>state/</code> orchestration layout to one more active project.</li>
+</ul>
+<p>   - Verify: the project has dashboard, command, runbook, state Markdown, nested reports, and central Discord dry-run.</p>
+<ul>
+<li>Decide the report cadence for <code>reports/</code>.</li>
+</ul>
+<p>   - Verify: daily, commit-based, or work-unit report naming is documented and generated consistently.</p>
+<ul>
+<li>Add a scaffold action for missing orchestration files.</li>
+</ul>
+<p>   - Verify: selected project receives missing files without overwriting existing documentation.</p></div>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

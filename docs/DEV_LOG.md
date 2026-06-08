@@ -155,3 +155,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/09-homepage-codex-cli-runner.md`
 - Summary: Added direct Codex CLI execution from the homepage command panel, with local run artifacts, status polling, and final-message/output display.
 - Verification: `npm run build`, `POST /api/projects/project-orchestrator/codex-run`, `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj`.
+
+#### Interface-State Layout And Central Discord
+
+- File: `docs/ai-collaboration/2026-06-08/10-interface-state-layout-central-discord.md`
+- Summary: Updated the orchestrator to read `interface/` HTML and `state/` Markdown first, list nested report HTML, and send selected/latest project reports to Discord through the central orchestrator webhook flow.
+- Verification: `npm run build`, `npm run orchestration:dashboard`, LETHE interface APIs, nested report listing, Discord dry-run, LETHE state snapshot.

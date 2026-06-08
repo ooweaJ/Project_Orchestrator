@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 프로젝트 대시보드</title>
+    <style>
+      :root {
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --text: #17201d;
+        --muted: #64706b;
+        --line: #dce2da;
+        --green: #1f6b4d;
+        --blue: #285f8f;
+        --amber: #916019;
+        --red: #9a3d36;
+        --soft-green: #e7f3ec;
+        --soft-blue: #e8f1f8;
+        --soft-amber: #f8efe0;
+        --soft-red: #fae9e7;
+        color: var(--text);
+        background: var(--bg);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1120px, 100%); margin: 0 auto; padding: 30px 22px 38px; }
+      header { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; margin-bottom: 16px; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 13px; font-weight: 900; }
+      h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
+      h2, h3, h4, p { margin-top: 0; }
+      .badge { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--soft-amber); color: var(--amber); font-size: 13px; font-weight: 900; white-space: nowrap; }
+      .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+      .metric, .panel { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+      .metric { min-height: 106px; padding: 15px; }
+      .metric span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 13px; font-weight: 900; }
+      .metric strong { display: block; font-size: 18px; line-height: 1.32; }
+      .metric small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .green { background: var(--soft-green); }
+      .blue { background: var(--soft-blue); }
+      .amber { background: var(--soft-amber); }
+      .red { background: var(--soft-red); }
+      .heroPanel { padding: 18px; margin-bottom: 14px; border: 1px solid #cbdcce; border-radius: 8px; background: linear-gradient(180deg, #ffffff 0%, #f0f7f2 100%); }
+      .heroPanel h2, .panel h2 { margin: 0 0 10px; font-size: 19px; }
+      .heroPanel p, .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+      .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+      .panel { min-height: 166px; padding: 17px; }
+      .panel ul { margin: 0; padding-left: 19px; line-height: 1.58; }
+      .panel li { margin-bottom: 5px; }
+      .label { color: var(--muted); font-size: 13px; font-weight: 900; }
+      .value { display: block; margin-top: 4px; line-height: 1.5; }
+      .decision { display: grid; gap: 10px; }
+      .decision div { padding-bottom: 9px; border-bottom: 1px solid #edf0eb; }
+      .decision div:last-child { padding-bottom: 0; border-bottom: 0; }
+      .cardTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      .cardTitle h2 { margin: 0; font-size: 18px; }
+      a { color: var(--green); font-weight: 900; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .markdown { color: #26342f; font-size: 14px; line-height: 1.65; }
+      .markdown h3 { margin: 14px 0 8px; color: #1f6b4d; font-size: 15px; }
+      .markdown h4 { margin: 12px 0 6px; font-size: 14px; }
+      .markdown p { margin: 0 0 10px; }
+      .markdown ul { margin: 0 0 10px; padding-left: 20px; }
+      .markdown li { margin-bottom: 4px; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      pre { overflow: auto; margin: 0 0 10px; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
+      .listCard ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+      .listCard li { display: grid; gap: 3px; }
+      small, .muted { color: #697873; font-size: 13px; }
+      footer { margin-top: 20px; color: #697873; font-size: 13px; }
+      @media (max-width: 760px) {
+        header, .metrics, .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 프로젝트 대시보드</p>
+          <h1>상태 요약</h1>
+        </div>
+        <span class="badge">Current Task</span>
+      </header>
+
+      <section class="metrics" aria-label="핵심 상태 요약">
+        <div class="metric green">
+          <span>현재 단계</span>
+          <strong>Current Task</strong>
+          <small>MVP app exists with a React dashboard and Express backend.</small>
+        </div>
+        <div class="metric blue">
+          <span>최신 검증</span>
+          <strong>`npm run build` passed after the orchestration dashboard update.</strong>
+          <small>검증 원본은 STATUS.md</small>
+        </div>
+        <div class="metric amber">
+          <span>막힌 점</span>
+          <strong>Browser plugin visual QA is still blocked by a Windows sandbox browser-runtime error.</strong>
+          <small>판단 보류 지점</small>
+        </div>
+        <div class="metric red">
+          <span>다음 게이트</span>
+          <strong>Add Codex run controls for cancel/retry/open artifact folder.</strong>
+          <small>NEXT_TASKS.md 기준</small>
+        </div>
+      </section>
+
+      <section class="heroPanel">
+        <h2>현재 결론</h2>
+        <p>MVP app exists with a React dashboard and Express backend.</p>
+      </section>
+
+      <div class="grid">
+        <article class="panel">
+          <h2>이번 목표</h2>
+          <div class="decision">
+            <div>
+              <span class="label">해야 할 일</span>
+              <span class="value">Support the LETHE <code>interface/</code> + <code>state/</code> orchestration layout and central Discord report sending.</span>
+            </div>
+            <div>
+              <span class="label">완료 신호</span>
+              <span class="value">LETHE dashboard, command, and runbook APIs return the files under <code>interface/</code>.</span>
+            </div>
+            <div>
+              <span class="label">원본</span>
+              <span class="value"><code>CURRENT_TASK.md</code></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>다음 판단</h2>
+          <ul><li>Add Codex run controls for cancel/retry/open artifact folder.</li><li>Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</li><li>Add a Discord dry-run preview panel before actual send.</li><li>Verify: the homepage shows the selected report title, embed fields, and attachment path without sending externally.</li></ul>
+        </article>
+
+        <article class="panel">
+          <h2>최근 완료</h2>
+          <div class="decision">
+            <div>
+              <span class="label">보고</span>
+              <span class="value"><a href="../reports/2026-06-08-10-interface-state-layout-central-discord.html">interface/state 구조와 중앙 Discord 전송</a></span>
+            </div>
+            <div>
+              <span class="label">결정</span>
+              <span class="value">Decision: Use <code>docs/orchestration/*</code> as the shared document contract for portfolio projects.</span>
+            </div>
+            <div>
+              <span class="label">목록</span>
+              <span class="value"><a href="../reports/index.html">reports/index.html</a></span>
+            </div>
+          </div>
+        </article>
+      </div>
+      <footer>Generated from Markdown. Markdown remains the source of truth. 2026. 6. 8. PM 7:23:57</footer>
+    </main>
+  </body>
+</html>

@@ -21,6 +21,9 @@
 - `npm run orchestration:dashboard` now also generates `docs/orchestration/reports/index.html` in the LETHE-style report-list format.
 - The homepage command panel can now start a non-interactive Codex CLI run for the selected project and show run status, exit code, output, and the final Codex message.
 - Codex run artifacts are written under `docs/orchestration/agent_runs/` and ignored by Git.
+- The dashboard now reads the newer orchestration layout first: human HTML from `docs/orchestration/interface/` and AI state Markdown from `docs/orchestration/state/`.
+- The development-journal browser now reads nested report HTML such as `docs/orchestration/reports/YYYYMMDD/index.html` and `docs/orchestration/reports/YYYYMMDD/units/*.html`.
+- Project Discord reports can now be sent centrally from AI Project Orchestrator using the selected or latest orchestration HTML report as the embed source and HTML attachment.
 
 ## Latest Verification
 
@@ -48,6 +51,12 @@
 - `npm run build` passed after adding homepage Codex CLI execution.
 - `POST /api/projects/project-orchestrator/codex-run` returned `202 Accepted` and created run `20260608-095709-1hluj`.
 - `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj` returned `status: complete`, `exitCode: 0`, and `lastMessage: codex runner ok`.
+- `npm run build` passed after adding `interface/` and `state/` layout support.
+- `npm run orchestration:dashboard` generated this project's `docs/orchestration/interface/index.html`, `command.html`, and `runbook.html`.
+- `GET /api/projects/lethe-prototype/orchestration-dashboard` returned LETHE's `interface/index.html` with `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-reports` returned nested LETHE unit reports, including `20260608/units/2026-06-08-10-오케스트레이션-리포트와-개발로그-실제-마이그레이션.html`.
+- `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord embed payload and HTML attachment metadata for LETHE's latest unit report.
+- `GET /api/projects/lethe-prototype/snapshot` returned document paths under `docs/orchestration/state/*.md` with `hasContent: true`.
 
 ## Blockers
 
@@ -56,4 +65,4 @@
 
 ## Next Major Step
 
-Add a homepage action to regenerate the selected project's orchestration HTML before viewing it, then apply the LETHE-derived HTML template to another active project.
+Add cancel/retry controls for Codex runs, then apply the `interface/` + `state/` orchestration layout to another active project.

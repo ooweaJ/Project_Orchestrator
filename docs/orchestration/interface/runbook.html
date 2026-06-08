@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Project Orchestrator is a local-first dashboard for managing multiple development projects assisted by Codex or other AI agents. 운영 절차</title>
+    <style>
+      :root { color: #17211c; background: #fff; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { padding: 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      h1 { margin: 0; font-size: 18px; }
+      a { color: #1f6b4d; font-weight: 900; text-decoration: none; }
+      p { margin: 0 0 12px; color: #60706a; font-size: 13px; line-height: 1.55; }
+      .commandManual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .commandManual article { min-width: 0; padding: 14px; border: 1px solid #d9e1d7; border-radius: 8px; background: #f8faf7; }
+      .commandManual h3 { margin: 0 0 6px; color: #1f6b4d; font-size: 15px; }
+      .commandManual p { margin: 0 0 10px; }
+      pre { overflow: auto; margin: 0; padding: 12px; border-radius: 8px; background: #f2f5ef; font-size: 13px; line-height: 1.55; }
+      code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      @media (max-width: 680px) { .commandManual { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>운영 절차</h1>
+        <a href="./RUNBOOK.md">RUNBOOK.md</a>
+      </header>
+      <p>검증, 설치, 대시보드 재생성처럼 반복되는 조작은 여기서 확인합니다. 명령은 원본 RUNBOOK.md에서 관리합니다.</p>
+      <div class="commandManual"><article>
+        <h3>Preflight</h3>
+        <p>작업 전 변경 상태와 영향 범위를 확인합니다.</p>
+        <pre><code>git status --short
+git diff --stat</code></pre>
+      </article><article>
+        <h3>Build</h3>
+        <p>프론트엔드와 타입 검사를 포함해 배포 가능한지 확인합니다.</p>
+        <pre><code>npm run build</code></pre>
+      </article><article>
+        <h3>Lint</h3>
+        <p>프로젝트 운영 중 반복해서 쓰는 절차입니다.</p>
+        <pre><code>npm run lint</code></pre>
+      </article><article>
+        <h3>Test</h3>
+        <p>프로젝트 운영 중 반복해서 쓰는 절차입니다.</p>
+        <pre><code>npm run test</code></pre>
+      </article><article>
+        <h3>Discord Dry Run</h3>
+        <p>중앙 오케스트레이터 설정으로 보고 메시지를 미리 확인하거나 전송합니다.</p>
+        <pre><code>npm run report:discord:unit:dry</code></pre>
+      </article><article>
+        <h3>Install Orchestration Interface In Another Project</h3>
+        <p>다른 프로젝트에 오케스트레이션 문서 구조를 설치합니다.</p>
+        <pre><code>npm run orchestration:install -- --target &quot;C:\path\to\project&quot; --dry-run</code></pre>
+      </article></div>
+    </main>
+  </body>
+</html>

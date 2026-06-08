@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>interface/state 구조와 중앙 Discord 전송 보고서</title>
+    <style>
+      :root {
+        color: #17211c;
+        background: #f5f7f1;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(980px, 100%); margin: 0 auto; padding: 36px 22px; }
+      h1 { margin: 0; font-size: 34px; line-height: 1.15; }
+      h2 { margin: 0 0 12px; font-size: 19px; }
+      section { margin-bottom: 14px; padding: 18px; border: 1px solid #d9e1d7; border-radius: 8px; background: #fff; }
+      ul { margin: 0; padding-left: 20px; line-height: 1.75; }
+      code { font-family: "SFMono-Regular", Consolas, monospace; }
+      a { color: #1f6b4d; font-weight: 800; text-decoration: none; }
+      .status { display: inline-flex; align-items: center; min-height: 28px; margin: 10px 0 22px; padding: 0 10px; border-radius: 999px; color: #1f6b4d; background: #dff2e5; font-size: 13px; font-weight: 900; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>interface/state 구조와 중앙 Discord 전송</h1>
+      <span class="status">2026-06-08 작업 완료</span>
+
+      <section>
+        <h2>어떤 작업</h2>
+        <ul>
+          <li>LETHE의 새 오케스트레이션 구조인 <code>interface/</code>, <code>state/</code>, 날짜별 <code>reports/</code>를 오케스트레이터가 읽도록 바꿨습니다.</li>
+          <li>LETHE가 만든 HTML 보고서를 Project Orchestrator가 중앙 Discord 웹훅으로 보내는 흐름을 추가했습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>진행 내용</h2>
+        <ul>
+          <li>홈페이지 대시보드/다음 지시/런북 iframe은 <code>docs/orchestration/interface/*.html</code>을 먼저 읽습니다.</li>
+          <li>스냅샷 문서 요약은 <code>docs/orchestration/state/*.md</code>를 먼저 읽습니다.</li>
+          <li>개발일지는 <code>reports/YYYYMMDD/index.html</code>과 <code>reports/YYYYMMDD/units/*.html</code>을 재귀로 찾습니다.</li>
+          <li>Discord 전송 API는 선택된 보고서 또는 최신 unit HTML을 embed와 첨부로 변환합니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>결과</h2>
+        <ul>
+          <li><code>npm run build</code>가 통과했습니다.</li>
+          <li>LETHE의 <code>interface/index.html</code>과 <code>interface/command.html</code>이 API로 정상 반환됐습니다.</li>
+          <li>LETHE 최신 unit report가 개발일지 목록에 표시됐습니다.</li>
+          <li>Discord dry-run에서 embed payload와 HTML attachment metadata가 생성됐습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>참고 문서</h2>
+        <ul>
+          <li><a href="../../ai-collaboration/2026-06-08/10-interface-state-layout-central-discord.md">상세 작업 기록</a></li>
+          <li><a href="../../orchestration/interface/index.html">오케스트레이션 대시보드</a></li>
+          <li><a href="../../orchestration/CURRENT_TASK.md">현재 작업 문서</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

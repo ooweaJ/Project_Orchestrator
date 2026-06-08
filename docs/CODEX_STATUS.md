@@ -71,6 +71,9 @@ Completed orchestration improvements:
 - The dashboard generator now writes `reports/index.html` in addition to `index.html`, `command.html`, and `runbook.html`.
 - The homepage command panel can start a non-interactive Codex CLI run for the selected project.
 - Codex run APIs store local prompt/output/status/final-message artifacts under `docs/orchestration/agent_runs/`, which is ignored by Git.
+- Orchestration readers now prefer the newer `docs/orchestration/interface/` HTML layout and `docs/orchestration/state/` Markdown layout, with root-level compatibility fallback.
+- The development-journal browser now supports nested report HTML under `docs/orchestration/reports/YYYYMMDD/` and `units/`.
+- Project Discord reports can now be sent centrally from AI Project Orchestrator using a selected or latest orchestration HTML report and optional HTML attachment.
 
 Completed dashboard localization and readability improvements:
 
@@ -175,3 +178,10 @@ Verified on 2026-06-08:
 - `npm run build` passed after adding homepage Codex CLI execution.
 - `POST /api/projects/project-orchestrator/codex-run` returned `202 Accepted`.
 - `GET /api/projects/project-orchestrator/codex-runs/20260608-095709-1hluj` returned `complete`, `exitCode: 0`, and `lastMessage: codex runner ok`.
+- `npm run build` passed after adding `interface/` and `state/` layout support.
+- `npm run orchestration:dashboard` generated HTML under `docs/orchestration/interface/`.
+- `GET /api/projects/lethe-prototype/orchestration-dashboard` returned LETHE's `interface/index.html` with `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-command` returned `200 OK`.
+- `GET /api/projects/lethe-prototype/orchestration-reports` returned nested LETHE unit report paths.
+- `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord embed payload and HTML attachment metadata for the latest LETHE unit report.
+- `GET /api/projects/lethe-prototype/snapshot` resolved document paths under `docs/orchestration/state/*.md`.

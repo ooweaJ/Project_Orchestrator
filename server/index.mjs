@@ -92,6 +92,21 @@ const orchestrationDashboardDocs = [
   { key: "decisionLog", label: "DECISION_LOG.md", path: "docs/orchestration/DECISION_LOG.md" },
 ];
 
+const orchestrationInterfacePages = {
+  dashboard: {
+    label: "index.html",
+    paths: ["docs/orchestration/interface/index.html", "docs/orchestration/index.html"],
+  },
+  command: {
+    label: "command.html",
+    paths: ["docs/orchestration/interface/command.html", "docs/orchestration/command.html"],
+  },
+  runbook: {
+    label: "runbook.html",
+    paths: ["docs/orchestration/interface/runbook.html", "docs/orchestration/runbook.html"],
+  },
+};
+
 async function ensureDataFiles() {
   await fs.mkdir(snapshotsDir, { recursive: true });
   try {
@@ -182,6 +197,50 @@ async function pathExists(targetPath) {
   }
 }
 
+function getOrchestrationStatePath(relativePath) {
+  const fileName = path.basename(relativePath);
+
+  if (!relativePath.startsWith("docs/orchestration/") || !fileName.endsWith(".md")) {
+    return relativePath;
+  }
+
+  return path.join("docs", "orchestration", "state", fileName);
+}
+
+async function findExistingProjectPath(projectPath, relativePaths) {
+  for (const relativePath of relativePaths) {
+    const fullPath = path.join(projectPath, relativePath);
+    if (await pathExists(fullPath)) {
+      return { relativePath: relativePath.replace(/\\/g, "/"), fullPath };
+    }
+  }
+
+  return null;
+}
+
+async function readFirstExistingText(projectPath, relativePaths) {
+  const found = await findExistingProjectPath(projectPath, relativePaths);
+
+  if (!found) {
+    return { relativePath: relativePaths[0].replace(/\\/g, "/"), fullPath: "", content: "" };
+  }
+
+  return {
+    ...found,
+    content: await fs.readFile(found.fullPath, "utf8").catch(() => ""),
+  };
+}
+
+async function readOrchestrationInterfaceHtml(projectPath, pageKey) {
+  const page = orchestrationInterfacePages[pageKey];
+  const result = await readFirstExistingText(projectPath, page.paths);
+
+  return {
+    ...result,
+    label: page.label,
+  };
+}
+
 function resolveOrchestrationViewerPath(projectPath, requestedPath) {
   const baseDir = path.resolve(projectPath, "docs", "orchestration");
   const normalizedPath = requestedPath.replace(/\\/g, "/");
@@ -250,37 +309,59 @@ async function listOrchestrationViewerFiles(projectPath) {
 
 async function listOrchestrationReportFiles(projectPath) {
   const reportsDir = path.resolve(projectPath, "docs", "orchestration", "reports");
-  const entries = await fs.readdir(reportsDir, { withFileTypes: true }).catch(() => []);
   const files = [];
 
-  for (const entry of entries) {
-    if (!entry.isFile() || entry.name.toLowerCase() === "index.html" || path.extname(entry.name).toLowerCase() !== ".html") {
-      continue;
+  async function visit(directory) {
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+
+    for (const entry of entries) {
+      const fullPath = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        await visit(fullPath);
+        continue;
+      }
+
+      if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== ".html") {
+        continue;
+      }
+
+      const relativePath = path.relative(reportsDir, fullPath).replace(/\\/g, "/");
+
+      if (relativePath.toLowerCase() === "index.html") {
+        continue;
+      }
+
+      const stats = await fs.stat(fullPath).catch(() => null);
+
+      if (!stats) {
+        continue;
+      }
+
+      const content = await fs.readFile(fullPath, "utf8").catch(() => "");
+      const title =
+        content.match(/<title>(.*?)<\/title>/is)?.[1]?.trim() ||
+        content.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, "").trim() ||
+        entry.name.replace(/\.html$/i, "").replace(/[-_]+/g, " ");
+
+      files.push({
+        path: relativePath,
+        name: entry.name,
+        directory: path.dirname(relativePath) === "." ? "" : path.dirname(relativePath).replace(/\\/g, "/"),
+        title,
+        modifiedAt: stats.mtime.toISOString(),
+        sizeBytes: stats.size,
+        isUnit: relativePath.split("/").includes("units"),
+      });
     }
-
-    const fullPath = path.join(reportsDir, entry.name);
-    const stats = await fs.stat(fullPath).catch(() => null);
-
-    if (!stats) {
-      continue;
-    }
-
-    const content = await fs.readFile(fullPath, "utf8").catch(() => "");
-    const title =
-      content.match(/<title>(.*?)<\/title>/is)?.[1]?.trim() ||
-      content.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, "").trim() ||
-      entry.name.replace(/\.html$/i, "").replace(/[-_]+/g, " ");
-
-    files.push({
-      path: entry.name,
-      name: entry.name,
-      title,
-      modifiedAt: stats.mtime.toISOString(),
-      sizeBytes: stats.size,
-    });
   }
 
+  await visit(reportsDir);
   return files.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+}
+
+function getPreferredDiscordReport(reports) {
+  return reports.find((report) => report.isUnit) ?? reports[0] ?? null;
 }
 
 function resolveOrchestrationReportPath(projectPath, requestedPath) {
@@ -638,14 +719,25 @@ async function hasFile(projectPath, relativePath) {
 }
 
 async function hasProjectEntry(projectPath, entry) {
-  const fullPath = path.join(projectPath, entry.path);
-  const stats = await fs.stat(fullPath).catch(() => null);
+  const paths =
+    entry.type === "file" && entry.path.startsWith("docs/orchestration/") && entry.path.endsWith(".md")
+      ? [entry.path, getOrchestrationStatePath(entry.path)]
+      : [entry.path];
 
-  if (!stats) {
-    return false;
+  for (const relativePath of paths) {
+    const fullPath = path.join(projectPath, relativePath);
+    const stats = await fs.stat(fullPath).catch(() => null);
+
+    if (!stats) {
+      continue;
+    }
+
+    if (entry.type === "directory" ? stats.isDirectory() : stats.isFile()) {
+      return true;
+    }
   }
 
-  return entry.type === "directory" ? stats.isDirectory() : stats.isFile();
+  return false;
 }
 
 function emptyOrchestrationSignals() {
@@ -717,13 +809,13 @@ function hasMeaningfulMarkdown(value) {
 }
 
 async function readOrchestrationDocument(projectPath, doc) {
-  const fullPath = path.join(projectPath, doc.path);
-  const content = await fs.readFile(fullPath, "utf8").catch(() => "");
+  const result = await readFirstExistingText(projectPath, [doc.path, getOrchestrationStatePath(doc.path)]);
+  const content = result.content;
 
   return {
     key: doc.key,
     label: doc.label,
-    path: doc.path,
+    path: result.relativePath,
     exists: content.length > 0,
     hasContent: hasMeaningfulMarkdown(content),
     content: trimMarkdownContent(content),
@@ -1299,6 +1391,63 @@ function truncate(value, maxLength) {
   return `${value.slice(0, maxLength - 1)}…`;
 }
 
+function stripHtml(value) {
+  return value
+    .replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, "`$1`")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|li|h1|h2|h3|div|section)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function extractHtmlTitle(html, fallback) {
+  return (
+    stripHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "") ||
+    stripHtml(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "") ||
+    fallback
+  );
+}
+
+function extractHtmlSection(html, headingPatterns) {
+  const headings = [...html.matchAll(/<h[2-3][^>]*>([\s\S]*?)<\/h[2-3]>/gi)];
+
+  for (let index = 0; index < headings.length; index += 1) {
+    const headingText = stripHtml(headings[index][1]);
+    if (!headingPatterns.some((pattern) => pattern.test(headingText))) {
+      continue;
+    }
+
+    const start = headings[index].index + headings[index][0].length;
+    const end = index + 1 < headings.length ? headings[index + 1].index : html.length;
+    return stripHtml(html.slice(start, end));
+  }
+
+  return "";
+}
+
+function extractDiscordReportFromHtml(html, fallbackTitle) {
+  return {
+    title: extractHtmlTitle(html, fallbackTitle),
+    work:
+      extractHtmlSection(html, [/^어떤 작업/u, /오늘 바뀐 것/u, /작업$/u]) ||
+      extractHtmlSection(html, [/현재 빌드 상태/u, /현재 상태/u]),
+    progress:
+      extractHtmlSection(html, [/^진행 내용/u, /결정한 것/u, /문제 또는 리스크/u]) ||
+      extractHtmlSection(html, [/오늘 바뀐 것/u]),
+    result:
+      extractHtmlSection(html, [/^결과/u, /테스트 결과/u, /검증/u]) ||
+      extractHtmlSection(html, [/현재 빌드 상태/u]),
+    nextTask: extractHtmlSection(html, [/다음 Codex 작업/u, /^다음/u, /다음 작업/u]),
+  };
+}
+
 function getDiscordField(doc, fallback) {
   if (!doc?.content) {
     return fallback;
@@ -1331,6 +1480,47 @@ function buildOrchestrationDiscordPayload(project, dashboard, username) {
           {
             name: "다음 작업",
             value: getDiscordField(docByKey.nextTasks, "NEXT_TASKS.md에 다음 작업이 없습니다."),
+            inline: false,
+          },
+        ],
+        footer: {
+          text: "AI Project Orchestrator 중앙 .env 기준으로 전송됨",
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+}
+
+function buildReportDiscordPayload(project, report, username) {
+  const toValue = (value, fallback) => truncate(value || fallback, 1024);
+
+  return {
+    username,
+    embeds: [
+      {
+        title: `${project.name}: ${report.title}`,
+        description: `보고서: ${report.path}`,
+        color: 2050893,
+        fields: [
+          {
+            name: "어떤 작업",
+            value: toValue(report.work, "보고서에서 작업 요약을 찾지 못했습니다."),
+            inline: false,
+          },
+          {
+            name: "진행 내용",
+            value: toValue(report.progress, "보고서에서 진행 내용을 찾지 못했습니다."),
+            inline: false,
+          },
+          {
+            name: "결과",
+            value: toValue(report.result, "보고서에서 결과를 찾지 못했습니다."),
+            inline: false,
+          },
+          {
+            name: "다음 작업",
+            value: toValue(report.nextTask, "다음 작업이 기록되지 않았습니다."),
             inline: false,
           },
         ],
@@ -1586,15 +1776,15 @@ app.get("/api/projects/:id/orchestration-dashboard", async (req, res) => {
       return;
     }
 
-    const dashboardPath = path.join(project.path, "docs", "orchestration", "index.html");
-    const html = await fs.readFile(dashboardPath, "utf8").catch(() => "");
+    const dashboard = await readOrchestrationInterfaceHtml(project.path, "dashboard");
+    const html = dashboard.content;
 
     if (!html) {
       res
         .status(404)
         .type("html")
         .send(
-          "<!doctype html><html><body><p>docs/orchestration/index.html이 아직 생성되지 않았습니다.</p></body></html>",
+          "<!doctype html><html><body><p>docs/orchestration/interface/index.html이 아직 생성되지 않았습니다.</p></body></html>",
         );
       return;
     }
@@ -1647,15 +1837,15 @@ app.get("/api/projects/:id/orchestration-command", async (req, res) => {
       return;
     }
 
-    const commandPath = path.join(project.path, "docs", "orchestration", "command.html");
-    const html = await fs.readFile(commandPath, "utf8").catch(() => "");
+    const command = await readOrchestrationInterfaceHtml(project.path, "command");
+    const html = command.content;
 
     if (!html) {
       res
         .status(404)
         .type("html")
         .send(
-          "<!doctype html><html><body><p>docs/orchestration/command.html이 아직 생성되지 않았습니다.</p></body></html>",
+          "<!doctype html><html><body><p>docs/orchestration/interface/command.html이 아직 생성되지 않았습니다.</p></body></html>",
         );
       return;
     }
@@ -1676,15 +1866,15 @@ app.get("/api/projects/:id/orchestration-runbook", async (req, res) => {
       return;
     }
 
-    const runbookPath = path.join(project.path, "docs", "orchestration", "runbook.html");
-    const html = await fs.readFile(runbookPath, "utf8").catch(() => "");
+    const runbook = await readOrchestrationInterfaceHtml(project.path, "runbook");
+    const html = runbook.content;
 
     if (!html) {
       res
         .status(404)
         .type("html")
         .send(
-          "<!doctype html><html><body><p>docs/orchestration/runbook.html이 아직 생성되지 않았습니다.</p></body></html>",
+          "<!doctype html><html><body><p>docs/orchestration/interface/runbook.html이 아직 생성되지 않았습니다.</p></body></html>",
         );
       return;
     }
@@ -1953,16 +2143,43 @@ app.post("/api/projects/:id/discord-report", async (req, res) => {
       return;
     }
 
+    const reports = await listOrchestrationReportFiles(project.path);
+    const requestedReportPath = typeof req.body?.reportPath === "string" ? req.body.reportPath : "";
+    const selectedReport = requestedReportPath
+      ? reports.find((report) => report.path === requestedReportPath)
+      : getPreferredDiscordReport(reports);
     const dashboard = await collectOrchestrationDashboard(project.path);
     const env = await readEnv();
-    const payload = buildOrchestrationDiscordPayload(
-      project,
-      dashboard,
-      env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator",
-    );
+    let payload = buildOrchestrationDiscordPayload(project, dashboard, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
+    let attachment = null;
+
+    if (selectedReport) {
+      const reportPath = resolveOrchestrationReportPath(project.path, selectedReport.path);
+      const html = await fs.readFile(reportPath, "utf8");
+      const extractedReport = {
+        ...extractDiscordReportFromHtml(html, selectedReport.title),
+        path: selectedReport.path,
+      };
+
+      payload = buildReportDiscordPayload(project, extractedReport, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
+      attachment = {
+        path: reportPath,
+        name: path.basename(selectedReport.path),
+        reportPath: selectedReport.path,
+      };
+    }
 
     if (req.body?.dryRun) {
-      res.json({ dryRun: true, payload });
+      res.json({
+        dryRun: true,
+        payload,
+        attachment: attachment
+          ? {
+              name: attachment.name,
+              path: attachment.reportPath,
+            }
+          : null,
+      });
       return;
     }
 
@@ -1971,6 +2188,7 @@ app.post("/api/projects/:id/discord-report", async (req, res) => {
       return;
     }
 
+    const attachHtml = req.body?.attachHtml !== false;
     const response = await fetch(env.DISCORD_WEBHOOK_URL, {
       method: "POST",
       headers: {
@@ -1984,8 +2202,41 @@ app.post("/api/projects/:id/discord-report", async (req, res) => {
       return;
     }
 
+    if (attachHtml && attachment) {
+      const formData = new FormData();
+      const reportBytes = await fs.readFile(attachment.path);
+      const reportBlob = new Blob([reportBytes], { type: "text/html" });
+
+      formData.append("payload_json", JSON.stringify({ content: "상세 HTML 보고서 파일입니다." }));
+      formData.append("files[0]", reportBlob, attachment.name);
+
+      const attachmentResponse = await fetch(env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!attachmentResponse.ok) {
+        res.status(502).json({
+          error: `Discord attachment failed: ${attachmentResponse.status} ${attachmentResponse.statusText}`,
+          payload,
+          attachment: attachment.reportPath,
+        });
+        return;
+      }
+    }
+
     await appendActivity({ type: "discord-report-sent", projectId: project.id });
-    res.json({ sent: true, payload });
+    res.json({
+      sent: true,
+      payload,
+      attachment: attachment
+        ? {
+            name: attachment.name,
+            path: attachment.reportPath,
+            sent: attachHtml,
+          }
+        : null,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -464,6 +464,13 @@ h3 {
   gap: 12px;
 }
 
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .cardHeader h3 {
   font-size: 1.05rem;
 }
@@ -1036,6 +1043,14 @@ h3 {
   .topActions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .detailActions {
+    justify-content: stretch;
+  }
+
+  .detailActions .secondaryButton {
+    width: 100%;
   }
 
   .summaryGrid {

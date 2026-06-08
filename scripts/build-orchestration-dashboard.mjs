@@ -127,6 +127,21 @@ async function readText(filePath) {
   return fs.readFile(filePath, "utf8").catch(() => "");
 }
 
+async function readFirstText(filePaths) {
+  for (const filePath of filePaths) {
+    const content = await readText(filePath);
+    if (content) {
+      return content;
+    }
+  }
+
+  return "";
+}
+
+function encodeRelativeHref(relativePath) {
+  return relativePath.split("/").map(encodeURIComponent).join("/");
+}
+
 async function pathExists(filePath) {
   try {
     await fs.access(filePath);
@@ -174,34 +189,50 @@ function humanizeFileName(fileName) {
 }
 
 async function listReportFiles(directory, limit = 12) {
-  const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
   const files = [];
 
-  for (const entry of entries) {
-    if (!entry.isFile() || ![".html", ".md"].includes(path.extname(entry.name).toLowerCase())) {
-      continue;
+  async function visit(currentDir) {
+    const entries = await fs.readdir(currentDir, { withFileTypes: true }).catch(() => []);
+
+    for (const entry of entries) {
+      const filePath = path.join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
+        await visit(filePath);
+        continue;
+      }
+
+      if (!entry.isFile() || ![".html", ".md"].includes(path.extname(entry.name).toLowerCase())) {
+        continue;
+      }
+
+      const relativePath = path.relative(directory, filePath).replace(/\\/g, "/");
+      if (relativePath.toLowerCase() === "index.html" || relativePath.toLowerCase() === "readme.md") {
+        continue;
+      }
+
+      const stats = await fs.stat(filePath).catch(() => null);
+      if (!stats) {
+        continue;
+      }
+
+      const content = await readText(filePath);
+      const title =
+        path.extname(entry.name).toLowerCase() === ".html"
+          ? firstHtmlTitle(content, humanizeFileName(entry.name))
+          : firstHeading(content, humanizeFileName(entry.name));
+
+      files.push({
+        name: entry.name,
+        path: relativePath,
+        title,
+        modifiedAt: stats.mtime,
+        isHtml: path.extname(entry.name).toLowerCase() === ".html",
+      });
     }
-
-    const filePath = path.join(directory, entry.name);
-    const stats = await fs.stat(filePath).catch(() => null);
-    if (!stats) {
-      continue;
-    }
-
-    const content = await readText(filePath);
-    const title =
-      path.extname(entry.name).toLowerCase() === ".html"
-        ? firstHtmlTitle(content, humanizeFileName(entry.name))
-        : firstHeading(content, humanizeFileName(entry.name));
-
-    files.push({
-      name: entry.name,
-      title,
-      modifiedAt: stats.mtime,
-      isHtml: path.extname(entry.name).toLowerCase() === ".html",
-    });
   }
 
+  await visit(directory);
   return files.sort((a, b) => b.modifiedAt.getTime() - a.modifiedAt.getTime()).slice(0, limit);
 }
 
@@ -340,13 +371,16 @@ function renderMarkdownCard(title, markdown, fallback) {
 
 async function buildDashboard(targetRoot) {
   const orchestrationDir = path.join(targetRoot, "docs", "orchestration");
+  const stateDir = path.join(orchestrationDir, "state");
+  const interfaceDir = path.join(orchestrationDir, "interface");
+  const readStateDoc = (fileName) => readFirstText([path.join(stateDir, fileName), path.join(orchestrationDir, fileName)]);
   const docs = {
-    projectBrief: await readText(path.join(orchestrationDir, "PROJECT_BRIEF.md")),
-    status: await readText(path.join(orchestrationDir, "STATUS.md")),
-    currentTask: await readText(path.join(orchestrationDir, "CURRENT_TASK.md")),
-    nextTasks: await readText(path.join(orchestrationDir, "NEXT_TASKS.md")),
-    decisionLog: await readText(path.join(orchestrationDir, "DECISION_LOG.md")),
-    runbook: await readText(path.join(orchestrationDir, "RUNBOOK.md")),
+    projectBrief: await readStateDoc("PROJECT_BRIEF.md"),
+    status: await readStateDoc("STATUS.md"),
+    currentTask: await readStateDoc("CURRENT_TASK.md"),
+    nextTasks: await readStateDoc("NEXT_TASKS.md"),
+    decisionLog: await readStateDoc("DECISION_LOG.md"),
+    runbook: await readStateDoc("RUNBOOK.md"),
   };
   const reportsDir = path.join(orchestrationDir, "reports");
   const reports = await listReportFiles(reportsDir);
@@ -365,9 +399,9 @@ async function buildDashboard(targetRoot) {
   const nextInstructionSummary =
     extractSection(docs.nextTasks, "Top Candidates") || extractSection(docs.nextTasks, "다음 후보") || docs.nextTasks;
   const decisionSummary = extractSection(docs.decisionLog, "Decisions") || docs.decisionLog;
-  const outputPath = path.join(orchestrationDir, "index.html");
-  const commandOutputPath = path.join(orchestrationDir, "command.html");
-  const runbookOutputPath = path.join(orchestrationDir, "runbook.html");
+  const outputPath = path.join(interfaceDir, "index.html");
+  const commandOutputPath = path.join(interfaceDir, "command.html");
+  const runbookOutputPath = path.join(interfaceDir, "runbook.html");
   const reportsIndexOutputPath = path.join(reportsDir, "index.html");
   const latestReport = reports.find((report) => report.name !== "index.html");
   const reportItems = reports.filter((report) => report.name !== "index.html");
@@ -376,7 +410,7 @@ async function buildDashboard(targetRoot) {
       ? `<ul>${reportItems
           .map(
             (report) => `<li>
-            <a href="./${encodeURIComponent(report.name)}">${escapeHtml(report.title)}</a>
+            <a href="./${encodeRelativeHref(report.path)}">${escapeHtml(report.title)}</a>
             <span class="tag">${report.isHtml ? "HTML" : "Markdown"}</span>
             <small>${report.modifiedAt.toLocaleString("ko-KR")}</small>
           </li>`,
@@ -385,6 +419,7 @@ async function buildDashboard(targetRoot) {
       : "<p>아직 진행 보고서가 없습니다.</p>";
 
   await fs.mkdir(orchestrationDir, { recursive: true });
+  await fs.mkdir(interfaceDir, { recursive: true });
   await fs.mkdir(reportsDir, { recursive: true });
   await fs.writeFile(
     outputPath,
@@ -531,7 +566,7 @@ async function buildDashboard(targetRoot) {
           <div class="decision">
             <div>
               <span class="label">보고</span>
-              <span class="value">${latestReport ? `<a href="./reports/${encodeURIComponent(latestReport.name)}">${escapeHtml(latestReport.title)}</a>` : "아직 진행 보고가 없습니다."}</span>
+              <span class="value">${latestReport ? `<a href="../reports/${encodeRelativeHref(latestReport.path)}">${escapeHtml(latestReport.title)}</a>` : "아직 진행 보고가 없습니다."}</span>
             </div>
             <div>
               <span class="label">결정</span>
@@ -539,7 +574,7 @@ async function buildDashboard(targetRoot) {
             </div>
             <div>
               <span class="label">목록</span>
-              <span class="value"><a href="./reports/index.html">reports/index.html</a></span>
+              <span class="value"><a href="../reports/index.html">reports/index.html</a></span>
             </div>
           </div>
         </article>
@@ -696,7 +731,7 @@ async function buildDashboard(targetRoot) {
       <section class="panel">
         <div class="panelHeader">
           <h2>진행 보고서</h2>
-          <a href="../index.html">대시보드로 돌아가기</a>
+          <a href="../interface/index.html">대시보드로 돌아가기</a>
         </div>
         ${reportListHtml}
       </section>
