@@ -47,13 +47,34 @@ git diff --stat</code></pre>
         <p>프로젝트 운영 중 반복해서 쓰는 절차입니다.</p>
         <pre><code>npm run test</code></pre>
       </article><article>
-        <h3>Discord Dry Run</h3>
+        <h3>Central Discord Report Intake</h3>
         <p>중앙 오케스트레이터 설정으로 보고 메시지를 미리 확인하거나 전송합니다.</p>
-        <pre><code>npm run report:discord:unit:dry</code></pre>
+        <pre><code>$body = @{
+  projectId = &quot;lethe-prototype&quot;
+  reportPath = &quot;20260608/units/2026-06-08-10-오케스트레이션-리포트와-개발로그-실제-마이그레이션.html&quot;
+  dryRun = $true
+  attachHtml = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri &quot;http://127.0.0.1:4317/api/orchestration/discord-report&quot; `
+  -Method POST `
+  -ContentType &quot;application/json; charset=utf-8&quot; `
+  -Body $body</code></pre>
       </article><article>
-        <h3>Install Orchestration Interface In Another Project</h3>
-        <p>다른 프로젝트에 오케스트레이션 문서 구조를 설치합니다.</p>
-        <pre><code>npm run orchestration:install -- --target &quot;C:\path\to\project&quot; --dry-run</code></pre>
+        <h3>Central Discord Report Intake</h3>
+        <p>중앙 오케스트레이터 설정으로 보고 메시지를 미리 확인하거나 전송합니다.</p>
+        <pre><code>$body = @{
+  projectId = &quot;lethe-prototype&quot;
+  reportPath = &quot;20260608/units/latest-report.html&quot;
+  attachHtml = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri &quot;http://127.0.0.1:4317/api/orchestration/discord-report&quot; `
+  -Method POST `
+  -ContentType &quot;application/json; charset=utf-8&quot; `
+  -Body $body</code></pre>
       </article></div>
     </main>
   </body>

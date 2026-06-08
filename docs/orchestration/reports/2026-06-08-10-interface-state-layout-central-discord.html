@@ -25,7 +25,7 @@
   <body>
     <main>
       <h1>interface/state 구조와 중앙 Discord 전송</h1>
-      <p>LETHE의 새 오케스트레이션 구조를 오케스트레이터 홈페이지와 Discord 전송 흐름에 반영한 작업 기록입니다.</p>
+      <p>LETHE의 새 오케스트레이션 구조와 작업 완료 후 중앙 Discord 보고 수신 흐름을 반영한 작업 기록입니다.</p>
 
       <section>
         <h2>작업</h2>
@@ -33,7 +33,7 @@
           <li><code>interface/*.html</code>을 홈페이지 iframe의 우선 경로로 적용했습니다.</li>
           <li><code>state/*.md</code>를 스냅샷 상태 문서의 우선 경로로 적용했습니다.</li>
           <li>날짜별/units HTML 보고서를 개발일지 목록에 표시합니다.</li>
-          <li>선택 또는 최신 HTML 보고서를 중앙 Discord payload와 첨부로 변환합니다.</li>
+          <li><code>POST /api/orchestration/discord-report</code>가 LETHE의 완료 보고 요청을 받아 중앙 Discord payload와 첨부로 변환합니다.</li>
         </ul>
       </section>
 
@@ -43,7 +43,7 @@
           <li><code>npm run build</code> 통과.</li>
           <li><code>npm run orchestration:dashboard</code> 통과.</li>
           <li>LETHE interface API와 nested reports API 확인.</li>
-          <li>LETHE Discord dry-run payload와 attachment metadata 확인.</li>
+          <li>LETHE intake API dry-run payload와 attachment metadata 확인.</li>
         </ul>
       </section>
 

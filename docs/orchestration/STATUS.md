@@ -24,6 +24,7 @@
 - The dashboard now reads the newer orchestration layout first: human HTML from `docs/orchestration/interface/` and AI state Markdown from `docs/orchestration/state/`.
 - The development-journal browser now reads nested report HTML such as `docs/orchestration/reports/YYYYMMDD/index.html` and `docs/orchestration/reports/YYYYMMDD/units/*.html`.
 - Project Discord reports can now be sent centrally from AI Project Orchestrator using the selected or latest orchestration HTML report as the embed source and HTML attachment.
+- `POST /api/orchestration/discord-report` now acts as a local intake endpoint for registered projects such as LETHE to request central Discord delivery after a work unit finishes.
 
 ## Latest Verification
 
@@ -57,6 +58,7 @@
 - `GET /api/projects/lethe-prototype/orchestration-reports` returned nested LETHE unit reports, including `20260608/units/2026-06-08-10-오케스트레이션-리포트와-개발로그-실제-마이그레이션.html`.
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord embed payload and HTML attachment metadata for LETHE's latest unit report.
 - `GET /api/projects/lethe-prototype/snapshot` returned document paths under `docs/orchestration/state/*.md` with `hasContent: true`.
+- `POST /api/orchestration/discord-report` with `projectId: lethe-prototype`, a LETHE unit `reportPath`, and `dryRun: true` returned the expected Discord embed payload and attachment metadata.
 
 ## Blockers
 

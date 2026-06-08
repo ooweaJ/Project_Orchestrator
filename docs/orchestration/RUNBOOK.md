@@ -25,10 +25,37 @@ npm run lint
 npm run test
 ```
 
-## Discord Dry Run
+## Central Discord Report Intake
 
 ```powershell
-npm run report:discord:unit:dry
+$body = @{
+  projectId = "lethe-prototype"
+  reportPath = "20260608/units/2026-06-08-10-오케스트레이션-리포트와-개발로그-실제-마이그레이션.html"
+  dryRun = $true
+  attachHtml = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:4317/api/orchestration/discord-report" `
+  -Method POST `
+  -ContentType "application/json; charset=utf-8" `
+  -Body $body
+```
+
+Actual send uses the same body with `dryRun = $false` or without `dryRun`:
+
+```powershell
+$body = @{
+  projectId = "lethe-prototype"
+  reportPath = "20260608/units/latest-report.html"
+  attachHtml = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:4317/api/orchestration/discord-report" `
+  -Method POST `
+  -ContentType "application/json; charset=utf-8" `
+  -Body $body
 ```
 
 ## Reporting
@@ -89,4 +116,4 @@ Build dashboards for every project registered in `data/projects.json`:
 npm run orchestration:dashboard -- --all
 ```
 
-The generated file is `docs/orchestration/index.html` inside each target project. Markdown remains the source of truth; regenerate the HTML after meaningful Markdown updates.
+The generated human-facing files are written under `docs/orchestration/interface/` inside each target project. Markdown state remains the source of truth under `docs/orchestration/state/`; regenerate the HTML after meaningful Markdown updates.

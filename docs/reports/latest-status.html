@@ -32,7 +32,7 @@
         <h2>어떤 작업</h2>
         <ul>
           <li>LETHE의 새 오케스트레이션 구조인 <code>interface/</code>와 <code>state/</code>를 홈페이지에서 바로 읽도록 바꿨습니다.</li>
-          <li>LETHE의 HTML 보고서를 Project Orchestrator가 중앙 Discord 웹훅으로 보내는 흐름을 추가했습니다.</li>
+          <li>LETHE 작업 완료 파이프라인이 Project Orchestrator에 보고 요청을 보내면, 오케스트레이터가 중앙 Discord 웹훅으로 전송하는 흐름을 추가했습니다.</li>
         </ul>
       </section>
 
@@ -42,7 +42,7 @@
           <li>대시보드, 다음 지시, 런북 iframe은 <code>docs/orchestration/interface/*.html</code>을 우선합니다.</li>
           <li>상태 문서 스캔은 <code>docs/orchestration/state/*.md</code>를 우선합니다.</li>
           <li>개발일지는 <code>reports/YYYYMMDD/index.html</code>과 <code>reports/YYYYMMDD/units/*.html</code>까지 재귀로 표시합니다.</li>
-          <li>Discord 전송은 선택된 보고서 또는 최신 unit report를 embed와 HTML 첨부로 변환합니다.</li>
+          <li><code>POST /api/orchestration/discord-report</code>는 LETHE의 <code>projectId</code>, <code>reportPath</code>, 또는 보고서 본문을 받아 embed와 HTML 첨부로 변환합니다.</li>
         </ul>
       </section>
 
@@ -52,7 +52,7 @@
           <li><code>npm run build</code>와 <code>npm run orchestration:dashboard</code>가 통과했습니다.</li>
           <li>LETHE 대시보드 API가 <code>interface/index.html</code>을 반환했습니다.</li>
           <li>LETHE 스냅샷이 <code>state/*.md</code> 문서를 정상 인식했습니다.</li>
-          <li>LETHE Discord dry-run이 최신 unit HTML 보고서를 embed와 첨부로 변환했습니다.</li>
+          <li>LETHE가 호출할 intake API dry-run이 최신 unit HTML 보고서를 embed와 첨부로 변환했습니다.</li>
         </ul>
       </section>
 

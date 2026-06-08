@@ -1533,6 +1533,146 @@ function buildReportDiscordPayload(project, report, username) {
   };
 }
 
+async function getProjectForDiscordSubmission(body, routeProjectId = "") {
+  const projects = await readProjects();
+  const requestedId = routeProjectId || body?.projectId || body?.id || "";
+  const requestedName = body?.projectName || body?.name || "";
+  const requestedPath = body?.projectPath || body?.path || "";
+  const project = projects.find(
+    (item) =>
+      (requestedId && item.id === requestedId) ||
+      (requestedName && item.name === requestedName) ||
+      (requestedPath && path.resolve(item.path).toLowerCase() === path.resolve(requestedPath).toLowerCase()),
+  );
+
+  if (!project) {
+    throw Object.assign(new Error("project not found"), { statusCode: 404 });
+  }
+
+  if (!(await pathExists(project.path))) {
+    throw Object.assign(new Error("project path does not exist"), { statusCode: 400 });
+  }
+
+  return project;
+}
+
+async function buildDiscordDispatch(project, body) {
+  const env = await readEnv();
+  const username = env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator";
+  const attachHtml = body?.attachHtml !== false;
+  const directReport = body?.report && typeof body.report === "object" ? body.report : null;
+
+  if (directReport) {
+    const report = {
+      title: directReport.title || body.title || "작업 완료 보고",
+      path: body.reportPath || directReport.path || "submitted-json",
+      work: directReport.work || directReport.what || directReport.summary || "",
+      progress: directReport.progress || directReport.details || "",
+      result: directReport.result || directReport.verification || "",
+      nextTask: directReport.nextTask || directReport.next || "",
+    };
+    return {
+      env,
+      payload: buildReportDiscordPayload(project, report, username),
+      attachment: null,
+      attachHtml,
+    };
+  }
+
+  if (typeof body?.reportHtml === "string" && body.reportHtml.trim()) {
+    const report = {
+      ...extractDiscordReportFromHtml(body.reportHtml, body.title || "작업 완료 보고"),
+      path: body.reportPath || "submitted-html",
+    };
+    const fileName = body.fileName || body.attachmentName || "orchestration-report.html";
+
+    return {
+      env,
+      payload: buildReportDiscordPayload(project, report, username),
+      attachment: {
+        name: path.basename(fileName),
+        reportPath: report.path,
+        html: body.reportHtml,
+      },
+      attachHtml,
+    };
+  }
+
+  const reports = await listOrchestrationReportFiles(project.path);
+  const requestedReportPath = typeof body?.reportPath === "string" ? body.reportPath : "";
+  const selectedReport = requestedReportPath
+    ? reports.find((report) => report.path === requestedReportPath)
+    : getPreferredDiscordReport(reports);
+  const dashboard = await collectOrchestrationDashboard(project.path);
+  let payload = buildOrchestrationDiscordPayload(project, dashboard, username);
+  let attachment = null;
+
+  if (selectedReport) {
+    const reportPath = resolveOrchestrationReportPath(project.path, selectedReport.path);
+    const html = await fs.readFile(reportPath, "utf8");
+    const extractedReport = {
+      ...extractDiscordReportFromHtml(html, selectedReport.title),
+      path: selectedReport.path,
+    };
+
+    payload = buildReportDiscordPayload(project, extractedReport, username);
+    attachment = {
+      path: reportPath,
+      name: path.basename(selectedReport.path),
+      reportPath: selectedReport.path,
+    };
+  }
+
+  return { env, payload, attachment, attachHtml };
+}
+
+async function sendDiscordDispatch({ env, payload, attachment, attachHtml }) {
+  if (!env.DISCORD_WEBHOOK_URL) {
+    throw Object.assign(new Error("DISCORD_WEBHOOK_URL is missing in orchestrator .env"), { statusCode: 400 });
+  }
+
+  const response = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw Object.assign(new Error(`Discord webhook failed: ${response.status} ${response.statusText}`), {
+      statusCode: 502,
+    });
+  }
+
+  if (!attachHtml || !attachment) {
+    return { attachmentSent: false };
+  }
+
+  const formData = new FormData();
+  const reportBytes = attachment.html ?? (await fs.readFile(attachment.path));
+  const reportBlob = new Blob([reportBytes], { type: "text/html" });
+
+  formData.append("payload_json", JSON.stringify({ content: "상세 HTML 보고서 파일입니다." }));
+  formData.append("files[0]", reportBlob, attachment.name);
+
+  const attachmentResponse = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!attachmentResponse.ok) {
+    throw Object.assign(
+      new Error(`Discord attachment failed: ${attachmentResponse.status} ${attachmentResponse.statusText}`),
+      {
+        statusCode: 502,
+      },
+    );
+  }
+
+  return { attachmentSent: true };
+}
+
 async function scanProject(project) {
   const exists = await pathExists(project.path);
   const blankGit = {
@@ -2130,115 +2270,78 @@ app.get("/api/report", async (_req, res) => {
 
 app.post("/api/projects/:id/discord-report", async (req, res) => {
   try {
-    const projects = await readProjects();
-    const project = projects.find((item) => item.id === req.params.id);
-
-    if (!project) {
-      res.status(404).json({ error: "project not found" });
-      return;
-    }
-
-    if (!(await pathExists(project.path))) {
-      res.status(400).json({ error: "project path does not exist" });
-      return;
-    }
-
-    const reports = await listOrchestrationReportFiles(project.path);
-    const requestedReportPath = typeof req.body?.reportPath === "string" ? req.body.reportPath : "";
-    const selectedReport = requestedReportPath
-      ? reports.find((report) => report.path === requestedReportPath)
-      : getPreferredDiscordReport(reports);
-    const dashboard = await collectOrchestrationDashboard(project.path);
-    const env = await readEnv();
-    let payload = buildOrchestrationDiscordPayload(project, dashboard, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
-    let attachment = null;
-
-    if (selectedReport) {
-      const reportPath = resolveOrchestrationReportPath(project.path, selectedReport.path);
-      const html = await fs.readFile(reportPath, "utf8");
-      const extractedReport = {
-        ...extractDiscordReportFromHtml(html, selectedReport.title),
-        path: selectedReport.path,
-      };
-
-      payload = buildReportDiscordPayload(project, extractedReport, env.DISCORD_REPORT_USERNAME || "AI Project Orchestrator");
-      attachment = {
-        path: reportPath,
-        name: path.basename(selectedReport.path),
-        reportPath: selectedReport.path,
-      };
-    }
+    const project = await getProjectForDiscordSubmission(req.body, req.params.id);
+    const dispatch = await buildDiscordDispatch(project, req.body);
 
     if (req.body?.dryRun) {
       res.json({
         dryRun: true,
-        payload,
-        attachment: attachment
+        payload: dispatch.payload,
+        attachment: dispatch.attachment
           ? {
-              name: attachment.name,
-              path: attachment.reportPath,
+              name: dispatch.attachment.name,
+              path: dispatch.attachment.reportPath,
             }
           : null,
       });
       return;
     }
 
-    if (!env.DISCORD_WEBHOOK_URL) {
-      res.status(400).json({ error: "DISCORD_WEBHOOK_URL is missing in orchestrator .env" });
-      return;
-    }
-
-    const attachHtml = req.body?.attachHtml !== false;
-    const response = await fetch(env.DISCORD_WEBHOOK_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      res.status(502).json({ error: `Discord webhook failed: ${response.status} ${response.statusText}` });
-      return;
-    }
-
-    if (attachHtml && attachment) {
-      const formData = new FormData();
-      const reportBytes = await fs.readFile(attachment.path);
-      const reportBlob = new Blob([reportBytes], { type: "text/html" });
-
-      formData.append("payload_json", JSON.stringify({ content: "상세 HTML 보고서 파일입니다." }));
-      formData.append("files[0]", reportBlob, attachment.name);
-
-      const attachmentResponse = await fetch(env.DISCORD_WEBHOOK_URL, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!attachmentResponse.ok) {
-        res.status(502).json({
-          error: `Discord attachment failed: ${attachmentResponse.status} ${attachmentResponse.statusText}`,
-          payload,
-          attachment: attachment.reportPath,
-        });
-        return;
-      }
-    }
+    const sendResult = await sendDiscordDispatch(dispatch);
 
     await appendActivity({ type: "discord-report-sent", projectId: project.id });
     res.json({
       sent: true,
-      payload,
-      attachment: attachment
+      payload: dispatch.payload,
+      attachment: dispatch.attachment
         ? {
-            name: attachment.name,
-            path: attachment.reportPath,
-            sent: attachHtml,
+            name: dispatch.attachment.name,
+            path: dispatch.attachment.reportPath,
+            sent: sendResult.attachmentSent,
           }
         : null,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.statusCode ?? 500).json({ error: error.message });
+  }
+});
+
+app.post("/api/orchestration/discord-report", async (req, res) => {
+  try {
+    const project = await getProjectForDiscordSubmission(req.body);
+    const dispatch = await buildDiscordDispatch(project, req.body);
+
+    if (req.body?.dryRun) {
+      res.json({
+        dryRun: true,
+        projectId: project.id,
+        payload: dispatch.payload,
+        attachment: dispatch.attachment
+          ? {
+              name: dispatch.attachment.name,
+              path: dispatch.attachment.reportPath,
+            }
+          : null,
+      });
+      return;
+    }
+
+    const sendResult = await sendDiscordDispatch(dispatch);
+    await appendActivity({ type: "discord-report-ingested", projectId: project.id });
+    res.status(202).json({
+      accepted: true,
+      sent: true,
+      projectId: project.id,
+      attachment: dispatch.attachment
+        ? {
+            name: dispatch.attachment.name,
+            path: dispatch.attachment.reportPath,
+            sent: sendResult.attachmentSent,
+          }
+        : null,
+    });
+  } catch (error) {
+    res.status(error.statusCode ?? 500).json({ error: error.message });
   }
 });
 

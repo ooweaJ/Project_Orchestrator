@@ -33,19 +33,21 @@
       <div class="grid">
         <article>
           <h2>이번에 끝낼 작업</h2>
-          <div class="markdown"><p>Support the LETHE <code>interface/</code> + <code>state/</code> orchestration layout and central Discord report sending.</p>
+          <div class="markdown"><p>Provide a central Discord report intake API for finished project work.</p>
 <ul>
 <li>Read human-facing HTML from <code>docs/orchestration/interface/</code>.</li>
 <li>Read AI-facing state Markdown from <code>docs/orchestration/state/</code>.</li>
 <li>Keep compatibility with the older root-level <code>docs/orchestration/index.html</code>, <code>command.html</code>, <code>runbook.html</code>, and root Markdown files.</li>
 <li>Show nested report HTML from <code>docs/orchestration/reports/YYYYMMDD/</code> and <code>units/</code>.</li>
-<li>Let AI Project Orchestrator send a selected or latest project report to Discord using the central <code>.env</code> webhook.</li>
+<li>Let LETHE or another registered project call AI Project Orchestrator when work is finished.</li>
+<li>Let AI Project Orchestrator read the submitted report path or report body and send it to Discord using the central <code>.env</code> webhook.</li>
 </ul>
 <ul>
 <li>LETHE dashboard, command, and runbook APIs return the files under <code>interface/</code>.</li>
 <li>LETHE snapshot document summaries resolve to <code>state/*.md</code>.</li>
 <li>The report browser lists nested <code>reports/YYYYMMDD/units/*.html</code> files.</li>
-<li>Discord dry-run for LETHE uses the latest unit HTML report and returns both embed payload and attachment metadata.</li>
+<li><code>POST /api/orchestration/discord-report</code> accepts a registered project id/name/path and a report path/body.</li>
+<li>Discord dry-run for LETHE uses the submitted unit HTML report and returns both embed payload and attachment metadata.</li>
 <li>The dashboard generator writes new HTML to <code>docs/orchestration/interface/</code>.</li>
 </ul></div>
         </article>
@@ -56,9 +58,9 @@
 </ul>
 <p>   - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under <code>agent_runs/</code>.</p>
 <ul>
-<li>Add a Discord dry-run preview panel before actual send.</li>
+<li>Add a LETHE-side report dispatch script or npm command.</li>
 </ul>
-<p>   - Verify: the homepage shows the selected report title, embed fields, and attachment path without sending externally.</p>
+<p>   - Verify: LETHE can call <code>POST /api/orchestration/discord-report</code> after report generation and receive dry-run or sent status.</p>
 <ul>
 <li>Apply the <code>interface/</code> + <code>state/</code> orchestration layout to one more active project.</li>
 </ul>

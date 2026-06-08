@@ -7,8 +7,8 @@ Keep this list to the top upcoming candidates. Move history to `devlog/`, decisi
 1. Add Codex run controls for cancel/retry/open artifact folder.
    - Verify: a running job can be stopped, a failed job can be retried, and artifacts remain local under `agent_runs/`.
 
-2. Add a Discord dry-run preview panel before actual send.
-   - Verify: the homepage shows the selected report title, embed fields, and attachment path without sending externally.
+2. Add a LETHE-side report dispatch script or npm command.
+   - Verify: LETHE can call `POST /api/orchestration/discord-report` after report generation and receive dry-run or sent status.
 
 3. Apply the `interface/` + `state/` orchestration layout to one more active project.
    - Verify: the project has dashboard, command, runbook, state Markdown, nested reports, and central Discord dry-run.

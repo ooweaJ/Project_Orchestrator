@@ -73,7 +73,7 @@ Completed orchestration improvements:
 - Codex run APIs store local prompt/output/status/final-message artifacts under `docs/orchestration/agent_runs/`, which is ignored by Git.
 - Orchestration readers now prefer the newer `docs/orchestration/interface/` HTML layout and `docs/orchestration/state/` Markdown layout, with root-level compatibility fallback.
 - The development-journal browser now supports nested report HTML under `docs/orchestration/reports/YYYYMMDD/` and `units/`.
-- Project Discord reports can now be sent centrally from AI Project Orchestrator using a selected or latest orchestration HTML report and optional HTML attachment.
+- Project Discord reports can now be submitted to `POST /api/orchestration/discord-report` by a registered project pipeline, then sent centrally from AI Project Orchestrator using the orchestrator `.env` webhook and shared report format.
 
 Completed dashboard localization and readability improvements:
 
@@ -184,4 +184,5 @@ Verified on 2026-06-08:
 - `GET /api/projects/lethe-prototype/orchestration-command` returned `200 OK`.
 - `GET /api/projects/lethe-prototype/orchestration-reports` returned nested LETHE unit report paths.
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true` returned a Discord embed payload and HTML attachment metadata for the latest LETHE unit report.
+- `POST /api/orchestration/discord-report` with LETHE `projectId`, unit `reportPath`, and `dryRun: true` returned a Discord embed payload and HTML attachment metadata.
 - `GET /api/projects/lethe-prototype/snapshot` resolved document paths under `docs/orchestration/state/*.md`.

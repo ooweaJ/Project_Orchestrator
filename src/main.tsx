@@ -8,7 +8,6 @@ import {
   GitBranch,
   Plus,
   RefreshCw,
-  Send,
   Terminal,
   Trash2,
 } from "lucide-react";
@@ -187,7 +186,6 @@ function App() {
   const [isJournalLoading, setIsJournalLoading] = React.useState(false);
   const [reports, setReports] = React.useState<OrchestrationReport[]>([]);
   const [selectedReportPath, setSelectedReportPath] = React.useState("");
-  const [isDiscordSending, setIsDiscordSending] = React.useState(false);
   const [isCodexStarting, setIsCodexStarting] = React.useState(false);
   const [codexRuns, setCodexRuns] = React.useState<CodexRun[]>([]);
   const [activeRun, setActiveRun] = React.useState<CodexRun | null>(null);
@@ -326,43 +324,6 @@ function App() {
       setError(nextError instanceof Error ? nextError.message : "Unknown error");
     } finally {
       setIsJournalLoading(false);
-    }
-  }
-
-  async function sendDiscordReport(snapshot: ProjectSnapshot) {
-    setIsDiscordSending(true);
-    setError("");
-    setActionMessage("");
-
-    try {
-      const response = await fetch(`/api/projects/${snapshot.id}/discord-report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reportPath: selectedReportPath || undefined,
-          attachHtml: true,
-        }),
-      });
-      const body = (await response.json().catch(() => null)) as null | {
-        error?: string;
-        attachment?: { path?: string; sent?: boolean } | null;
-      };
-
-      if (!response.ok) {
-        throw new Error(body?.error ?? `Discord 전송 실패: ${response.status}`);
-      }
-
-      setActionMessage(
-        body?.attachment?.path
-          ? `Discord로 보고서를 보냈습니다: ${body.attachment.path}`
-          : "Discord로 현재 상태 요약을 보냈습니다.",
-      );
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Unknown error");
-    } finally {
-      setIsDiscordSending(false);
     }
   }
 
@@ -778,26 +739,15 @@ function App() {
                   <h2>{displayProjectName(selected)}</h2>
                   <p className="statusDescription">{selected.files.orchestrationDashboard.phase}</p>
                 </div>
-                <div className="detailActions">
-                  <button
-                    className="secondaryButton"
-                    type="button"
-                    onClick={() => void loadReports(selected)}
-                    disabled={isJournalLoading}
-                  >
-                    <FileText size={16} />
-                    {isJournalLoading ? "읽는 중" : "개발일지"}
-                  </button>
-                  <button
-                    className="secondaryButton"
-                    type="button"
-                    onClick={() => void sendDiscordReport(selected)}
-                    disabled={isDiscordSending}
-                  >
-                    <Send size={16} />
-                    {isDiscordSending ? "전송 중" : "Discord 전송"}
-                  </button>
-                </div>
+                <button
+                  className="secondaryButton"
+                  type="button"
+                  onClick={() => void loadReports(selected)}
+                  disabled={isJournalLoading}
+                >
+                  <FileText size={16} />
+                  {isJournalLoading ? "읽는 중" : "개발일지"}
+                </button>
               </div>
 
               {!selected.exists ? (

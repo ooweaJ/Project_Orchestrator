@@ -23,7 +23,12 @@ Make AI Project Orchestrator match LETHE's current orchestration contract:
   - otherwise chooses the latest unit report
   - converts the report HTML into Discord embed fields
   - attaches the HTML report through the central orchestrator webhook flow
-- Added a homepage `Discord 전송` button.
+- Added `POST /api/orchestration/discord-report` as the project-completion intake endpoint:
+  - accepts `projectId`, `projectName`, or registered `projectPath`
+  - accepts `reportPath`, `reportHtml`, or structured `report`
+  - supports `dryRun`
+  - uses the orchestrator `.env` for Discord delivery
+- Removed the homepage `Discord 전송` button so the primary flow is project pipeline -> orchestrator intake -> Discord.
 - Updated the dashboard generator to write generated HTML under `docs/orchestration/interface/`.
 
 ## Problem Encountered
@@ -42,12 +47,13 @@ Treat `interface/` and `state/` as the primary layout and keep root-level paths 
 - `GET /api/projects/lethe-prototype/orchestration-command`
 - `GET /api/projects/lethe-prototype/orchestration-reports`
 - `POST /api/projects/lethe-prototype/discord-report` with `dryRun: true`
+- `POST /api/orchestration/discord-report` with LETHE `projectId`, unit `reportPath`, and `dryRun: true`
 - `GET /api/projects/lethe-prototype/snapshot`
 
 ## Result
 
-AI Project Orchestrator can now read LETHE's current project-management interface and centrally prepare/send LETHE's latest HTML report to Discord.
+AI Project Orchestrator can now read LETHE's current project-management interface and centrally prepare/send LETHE's latest or submitted HTML report to Discord.
 
 ## Next Task
 
-Add a Discord dry-run preview panel in the homepage before actual send.
+Add a LETHE-side script or npm command that calls `POST /api/orchestration/discord-report` after report generation.
