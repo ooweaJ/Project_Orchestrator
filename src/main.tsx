@@ -44,6 +44,26 @@ type ProjectSnapshot = {
     hasDocsStatus: boolean;
     hasDocsNextTasks: boolean;
     hasGitAttributes: boolean;
+    orchestration: {
+      required: Array<{
+        label: string;
+        path: string;
+        type: "file" | "directory";
+        exists: boolean;
+      }>;
+      recommended: Array<{
+        label: string;
+        path: string;
+        type: "file" | "directory";
+        exists: boolean;
+      }>;
+      requiredPresent: number;
+      requiredTotal: number;
+      recommendedPresent: number;
+      recommendedTotal: number;
+      missingRequired: string[];
+      complete: boolean;
+    };
     recentFiles: Array<{
       path: string;
       modifiedAt: string;
@@ -189,10 +209,7 @@ function App() {
   const needsCommit = snapshots.filter((snapshot) => snapshot.actionCategories?.needsCommit).length;
   const needsDocs = snapshots.filter((snapshot) => snapshot.actionCategories?.needsDocs).length;
   const needsPush = snapshots.filter((snapshot) => snapshot.actionCategories?.needsPush).length;
-  const lastScan = snapshots
-    .map((snapshot) => new Date(snapshot.updatedAt).getTime())
-    .sort((a, b) => b - a)[0];
-
+  const orchestrationReady = snapshots.filter((snapshot) => snapshot.files?.orchestration?.complete).length;
   async function loadSnapshots() {
     setIsLoading(true);
     setError("");
@@ -554,7 +571,7 @@ function App() {
         <Metric label="커밋 필요" value={needsCommit.toString()} />
         <Metric label="문서 필요" value={needsDocs.toString()} />
         <Metric label="푸시 필요" value={needsPush.toString()} />
-        <Metric label="최근 스캔" value={lastScan ? new Date(lastScan).toLocaleTimeString("ko-KR") : "-"} />
+        <Metric label="인터페이스 완료" value={`${orchestrationReady}/${snapshots.length}`} />
       </section>
 
       {portfolioMode ? (
@@ -821,6 +838,59 @@ function App() {
                     </span>
                   ))}
                 </div>
+              </section>
+
+              <section className="orchestrationPanel">
+                <div className="sectionTitle compact">
+                  <h3>오케스트레이션 인터페이스</h3>
+                  <span>
+                    필수 {selected.files.orchestration.requiredPresent}/{selected.files.orchestration.requiredTotal}
+                  </span>
+                </div>
+                <div
+                  className="interfaceMeter"
+                  aria-label="오케스트레이션 필수 문서 완료율"
+                  style={{
+                    "--interface-progress": `${Math.round(
+                      (selected.files.orchestration.requiredPresent /
+                        Math.max(1, selected.files.orchestration.requiredTotal)) *
+                        100,
+                    )}%`,
+                  } as React.CSSProperties}
+                >
+                  <span />
+                </div>
+                <div className="orchestrationGrid">
+                  {selected.files.orchestration.required.map((entry) => (
+                    <div className={entry.exists ? "ready" : "missing"} key={entry.path}>
+                      <FileText size={15} />
+                      <span>{entry.label}</span>
+                      <strong>{entry.exists ? "있음" : "없음"}</strong>
+                    </div>
+                  ))}
+                </div>
+                {selected.files.orchestration.missingRequired.length > 0 ? (
+                  <p className="orchestrationNote">
+                    진행 중인 프로젝트는 마이그레이션 프롬프트로 기존 문서를 읽고 새 인터페이스에 매핑하는 것이 좋습니다.
+                  </p>
+                ) : (
+                  <p className="orchestrationNote ready">필수 코어 문서가 모두 준비되어 있습니다.</p>
+                )}
+                <details className="recommendedDocs">
+                  <summary>
+                    권장 확장 {selected.files.orchestration.recommendedPresent}/
+                    {selected.files.orchestration.recommendedTotal}
+                  </summary>
+                  <div className="orchestrationGrid compact">
+                    {selected.files.orchestration.recommended.map((entry) => (
+                      <div className={entry.exists ? "ready" : "missing"} key={entry.path}>
+                        <FileText size={15} />
+                        <span>{entry.label}</span>
+                        <strong>{entry.exists ? "있음" : "없음"}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               </section>
 
               <div className="panelRow">

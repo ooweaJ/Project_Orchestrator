@@ -59,6 +59,27 @@ const maxScannedFiles = 2500;
 const maxTodoFileBytes = 300000;
 const largeFileThresholdBytes = 10 * 1024 * 1024;
 
+const orchestrationRequiredEntries = [
+  { label: "README", path: "docs/orchestration/README.md", type: "file" },
+  { label: "PROJECT_BRIEF", path: "docs/orchestration/PROJECT_BRIEF.md", type: "file" },
+  { label: "STATUS", path: "docs/orchestration/STATUS.md", type: "file" },
+  { label: "CURRENT_TASK", path: "docs/orchestration/CURRENT_TASK.md", type: "file" },
+  { label: "NEXT_TASKS", path: "docs/orchestration/NEXT_TASKS.md", type: "file" },
+  { label: "PROMPT_CONTEXT", path: "docs/orchestration/PROMPT_CONTEXT.md", type: "file" },
+  { label: "RUNBOOK", path: "docs/orchestration/RUNBOOK.md", type: "file" },
+  { label: "SCOPE_GUARD", path: "docs/orchestration/SCOPE_GUARD.md", type: "file" },
+  { label: "DECISION_LOG", path: "docs/orchestration/DECISION_LOG.md", type: "file" },
+  { label: "devlog", path: "docs/orchestration/devlog", type: "directory" },
+  { label: "reports", path: "docs/orchestration/reports", type: "directory" },
+];
+
+const orchestrationRecommendedEntries = [
+  { label: "review_prompts", path: "docs/orchestration/review_prompts", type: "directory" },
+  { label: "review_responses", path: "docs/orchestration/review_responses", type: "directory" },
+  { label: "evidence", path: "docs/orchestration/evidence", type: "directory" },
+  { label: "templates", path: "docs/orchestration/templates", type: "directory" },
+];
+
 async function ensureDataFiles() {
   await fs.mkdir(snapshotsDir, { recursive: true });
   try {
@@ -204,6 +225,67 @@ function parseStatusPorcelain(output) {
 
 async function hasFile(projectPath, relativePath) {
   return pathExists(path.join(projectPath, relativePath));
+}
+
+async function hasProjectEntry(projectPath, entry) {
+  const fullPath = path.join(projectPath, entry.path);
+  const stats = await fs.stat(fullPath).catch(() => null);
+
+  if (!stats) {
+    return false;
+  }
+
+  return entry.type === "directory" ? stats.isDirectory() : stats.isFile();
+}
+
+function emptyOrchestrationSignals() {
+  const required = orchestrationRequiredEntries.map((entry) => ({
+    ...entry,
+    exists: false,
+  }));
+  const recommended = orchestrationRecommendedEntries.map((entry) => ({
+    ...entry,
+    exists: false,
+  }));
+
+  return {
+    required,
+    recommended,
+    requiredPresent: 0,
+    requiredTotal: required.length,
+    recommendedPresent: 0,
+    recommendedTotal: recommended.length,
+    missingRequired: required.map((entry) => entry.path),
+    complete: false,
+  };
+}
+
+async function collectOrchestrationSignals(projectPath) {
+  const required = await Promise.all(
+    orchestrationRequiredEntries.map(async (entry) => ({
+      ...entry,
+      exists: await hasProjectEntry(projectPath, entry),
+    })),
+  );
+  const recommended = await Promise.all(
+    orchestrationRecommendedEntries.map(async (entry) => ({
+      ...entry,
+      exists: await hasProjectEntry(projectPath, entry),
+    })),
+  );
+  const requiredPresent = required.filter((entry) => entry.exists).length;
+  const recommendedPresent = recommended.filter((entry) => entry.exists).length;
+
+  return {
+    required,
+    recommended,
+    requiredPresent,
+    requiredTotal: required.length,
+    recommendedPresent,
+    recommendedTotal: recommended.length,
+    missingRequired: required.filter((entry) => !entry.exists).map((entry) => entry.path),
+    complete: requiredPresent === required.length,
+  };
 }
 
 function toRelativePath(projectPath, filePath) {
@@ -421,6 +503,14 @@ function scoreRisks(project, git, files, exists) {
     });
   }
 
+  if (files.orchestration && !files.orchestration.complete) {
+    risks.push({
+      level: "low",
+      type: "missing-orchestration-interface",
+      message: `오케스트레이션 필수 문서 ${files.orchestration.missingRequired.length}개가 없습니다.`,
+    });
+  }
+
   if (files.todoCount > 0) {
     risks.push({
       level: "low",
@@ -495,10 +585,12 @@ function getActionCategories(git, files, exists) {
     };
   }
 
+  const needsOrchestrationDocs = files.orchestration ? !files.orchestration.complete : false;
+
   return {
     blocked: false,
     needsCommit: git.dirty || git.staged.length > 0 || git.modified.length > 0 || git.untracked.length > 0,
-    needsDocs: !files.hasAgentsMd || !files.hasReadme || !files.hasDocsStatus || !files.hasDocsNextTasks,
+    needsDocs: !files.hasAgentsMd || !files.hasReadme || !files.hasDocsStatus || !files.hasDocsNextTasks || needsOrchestrationDocs,
     needsPush: git.ahead > 0 || (git.isRepo && !git.hasUpstream),
     needsPull: git.behind > 0,
     needsReview: files.todoCount > 0 || files.largeFiles.length > 0 || files.truncated,
@@ -746,6 +838,7 @@ async function scanProject(project) {
       todoItems: [],
       scannedFiles: 0,
       truncated: false,
+      orchestration: emptyOrchestrationSignals(),
     };
     const risks = scoreRisks(project, blankGit, files, false);
     const actionCategories = getActionCategories(blankGit, files, false);
@@ -815,6 +908,7 @@ async function scanProject(project) {
     hasDocsStatus: await hasFile(project.path, "docs/CODEX_STATUS.md"),
     hasDocsNextTasks: await hasFile(project.path, "docs/NEXT_TASKS.md"),
     hasGitAttributes: await hasFile(project.path, ".gitattributes"),
+    orchestration: await collectOrchestrationSignals(project.path),
     ...fileSignals,
   };
 

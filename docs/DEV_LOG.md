@@ -107,3 +107,9 @@ Each log should include:
 - File: `docs/ai-collaboration/2026-06-08/01-expanded-orchestration-interface.md`
 - Summary: Expanded the orchestration document standard with status, runbook, scope guard, devlog, reports, evidence folders, and a reusable AGENTS template path.
 - Verification: Documentation-only change. Markdown files and report links reviewed.
+
+#### Orchestration Dashboard Status
+
+- File: `docs/ai-collaboration/2026-06-08/02-orchestration-dashboard-status.md`
+- Summary: Added scanner output for `docs/orchestration/*` required and recommended paths, then surfaced the status in the dashboard detail panel.
+- Verification: `npm run build`, `GET /api/snapshots` returned orchestration completion fields.

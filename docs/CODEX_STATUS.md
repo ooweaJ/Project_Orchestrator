@@ -57,6 +57,8 @@ Completed orchestration improvements:
 - Expanded `docs/orchestration/*` interface standard with required core documents, recommended evidence extensions, devlog/report separation, and a reusable AGENTS template.
 - `npm run orchestration:install` can scaffold the default interface into another local project without overwriting existing files.
 - `EXISTING_PROJECT_MIGRATION_PROMPT.md` supports active projects that need AI-assisted migration from legacy docs into the new interface.
+- Scanner snapshots now include `files.orchestration` for required core and recommended extension status.
+- The dashboard shows an `오케스트레이션 인터페이스` panel with required completion and recommended extension status.
 
 Completed dashboard localization and readability improvements:
 
@@ -138,3 +140,6 @@ Verified on 2026-06-08:
 - `AGENTS.md`, `docs/ORCHESTRATION_INTERFACE.md`, `docs/NEXT_TASKS.md`, decision logs, and user-facing reports were updated for the new standard.
 - `npm run orchestration:install -- --target . --dry-run` passed.
 - Existing-project migration prompt template was reviewed.
+- `npm run build` passed after adding scanner and dashboard support for orchestration interface status.
+- `GET /api/snapshots` returned `requiredPresent: 11`, `requiredTotal: 11`, and `complete: true` for LETHE_Prototype and Project_Orchestrator.
+- Browser plugin visual QA was attempted, but the browser runtime failed with a Windows sandbox spawn error.

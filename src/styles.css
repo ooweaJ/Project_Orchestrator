@@ -706,6 +706,108 @@ h3 {
   font-size: 1rem;
 }
 
+.orchestrationPanel {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.orchestrationPanel h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.interfaceMeter {
+  height: 9px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2ec;
+}
+
+.interfaceMeter span {
+  display: block;
+  width: var(--interface-progress);
+  height: 100%;
+  border-radius: inherit;
+  background: #1f6b4d;
+}
+
+.orchestrationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.orchestrationGrid div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  background: #f8faf7;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.orchestrationGrid div.ready {
+  color: #1f6b4d;
+  border-color: #c9e8d3;
+  background: #f0fbf3;
+}
+
+.orchestrationGrid div.missing {
+  color: #7b5200;
+  border-color: #f3ddb2;
+  background: #fff9e8;
+}
+
+.orchestrationGrid span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orchestrationGrid strong {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.orchestrationGrid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+.orchestrationNote {
+  margin: 12px 0 0;
+  color: #7b5200;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.orchestrationNote.ready {
+  color: #1f6b4d;
+}
+
+.recommendedDocs {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf2ec;
+}
+
+.recommendedDocs summary {
+  cursor: pointer;
+  color: #60706a;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
 .actionChips {
   display: flex;
   flex-wrap: wrap;
@@ -958,7 +1060,9 @@ h3 {
   .fileSignalGrid,
   .formRow,
   .pathInputGroup,
-  .workSummaryGrid {
+  .workSummaryGrid,
+  .orchestrationGrid,
+  .orchestrationGrid.compact {
     grid-template-columns: 1fr;
   }
 

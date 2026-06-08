@@ -87,6 +87,12 @@ Verification:
 - command workflows can reference `RUNBOOK.md`
 - LETHE can be scaffolded from existing docs without losing current documentation
 
+Current progress:
+
+- scanner now returns `files.orchestration` status
+- dashboard now shows required core completion and recommended extension status
+- next implementation slice is an action to copy the install command or existing-project migration prompt
+
 ### Validate Real Project Paths
 
 Goal:

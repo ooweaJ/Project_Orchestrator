@@ -2,31 +2,28 @@
 
 ## Task
 
-Adopt the expanded orchestration document interface.
+Show orchestration interface status in the dashboard.
 
 ## Goal
 
-- Document the required core and recommended extensions.
-- Add this repository's initial `docs/orchestration/` scaffold.
-- Clarify how AGENTS.md templates relate to reusable Codex skills.
+- Add scanner support for `docs/orchestration/*` required core and recommended extension paths.
+- Show required orchestration file/folder status in the selected project detail view.
+- Keep existing legacy document checks visible as compatibility signals.
 
 ## Done Criteria
 
-- `docs/ORCHESTRATION_INTERFACE.md` reflects the expanded standard.
-- `AGENTS.md` points agents to the standard interface.
-- `docs/orchestration/` contains the required core files and folders.
-- A reusable AGENTS template exists under `docs/orchestration/templates/`.
-- `npm run orchestration:install` can scaffold the default interface into another project without overwriting existing files.
+- `GET /api/snapshots` includes `files.orchestration`.
+- Dashboard shows required core completion count and per-file status.
+- Dashboard shows recommended extension completion in a collapsed section.
+- `needsDocs` includes incomplete required orchestration documents.
 
 ## Related Files
 
-- `docs/ORCHESTRATION_INTERFACE.md`
-- `AGENTS.md`
-- `docs/NEXT_TASKS.md`
-- `docs/orchestration/*`
+- `server/index.mjs`
+- `src/main.tsx`
+- `src/styles.css`
 
 ## Verification
 
-- Review changed Markdown files.
-- Run `git diff --stat`.
-- Run `npm run orchestration:install -- --target . --dry-run`.
+- Run `npm run build`.
+- Run `GET /api/snapshots` and confirm `files.orchestration.requiredPresent` and `requiredTotal`.
