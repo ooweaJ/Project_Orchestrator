@@ -619,15 +619,16 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgb(16 24 20 / 0.42);
 }
 
 .journalDrawer {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  width: min(1180px, 100%);
-  max-height: calc(100vh - 48px);
+  width: min(1440px, 100%);
+  height: calc(100vh - 32px);
+  max-height: calc(100vh - 32px);
   margin: auto;
   overflow: hidden;
   box-shadow: 0 22px 60px rgb(16 24 20 / 0.24);
@@ -656,6 +657,7 @@ h3 {
 
 .journalDrawer .journalBrowser {
   min-height: 0;
+  grid-template-columns: minmax(240px, 0.24fr) minmax(0, 1fr);
 }
 
 .journalBrowser {
