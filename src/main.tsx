@@ -296,6 +296,18 @@ function App() {
       .replaceAll(selected.name, displayProjectName(selected));
   }
 
+  function formatCodexExit(run: CodexRun) {
+    if (run.exitCode !== null) {
+      return `exit ${run.exitCode}`;
+    }
+
+    if (run.status === "running") {
+      return "exit 대기";
+    }
+
+    return "프로세스 시작 실패";
+  }
+
   function getOrchestrationDoc(snapshot: ProjectSnapshot, key: OrchestrationDocKey) {
     return snapshot.files.orchestrationDashboard.documents.find((doc) => doc.key === key);
   }
@@ -931,7 +943,7 @@ function App() {
                     <div className="codexRunMeta">
                       <span>{activeRun.runId}</span>
                       <span>{new Date(activeRun.startedAt).toLocaleString("ko-KR")}</span>
-                      <span>{activeRun.exitCode === null ? "exit 대기" : `exit ${activeRun.exitCode}`}</span>
+                      <span>{formatCodexExit(activeRun)}</span>
                     </div>
                     <pre>{displayText(activeRun.lastMessage || activeRun.output || activeRun.error || "출력을 기다리는 중입니다.")}</pre>
                   </section>

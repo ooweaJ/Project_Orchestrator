@@ -493,7 +493,75 @@ function buildCodexRunPrompt(project, instruction) {
   ].join("\n");
 }
 
-function buildRunScript(projectPath, runDir) {
+async function findNewestExecutable(candidates) {
+  const existing = [];
+
+  for (const candidate of candidates) {
+    const stats = await fs.stat(candidate).catch(() => null);
+    if (stats?.isFile()) {
+      existing.push({ candidate, modifiedAt: stats.mtimeMs });
+    }
+  }
+
+  return existing.sort((a, b) => b.modifiedAt - a.modifiedAt)[0]?.candidate ?? "";
+}
+
+async function findCodexInDirectory(baseDir, depth = 2) {
+  const executableNames = process.platform === "win32" ? new Set(["codex.exe", "codex.cmd", "codex.bat"]) : new Set(["codex"]);
+  const candidates = [];
+
+  async function visit(directory, remainingDepth) {
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+
+    for (const entry of entries) {
+      const fullPath = path.join(directory, entry.name);
+
+      if (entry.isFile() && executableNames.has(entry.name.toLowerCase())) {
+        candidates.push(fullPath);
+        continue;
+      }
+
+      if (entry.isDirectory() && remainingDepth > 0) {
+        await visit(fullPath, remainingDepth - 1);
+      }
+    }
+  }
+
+  await visit(baseDir, depth);
+  return findNewestExecutable(candidates);
+}
+
+async function resolveCodexExecutable() {
+  const explicitPath = process.env.CODEX_CLI_PATH;
+  if (explicitPath && (await pathExists(explicitPath))) {
+    return explicitPath;
+  }
+
+  if (process.platform === "win32") {
+    const localAppData = process.env.LOCALAPPDATA || path.join(process.env.USERPROFILE || "", "AppData", "Local");
+    const codexBin = path.join(localAppData, "OpenAI", "Codex", "bin");
+    const codexFromLocalAppData = await findCodexInDirectory(codexBin, 2);
+
+    if (codexFromLocalAppData) {
+      return codexFromLocalAppData;
+    }
+
+    const vscodeExtensions = path.join(process.env.USERPROFILE || "", ".vscode", "extensions");
+    const extensionEntries = await fs.readdir(vscodeExtensions, { withFileTypes: true }).catch(() => []);
+    const extensionCandidates = extensionEntries
+      .filter((entry) => entry.isDirectory() && entry.name.toLowerCase().startsWith("openai.chatgpt-"))
+      .map((entry) => path.join(vscodeExtensions, entry.name, "bin", "windows-x86_64", "codex.exe"));
+    const codexFromExtension = await findNewestExecutable(extensionCandidates);
+
+    if (codexFromExtension) {
+      return codexFromExtension;
+    }
+  }
+
+  return "codex";
+}
+
+function buildRunScript(projectPath, runDir, codexExecutable = "codex") {
   const promptPath = path.join(runDir, "prompt.md");
   const outputPath = path.join(runDir, "output.log");
   const lastMessagePath = path.join(runDir, "last_message.md");
@@ -504,7 +572,8 @@ function buildRunScript(projectPath, runDir) {
     `$promptPath = ${JSON.stringify(promptPath)}`,
     `$outputPath = ${JSON.stringify(outputPath)}`,
     `$lastMessagePath = ${JSON.stringify(lastMessagePath)}`,
-    "Get-Content -Raw -LiteralPath $promptPath | codex exec -c 'approval_policy=\"never\"' --cd $projectPath --sandbox workspace-write --output-last-message $lastMessagePath - 2>&1 | Tee-Object -FilePath $outputPath",
+    `$codexPath = ${JSON.stringify(codexExecutable)}`,
+    "Get-Content -Raw -LiteralPath $promptPath | & $codexPath exec -c 'approval_policy=\"never\"' --cd $projectPath --sandbox workspace-write --output-last-message $lastMessagePath - 2>&1 | Tee-Object -FilePath $outputPath",
   ].join("\r\n");
 }
 
@@ -607,8 +676,9 @@ async function startCodexRun(project, instruction) {
   const startedAt = new Date().toISOString();
   const prompt = buildCodexRunPrompt(project, instruction);
   const lastMessagePath = path.join(runDir, "last_message.md");
+  const codexExecutable = await resolveCodexExecutable();
   const command = [
-    "codex",
+    codexExecutable,
     "exec",
     "-c",
     'approval_policy="never"',
@@ -624,7 +694,7 @@ async function startCodexRun(project, instruction) {
   await fs.mkdir(runsDir, { recursive: true });
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(path.join(runDir, "prompt.md"), prompt, "utf8");
-  await fs.writeFile(path.join(runDir, "run.ps1"), buildRunScript(project.path, runDir), "utf8");
+  await fs.writeFile(path.join(runDir, "run.ps1"), buildRunScript(project.path, runDir, codexExecutable), "utf8");
   await fs.writeFile(path.join(runDir, "output.log"), "", "utf8");
   await fs.writeFile(path.join(runDir, "stderr.log"), "", "utf8");
 
